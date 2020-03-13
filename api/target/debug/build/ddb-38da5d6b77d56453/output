@@ -1,0 +1,2 @@
+cargo:rustc-link-search=./api/src/apic/
+cargo:rustc-link-lib=wrapper

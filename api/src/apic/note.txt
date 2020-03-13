@@ -1,0 +1,5 @@
+﻿makefile path
+export path
+build.rs path    println!("cargo:rustc-link-search=./api-rust/src/api"); 
+.rust
+apic/libDolphinDBAPI.so
