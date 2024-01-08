@@ -7,7 +7,7 @@ use std::panic;
 use std::str;
 
 static HOST: &str = "127.0.0.1";
-static PORT: c_int = 1621;
+static PORT: c_int = 8848;
 static USER: &str = "admin";
 static PASS: &str = "123456";
 

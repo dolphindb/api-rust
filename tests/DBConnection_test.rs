@@ -8,7 +8,7 @@ use std::str;
 
 fn main() {}
 
-static TEST_HOST: &str = "localhost";
+static TEST_HOST: &str = "127.0.0.1";
 static TEST_PORT: libc::c_int = 8848;
 static TEST_USER: &str = "admin";
 static TEST_PASS: &str = "123456";

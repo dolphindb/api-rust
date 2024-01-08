@@ -8,8 +8,8 @@ use std::str;
 
 fn main() {}
 
-static test_host: &str = "localhost";
-static test_port: libc::c_int = 8848;
+static test_host: &str = "127.0.0.1";
+static test_port: libc::c_int = 28848;
 static test_user: &str = "admin";
 static test_pass: &str = "123456";
 
