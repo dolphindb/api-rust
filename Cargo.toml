@@ -1,0 +1,16 @@
+[package]
+name = "rust_api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.35.1", features = ["net", "io-util", "rt"] }
+bytes = { version = "1.5"}
+rand = "0.8"
+socket2 = "0.5"
+chrono = "0.4"
+rust_decimal = "1.33"
+byteorder = "1.5"
+ordered-float = "4.0"
