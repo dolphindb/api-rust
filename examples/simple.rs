@@ -18,7 +18,7 @@ fn main() {
 
     println!("connect");
 
-    let script = String::from("a = 1..10;\na;");
+    let script = String::from("print \"aaaa\";print(\"b\")\na = 1..10;\na;");
     let res = rt
         .block_on(async { client.run_script(script).await })
         .unwrap();

@@ -76,9 +76,10 @@ impl Request {
     pub(crate) fn new(session_id: Vec<u8>, info: RequestInfo) -> Self {
         use RequestInfo::*;
 
+        // TODO: API type??
         let api = match info {
-            RequestInfo::Connect(_) => ApiType::API1,
-            _ => ApiType::API2,
+            RequestInfo::Script(_) => ApiType::API2,
+            _ => ApiType::API1,
         };
 
         let header = RequestHeader::new(api, session_id);

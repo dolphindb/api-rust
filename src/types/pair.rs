@@ -95,13 +95,11 @@ impl TryFrom<VectorImpl> for PairImpl {
 
         let data_type = value.data_type();
         let mut s: Vec<ScalarImpl> = value.into();
-        let mut p = PairImpl::default();
-
-        p.first = s.pop().unwrap();
-        p.second = s.pop().unwrap();
-        p.data_type = data_type;
-
-        Ok(p)
+        Ok(PairImpl {
+            first: s.pop().unwrap(),
+            second: s.pop().unwrap(),
+            data_type,
+        })
     }
 }
 

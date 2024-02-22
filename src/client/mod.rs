@@ -31,7 +31,7 @@ impl Client {
         }
 
         self.conn.write_all(&buf).await?;
-        self.conn.flush().await?;
+        self.conn.flush().await?; // ? when to flush
 
         buf.clear();
 
@@ -50,9 +50,11 @@ impl Client {
 
     pub async fn run_script(&mut self, script: String) -> Result<Vec<ConstantImpl>> {
         let info = ScriptInfo::new(script);
+        #[cfg(feature = "debug_pr")]
         println!("info: {:?}", info);
 
         let req = Request::new(self.session_id.clone(), RequestInfo::Script(info));
+        #[cfg(feature = "debug_pr")]
         println!("request: {:?}", req);
 
         self.run(req).await
@@ -74,9 +76,11 @@ impl Client {
         variables: HashMap<String, ConstantImpl>,
     ) -> Result<Vec<ConstantImpl>> {
         let info = UploadInfo::new(variables, self.endian);
+        #[cfg(feature = "debug_pr")]
         println!("info: {:?}", info);
 
         let req = Request::new(self.session_id.clone(), RequestInfo::Upload(info));
+        #[cfg(feature = "debug_pr")]
         println!("request: {:?}", req);
 
         self.run(req).await

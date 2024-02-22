@@ -25,10 +25,12 @@ impl Deserialize for Response {
     {
         self.header.deserialize(reader).await?;
 
+        #[cfg(feature = "debug_pr")]
         println!("header: {:?}", self.header);
 
         self.res.deserialize(reader).await?;
 
+        #[cfg(feature = "debug_pr")]
         println!("response string: {:?}", self.res);
 
         for _ in 0..self.header.counts {

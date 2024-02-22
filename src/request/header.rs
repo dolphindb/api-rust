@@ -40,7 +40,6 @@ impl Serialize for RequestHeader {
         buffer.put_u8(b' ');
 
         buffer.put(&self.session_id[..]);
-
         buffer.put_u8(b' ');
 
         Ok(0)

@@ -175,6 +175,7 @@ macro_rules! dispatch_deserialize {
 
                 let (data_type, data_form) = type_form;
 
+                #[cfg(feature = "debug_pr")]
                 println!("data type: {}, data form: {}", data_type, data_form);
 
                 *self = Self::from_category(data_type, data_form)
@@ -196,6 +197,7 @@ macro_rules! dispatch_deserialize {
 
                 let (data_type, data_form) = type_form;
 
+                #[cfg(feature = "debug_pr")]
                 println!("data type: {}, data form: {}", data_type, data_form);
 
                 *self = Self::from_category(data_type, data_form)
