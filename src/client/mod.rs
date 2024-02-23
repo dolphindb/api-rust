@@ -1,18 +1,24 @@
-mod builder;
-mod request_info;
 use bytes::BytesMut;
-pub(crate) use request_info::*;
-use std::collections::HashMap;
-use std::io::{Error, ErrorKind, Result};
-use tokio::io::{AsyncWriteExt, BufReader};
-use tokio::net::TcpStream;
-
-pub use builder::ClientBuilder;
+use std::{
+    collections::HashMap,
+    io::{Error, ErrorKind, Result},
+};
+use tokio::{
+    io::{AsyncWriteExt, BufReader},
+    net::TcpStream,
+};
 
 use crate::{
     request::Request, response::Response, types::ConstantImpl, Deserialize, Endian, Serialize,
 };
 
+mod builder;
+mod request_info;
+
+pub use builder::ClientBuilder;
+pub(crate) use request_info::*;
+
+/// The connected client
 pub struct Client {
     session_id: Vec<u8>,
     conn: TcpStream,
@@ -48,6 +54,7 @@ impl Client {
         Ok(resp.data)
     }
 
+    /// Execute the script
     pub async fn run_script(&mut self, script: String) -> Result<Vec<ConstantImpl>> {
         let info = ScriptInfo::new(script);
         #[cfg(feature = "debug_pr")]
@@ -60,6 +67,7 @@ impl Client {
         self.run(req).await
     }
 
+    /// Execute the function
     pub async fn run_function(
         &mut self,
         function: String,
@@ -71,6 +79,7 @@ impl Client {
         self.run(req).await
     }
 
+    /// Upload data to server
     pub async fn upload(
         &mut self,
         variables: HashMap<String, ConstantImpl>,

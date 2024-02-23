@@ -6,16 +6,14 @@ use rust_api::{
 };
 
 fn main() {
-    let mut builder = ClientBuilder::new("127.0.0.1:8848").unwrap();
+    let mut builder = ClientBuilder::new("127.0.0.1:8848");
     builder.with_auth(("admin", "123456"));
 
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .unwrap();
-
     let mut client = rt.block_on(async move { builder.connect().await }).unwrap();
-
     println!("connect");
 
     let script = String::from("print \"aaaa\";print(\"b\")\na = 1..10;\na;");

@@ -1,18 +1,17 @@
-use super::request_info::{ConnectInfo, RequestInfo};
-use super::Client;
-use crate::request::Request;
-use crate::response::Response;
-use crate::{Deserialize, Serialize};
 use bytes::BytesMut;
-use std::io::ErrorKind;
-use std::time::Duration;
-use std::{
-    borrow::Borrow,
-    io::{Error, Result},
+use std::{borrow::Borrow, io, time::Duration};
+use tokio::{
+    io::{AsyncWriteExt, BufReader},
+    net::{TcpStream, ToSocketAddrs},
 };
-use tokio::io::{AsyncWriteExt, BufReader};
-use tokio::net::{TcpStream, ToSocketAddrs};
 
+use super::{
+    request_info::{ConnectInfo, RequestInfo},
+    Client,
+};
+use crate::{request::Request, response::Response, Deserialize, Serialize};
+
+/// Used to construct a Client
 pub struct ClientBuilder<A: ToSocketAddrs> {
     host: A,
     ssl: bool,
@@ -20,52 +19,49 @@ pub struct ClientBuilder<A: ToSocketAddrs> {
 }
 
 impl<A: ToSocketAddrs> ClientBuilder<A> {
-    pub fn new(host: A) -> Result<Self> {
-        Ok(Self {
+    /// Construct a ClientBuilder
+    pub fn new(host: A) -> Self {
+        Self {
             host,
             ssl: false,
             auth: None,
-        })
-    }
-
-    pub fn with_auth(&mut self, auth: (impl Into<String>, impl Into<String>)) {
-        self.auth = Some((auth.0.into(), auth.1.into()));
-    }
-
-    pub fn with_ssl(&mut self, ssl: bool) {
-        self.ssl = ssl;
-    }
-
-    pub async fn connect(self) -> Result<Client> {
-        let mut conn = TcpStream::connect(self.host.borrow()).await?;
-
-        {
-            let socket_ref = socket2::SockRef::from(&conn);
-
-            let keepalive = socket2::TcpKeepalive::new()
-                .with_time(Duration::from_secs(5))
-                .with_interval(Duration::from_secs(1));
-
-            let _ = socket_ref.set_tcp_keepalive(&keepalive);
         }
+    }
 
-        let info = ConnectInfo::new(self.ssl, self.auth.clone());
-        let request = Request::new(vec![b'0'], RequestInfo::Connect(info));
+    /// Set authentication information
+    pub fn with_auth<U: Into<String>, P: Into<String>>(&mut self, auth: (U, P)) -> &mut Self {
+        self.auth = Some((auth.0.into(), auth.1.into()));
+        self
+    }
+
+    /// Set ssl config
+    pub fn with_ssl(&mut self, ssl: bool) -> &mut Self {
+        self.ssl = ssl;
+        self
+    }
+
+    /// Establish a connection
+    pub async fn connect(&self) -> io::Result<Client> {
+        let mut conn = TcpStream::connect(self.host.borrow()).await?;
+        socket2::SockRef::from(&conn).set_tcp_keepalive(
+            &socket2::TcpKeepalive::new()
+                .with_time(Duration::from_secs(5))
+                .with_interval(Duration::from_secs(1)),
+        )?;
 
         let mut buf = BytesMut::new();
-        request
-            .serialize(&mut buf)
-            .map_err(|_| Error::from(ErrorKind::InvalidData))?;
-
+        Request::new(
+            vec![b'0'],
+            RequestInfo::Connect(ConnectInfo::new(self.ssl, self.auth.clone())),
+        )
+        .serialize(&mut buf)
+        .map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?;
         conn.write_all(&buf).await?;
-
-        buf.clear();
-
-        let mut reader = BufReader::new(&mut conn);
+        // TODO：modify serialize to return io::Error type
 
         let mut resp = Response::default();
+        let mut reader = BufReader::new(&mut conn);
         resp.deserialize(&mut reader).await?;
-
         Ok(Client {
             session_id: resp.header.session_id,
             conn,
