@@ -148,24 +148,24 @@ Enumerate some common Constant types server defined in `ConstantKind`.
 pub enum ConstantKind {
     Scalar(ScalarKind),
     Vector(VectorKind),
-    Pair(PairKind),
-    Dictionary(DictionaryKind),
-    Set(SetKind),
+    Pair(Pair),
+    Dictionary(Dictionary),
+    Set(Set),
 }
 ```
 
-It's a shame that `PairKind` must allocate at heap or there is recursive definition. It's OK to store different types of data inside `PairKind`, so trivial, common sense and deeply rooted in programmers' hearts, but deviated from DolphinDB's implementation, which only supports store the same type data together.
+It's a shame that `Pair` must allocate at heap or there is recursive definition. It's OK to store different types of data inside `Pair`, so trivial, common sense and deeply rooted in programmers' hearts, but deviated from DolphinDB's implementation, which only supports store the same type data together.
 
 ```rust
-pub type PairKind = Box<(ConstantKind, ConstantKind)>;
+pub type Pair = Box<(ConstantKind, ConstantKind)>;
 ```
 
-`DictionaryKind` and `SetKind` directly exploit std functionalities of `HashMap` and `HashSet`. Again, DolphinDB's implementation only support all keys are the same but Rust API type system allows arbitrary key types.
+`Dictionary` and `Set` directly exploit std functionalities of `HashMap` and `HashSet`. Again, DolphinDB's implementation only support all keys are the same but Rust API type system allows arbitrary key types.
 
 ```rust
-pub type DictionaryKind = HashMap<ConstantKind, ConstantKind>;
+pub type Dictionary = HashMap<ConstantKind, ConstantKind>;
 
-pub type SetKind =  HashSet<ConstantKind>;
+pub type Set =  HashSet<ConstantKind>;
 ```
 
 #### To Do

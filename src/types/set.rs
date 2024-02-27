@@ -8,9 +8,9 @@ use crate::{Deserialize, Serialize};
 
 use super::{constant::Constant, ScalarKind, VectorKind};
 
-pub type SetKind = HashSet<ScalarKind>;
+pub type Set = HashSet<ScalarKind>;
 
-impl Constant for SetKind {
+impl Constant for Set {
     fn data_category(&self) -> u8 {
         4
     }
@@ -24,19 +24,19 @@ impl Constant for SetKind {
     }
 }
 
-impl From<VectorKind> for SetKind {
+impl From<VectorKind> for Set {
     fn from(value: VectorKind) -> Self {
         let s: Vec<ScalarKind> = value.into();
         s.into_iter().collect::<HashSet<_>>()
     }
 }
 
-pub(crate) fn set_keys(set: &SetKind) -> Result<VectorKind, ()> {
+pub(crate) fn set_keys(set: &Set) -> Result<VectorKind, ()> {
     let keys = set.iter().cloned().collect::<Vec<_>>();
     keys.try_into()
 }
 
-impl Serialize for SetKind {
+impl Serialize for Set {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
         B: bytes::BufMut,
@@ -64,7 +64,7 @@ impl Serialize for SetKind {
     }
 }
 
-impl Deserialize for SetKind {
+impl Deserialize for Set {
     async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
     where
         R: AsyncBufReadExt + Unpin,

@@ -1,17 +1,16 @@
-mod body;
-mod header;
+use bytes::BufMut;
+use std::io::Write;
 
-use self::body::{FunctionRequest, ScriptRequest, UploadRequest};
-
-use super::client::RequestInfo;
 use crate::{
+    client::RequestInfo,
     request::{body::ConnectRequest, header::ApiType},
     Serialize,
 };
-use body::RequestBody;
-use bytes::BufMut;
+use body::{FunctionRequest, RequestBody, ScriptRequest, UploadRequest};
 use header::RequestHeader;
-use std::io::Write;
+
+mod body;
+mod header;
 
 #[derive(Debug)]
 pub struct BehaviorOptions {
@@ -31,10 +30,8 @@ impl Default for BehaviorOptions {
 }
 
 impl Serialize for BehaviorOptions {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
+        // TODO don't return ()
         let mut writer = buffer.writer();
         write!(
             &mut writer,
@@ -48,12 +45,12 @@ impl Serialize for BehaviorOptions {
         if self.fetch_size > 0 {
             write!(&mut writer, "__{}", self.fetch_size).unwrap();
         }
-
         Ok(0)
     }
 }
 
 impl BehaviorOptions {
+    // TODO
     #[allow(unused)]
     pub fn set_priority(&mut self, priority: i32) {
         self.priority = priority;
@@ -83,7 +80,6 @@ impl Request {
         };
 
         let header = RequestHeader::new(api, session_id);
-
         let body = match info {
             Connect(info) => RequestBody::Connect(ConnectRequest::new(info.auth, info.ssl)),
             Script(info) => RequestBody::Script(ScriptRequest::new(info.script)),
@@ -102,15 +98,10 @@ impl Request {
 }
 
 impl Serialize for Request {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         self.header.serialize(buffer)?;
 
-        let mut payload = bytes::BytesMut::new();
-
-        // It's strange that payload length is encoded in `String`.
+        let mut payload = bytes::BytesMut::new(); // TODO: no need to create a new one?
         let len = self.body.serialize(&mut payload)?;
         if len > 0 {
             buffer.put(len.to_string().as_bytes());
@@ -118,28 +109,20 @@ impl Serialize for Request {
             buffer.put(payload.len().to_string().as_bytes());
         }
 
-        // 😿
         match self.body {
             RequestBody::Upload(_) => 0,
             _ => self.option.serialize(buffer)?,
         };
-
         buffer.put_u8(b'\n');
 
         buffer.put(&payload[..]);
-
         Ok(0)
     }
 
-    fn serialize_le<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize_le<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         self.header.serialize_le(buffer)?;
 
         let mut payload = bytes::BytesMut::new();
-
-        // It's strange that payload length is encoded in `String`.
         let len = self.body.serialize_le(&mut payload)?;
         if len > 0 {
             buffer.put(len.to_string().as_bytes());
@@ -147,16 +130,13 @@ impl Serialize for Request {
             buffer.put(payload.len().to_string().as_bytes());
         }
 
-        // 😿
         match self.body {
             RequestBody::Upload(_) => 0,
             _ => self.option.serialize_le(buffer)?,
         };
-
         buffer.put_u8(b'\n');
 
         buffer.put(&payload[..]);
-
         Ok(0)
     }
 }

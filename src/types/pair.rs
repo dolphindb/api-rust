@@ -6,16 +6,16 @@ use super::{constant::Constant, scalar::ScalarKind, VectorKind};
 
 use tokio::io::AsyncBufReadExt;
 
-// pub type PairKind = (ScalarKind, ScalarKind);
+// pub type Pair = (ScalarKind, ScalarKind);
 
 #[derive(Debug, Clone, Default)]
-pub struct PairKind {
+pub struct Pair {
     first: ScalarKind,
     second: ScalarKind,
     data_type: u8,
 }
 
-impl PairKind {
+impl Pair {
     pub const FORM_BYTE: u8 = 1;
 
     pub fn new(pair: (ScalarKind, ScalarKind)) -> Self {
@@ -58,7 +58,7 @@ impl PairKind {
     }
 }
 
-impl Constant for PairKind {
+impl Constant for Pair {
     fn data_category(&self) -> u8 {
         Self::FORM_BYTE
     }
@@ -72,10 +72,10 @@ impl Constant for PairKind {
     }
 }
 
-impl TryFrom<PairKind> for VectorKind {
+impl TryFrom<Pair> for VectorKind {
     type Error = ();
 
-    fn try_from(value: PairKind) -> Result<Self, Self::Error> {
+    fn try_from(value: Pair) -> Result<Self, Self::Error> {
         if value.first.data_type() != value.second.data_type() {
             Err(())
         } else {
@@ -85,7 +85,7 @@ impl TryFrom<PairKind> for VectorKind {
     }
 }
 
-impl TryFrom<VectorKind> for PairKind {
+impl TryFrom<VectorKind> for Pair {
     type Error = ();
 
     fn try_from(value: VectorKind) -> Result<Self, Self::Error> {
@@ -95,7 +95,7 @@ impl TryFrom<VectorKind> for PairKind {
 
         let data_type = value.data_type();
         let mut s: Vec<ScalarKind> = value.into();
-        Ok(PairKind {
+        Ok(Pair {
             first: s.pop().unwrap(),
             second: s.pop().unwrap(),
             data_type,
@@ -103,7 +103,7 @@ impl TryFrom<VectorKind> for PairKind {
     }
 }
 
-impl Serialize for PairKind {
+impl Serialize for Pair {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
         B: bytes::BufMut,
@@ -133,7 +133,7 @@ impl Serialize for PairKind {
     }
 }
 
-impl Deserialize for PairKind {
+impl Deserialize for Pair {
     async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
     where
         R: AsyncBufReadExt + Unpin,

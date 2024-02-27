@@ -2,15 +2,13 @@ use std::{
     collections::{HashMap, HashSet},
     io::{Error, ErrorKind},
 };
-
-use crate::{Deserialize, Serialize};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::{
-    dictionary::DictionaryKind, pair::PairKind, scalar::ScalarKind, set::SetKind,
-    vector::VectorKind, Short, Vector,
+    dictionary::Dictionary, pair::Pair, scalar::ScalarKind, set::Set, vector::VectorKind, Short,
+    Vector,
 };
-
-use tokio::io::{AsyncBufReadExt, AsyncReadExt};
+use crate::{Deserialize, Serialize};
 
 pub trait Constant: Send + Sync + Clone {
     /// data category identifier for serialization.
@@ -26,9 +24,9 @@ pub trait Constant: Send + Sync + Clone {
 pub enum ConstantKind {
     Scalar(ScalarKind),
     Vector(VectorKind),
-    Pair(PairKind),
-    Dictionary(DictionaryKind),
-    Set(SetKind),
+    Pair(Pair),
+    Dictionary(Dictionary),
+    Set(Set),
 }
 
 impl Default for ConstantKind {
@@ -42,7 +40,7 @@ impl ConstantKind {
         match data_form {
             0 => ScalarKind::from_type(data_type).map(Self::Scalar),
             1 => VectorKind::from_type(data_type).map(Self::Vector),
-            2 => PairKind::from_type(data_type).map(Self::Pair),
+            2 => Pair::from_type(data_type).map(Self::Pair),
             4 => Some(Self::Set(HashSet::new())),
             5 => Some(Self::Dictionary(HashMap::new())),
             _ => None,
@@ -218,9 +216,9 @@ macro_rules! for_all_constants {
         $macro!(
             (Scalar, ScalarKind),
             (Vector, VectorKind),
-            (Pair, PairKind),
-            (Set, SetKind),
-            (Dictionary, DictionaryKind)
+            (Pair, Pair),
+            (Set, Set),
+            (Dictionary, Dictionary)
         );
     };
 }

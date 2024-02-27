@@ -10,9 +10,9 @@ use super::{
     VectorKind,
 };
 
-pub type DictionaryKind = HashMap<ScalarKind, ConstantKind>;
+pub type Dictionary = HashMap<ScalarKind, ConstantKind>;
 
-impl Constant for DictionaryKind {
+impl Constant for Dictionary {
     fn data_category(&self) -> u8 {
         5
     }
@@ -26,17 +26,17 @@ impl Constant for DictionaryKind {
     }
 }
 
-pub(crate) fn dictionary_keys(dict: &DictionaryKind) -> Result<VectorKind, ()> {
+pub(crate) fn dictionary_keys(dict: &Dictionary) -> Result<VectorKind, ()> {
     let keys = dict.iter().map(|(k, _v)| k.clone()).collect::<Vec<_>>();
     keys.try_into()
 }
 
-pub(crate) fn dictionary_values(dict: &DictionaryKind) -> Result<VectorKind, ()> {
+pub(crate) fn dictionary_values(dict: &Dictionary) -> Result<VectorKind, ()> {
     let values = dict.iter().map(|(_k, v)| v.clone()).collect::<Vec<_>>();
     values.try_into()
 }
 
-pub(crate) fn from_vectors(keys: VectorKind, values: VectorKind) -> Result<DictionaryKind, ()> {
+pub(crate) fn from_vectors(keys: VectorKind, values: VectorKind) -> Result<Dictionary, ()> {
     let keys: Vec<ScalarKind> = keys.into();
     let values: Vec<ScalarKind> = values.into();
 
@@ -52,7 +52,7 @@ pub(crate) fn from_vectors(keys: VectorKind, values: VectorKind) -> Result<Dicti
     Ok(dict)
 }
 
-impl Serialize for DictionaryKind {
+impl Serialize for Dictionary {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
         B: bytes::BufMut,
@@ -84,7 +84,7 @@ impl Serialize for DictionaryKind {
     }
 }
 
-impl Deserialize for DictionaryKind {
+impl Deserialize for Dictionary {
     async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
     where
         R: AsyncBufReadExt + Unpin,
