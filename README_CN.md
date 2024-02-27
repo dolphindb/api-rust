@@ -53,6 +53,7 @@ impl<A: ToSocketAddrs> ClientBuilder<A> {
 参数：
 
 - `auth`: 一个包含用户名和密码的元组，其中用户名和密码都可以被转换成 `String` 类型。
+<!-- TODO 直接改成 String 行了，Into 用不着 -->
 
 返回值：返回 `ClientBuilder` 实例的可变引用。
 
@@ -97,6 +98,7 @@ impl Client {
     pub async fn run_script(&mut self, script: String) -> Result<Vec<ConstantImpl>>
 }
 ```
+<!-- 拿走所有权吗？ -->
 
 作用：执行给定的脚本。
 
@@ -117,6 +119,7 @@ impl Client {
     ) -> Result<Vec<ConstantImpl>>
 }
 ```
+<!-- 拿走所有权吗？ -->
 
 作用：执行指定的函数。
 
@@ -137,6 +140,7 @@ impl Client {
     ) -> Result<Vec<ConstantImpl>>
 }
 ```
+<!-- 拿走所有权吗？ -->
 
 作用：上传数据到服务器。
 

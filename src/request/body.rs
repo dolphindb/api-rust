@@ -1,7 +1,7 @@
-use crate::{types::ConstantKind, Endian, Serialize};
-
 use bytes::BufMut;
 use std::collections::HashMap;
+
+use crate::{types::ConstantKind, Endian, Serialize};
 
 #[derive(Debug)]
 pub(crate) enum RequestBody {
@@ -12,10 +12,7 @@ pub(crate) enum RequestBody {
 }
 
 impl Serialize for RequestBody {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         match self {
             RequestBody::Connect(request) => request.serialize(buffer),
             RequestBody::Function(request) => request.serialize(buffer),
@@ -24,10 +21,7 @@ impl Serialize for RequestBody {
         }
     }
 
-    fn serialize_le<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize_le<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         match self {
             RequestBody::Connect(request) => request.serialize_le(buffer),
             RequestBody::Function(request) => request.serialize_le(buffer),
@@ -50,21 +44,15 @@ impl ConnectRequest {
 }
 
 impl Serialize for ConnectRequest {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         buffer.put(&b"connect\n"[..]);
-
         if self.ssl {
             return Ok(0);
         }
 
         if let Some((ref user, ref pwd)) = self.login_info {
-            let login_string = format!("login\n{}\n{}\nfalse", user, pwd);
-            buffer.put(login_string.as_bytes());
-        }
-
+            buffer.put(format!("login\n{}\n{}\nfalse", user, pwd).as_bytes());
+        } // TODO: else?
         Ok(0)
     }
 }
@@ -76,19 +64,15 @@ pub(super) struct ScriptRequest {
 
 impl ScriptRequest {
     pub(super) fn new(script: String) -> Self {
+        // TODO: borrow
         Self { script }
     }
 }
 
 impl Serialize for ScriptRequest {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         buffer.put(&b"script\n"[..]);
-
         buffer.put(self.script.as_bytes());
-
         Ok(0)
     }
 }
@@ -102,6 +86,7 @@ pub(super) struct FunctionRequest {
 
 impl FunctionRequest {
     pub(super) fn new(function: String, args: Vec<ConstantKind>, endian: Endian) -> Self {
+        // TODO: use Borrow
         Self {
             function,
             args,
@@ -109,13 +94,8 @@ impl FunctionRequest {
         }
     }
 
-    // serialize command information that don't care about endianness.
-    fn serialize_command<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize_command<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         buffer.put(&b"function\n"[..]);
-
         buffer.put(self.function.as_bytes());
         buffer.put_u8(b'\n');
 
@@ -125,36 +105,22 @@ impl FunctionRequest {
         self.endian.serialize(buffer)?;
         buffer.put_u8(b'\n');
 
-        Ok("function\n".len()
-            + self.function.len()
-            + 1
-            + self.args.len().to_string().len()
-            + 1
-            + 1 // endian
-            + 1)
+        Ok("function\n".len() + self.function.len() + self.args.len().to_string().len() + 4)
     }
 }
 
 impl Serialize for FunctionRequest {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         let res = self.serialize_command(buffer)?;
-
         for arg in self.args.iter() {
             arg.serialize(buffer)?;
         }
-
-        Ok(res)
+        Ok(res) // TOOD: why?
     }
 
-    fn serialize_le<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize_le<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
+        // TODO
         let res = self.serialize_command(buffer)?;
-
         for arg in self.args.iter() {
             arg.serialize_le(buffer)?;
         }
@@ -171,11 +137,14 @@ pub(super) struct UploadRequest {
 
 impl UploadRequest {
     pub(super) fn new(variables: HashMap<String, ConstantKind>, endian: Endian) -> Self {
+        // TODO: use borrow
         Self { variables, endian }
     }
 
     // split hash-base variables into comma-split name string and Constants in Vec.
     fn split_variables(&self) -> (String, Vec<ConstantKind>) {
+        // TODO: use keys and values instead of iter
+        // TODO: advance split so no need split everytime
         let maps = self
             .variables
             .iter()
@@ -192,17 +161,16 @@ impl UploadRequest {
             .into_iter()
             .map(|variable| variable.1)
             .collect::<Vec<_>>();
-
         (names, variables)
     }
 
-    // serialize command information that don't care about endianness.
-    fn serialize_command<B>(&self, names: String, len: usize, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize_command<B: BufMut>(
+        &self,
+        names: String,
+        len: usize,
+        buffer: &mut B,
+    ) -> Result<usize, ()> {
         buffer.put(&b"variable\n"[..]);
-
         buffer.put(names.as_bytes());
         buffer.put_u8(b'\n');
 
@@ -211,39 +179,27 @@ impl UploadRequest {
 
         self.endian.serialize(buffer)?;
         buffer.put_u8(b'\n');
-
-        Ok("variable\n".len() + names.len() + 1 + len.to_string().len() + 1 + 1 + 1)
+        Ok("variable\n".len() + names.len() + len.to_string().len() + 4)
     }
 }
 
 impl Serialize for UploadRequest {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         let (names, variables) = self.split_variables();
-
         let res = self.serialize_command(names, variables.len(), buffer)?;
-
         for arg in variables {
             arg.serialize(buffer)?;
         }
-
         Ok(res)
     }
 
-    fn serialize_le<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize_le<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
+        // TODO
         let (names, variables) = self.split_variables();
-
         let res = self.serialize_command(names, variables.len(), buffer)?;
-
         for arg in variables {
             arg.serialize_le(buffer)?;
         }
-
         Ok(res)
     }
 }

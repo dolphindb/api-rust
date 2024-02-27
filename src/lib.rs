@@ -9,6 +9,7 @@ pub mod types;
 pub(crate) trait Serialize {
     /// serialize data to buffer, may return length that should be written into commandLength field
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
+    // TODO: why return usize? and why use () as Error?
     where
         B: BufMut;
 

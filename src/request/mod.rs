@@ -1,17 +1,16 @@
-mod body;
-mod header;
+use bytes::BufMut;
+use std::io::Write;
 
-use self::body::{FunctionRequest, ScriptRequest, UploadRequest};
-
-use super::client::RequestInfo;
 use crate::{
+    client::RequestInfo,
     request::{body::ConnectRequest, header::ApiType},
     Serialize,
 };
-use body::RequestBody;
-use bytes::BufMut;
+use body::{FunctionRequest, RequestBody, ScriptRequest, UploadRequest};
 use header::RequestHeader;
-use std::io::Write;
+
+mod body;
+mod header;
 
 #[derive(Debug)]
 pub struct BehaviorOptions {
@@ -31,10 +30,8 @@ impl Default for BehaviorOptions {
 }
 
 impl Serialize for BehaviorOptions {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
+        // TODO
         let mut writer = buffer.writer();
         write!(
             &mut writer,
@@ -48,12 +45,12 @@ impl Serialize for BehaviorOptions {
         if self.fetch_size > 0 {
             write!(&mut writer, "__{}", self.fetch_size).unwrap();
         }
-
         Ok(0)
     }
 }
 
 impl BehaviorOptions {
+    // TODO: ??
     #[allow(unused)]
     pub fn set_priority(&mut self, priority: i32) {
         self.priority = priority;
@@ -102,6 +99,7 @@ impl Request {
 }
 
 impl Serialize for Request {
+    // big end serialize
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
         B: BufMut,
@@ -131,6 +129,7 @@ impl Serialize for Request {
         Ok(0)
     }
 
+    // little end serialize
     fn serialize_le<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
         B: BufMut,

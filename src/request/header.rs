@@ -1,6 +1,5 @@
-use std::fmt::{self, Display, Formatter};
-
 use bytes::BufMut;
+use std::fmt::{self, Display, Formatter};
 
 use super::Serialize;
 
@@ -22,7 +21,7 @@ impl Display for ApiType {
 #[derive(Debug)]
 pub(crate) struct RequestHeader {
     api: ApiType,
-    session_id: Vec<u8>, // unspecified length in API document
+    session_id: Vec<u8>,
 }
 
 impl RequestHeader {
@@ -32,16 +31,12 @@ impl RequestHeader {
 }
 
 impl Serialize for RequestHeader {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         buffer.put(self.api.to_string().as_bytes());
         buffer.put_u8(b' ');
 
         buffer.put(&self.session_id[..]);
         buffer.put_u8(b' ');
-
         Ok(0)
     }
 }

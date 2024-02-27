@@ -2,15 +2,13 @@ use std::{
     collections::{HashMap, HashSet},
     io::{Error, ErrorKind},
 };
-
-use crate::{Deserialize, Serialize};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::{
     dictionary::DictionaryKind, pair::PairKind, scalar::ScalarKind, set::SetKind,
     vector::VectorKind, Short, Vector,
 };
-
-use tokio::io::{AsyncBufReadExt, AsyncReadExt};
+use crate::{Deserialize, Serialize};
 
 pub trait Constant: Send + Sync + Clone {
     /// data category identifier for serialization.
