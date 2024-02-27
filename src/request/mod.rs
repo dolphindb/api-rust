@@ -80,7 +80,6 @@ impl Request {
         };
 
         let header = RequestHeader::new(api, session_id);
-
         let body = match info {
             Connect(info) => RequestBody::Connect(ConnectRequest::new(info.auth, info.ssl)),
             Script(info) => RequestBody::Script(ScriptRequest::new(info.script)),
@@ -99,16 +98,10 @@ impl Request {
 }
 
 impl Serialize for Request {
-    // big end serialize
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
         self.header.serialize(buffer)?;
 
-        let mut payload = bytes::BytesMut::new();
-
-        // It's strange that payload length is encoded in `String`.
+        let mut payload = bytes::BytesMut::new(); // TODO: no need to create a new one?
         let len = self.body.serialize(&mut payload)?;
         if len > 0 {
             buffer.put(len.to_string().as_bytes());
@@ -116,29 +109,21 @@ impl Serialize for Request {
             buffer.put(payload.len().to_string().as_bytes());
         }
 
-        // 😿
         match self.body {
             RequestBody::Upload(_) => 0,
             _ => self.option.serialize(buffer)?,
         };
-
         buffer.put_u8(b'\n');
 
         buffer.put(&payload[..]);
-
         Ok(0)
     }
 
-    // little end serialize
-    fn serialize_le<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: BufMut,
-    {
+    fn serialize_le<B: BufMut>(&self, buffer: &mut B) -> Result<usize, ()> {
+        // todo
         self.header.serialize_le(buffer)?;
 
         let mut payload = bytes::BytesMut::new();
-
-        // It's strange that payload length is encoded in `String`.
         let len = self.body.serialize_le(&mut payload)?;
         if len > 0 {
             buffer.put(len.to_string().as_bytes());
@@ -146,16 +131,13 @@ impl Serialize for Request {
             buffer.put(payload.len().to_string().as_bytes());
         }
 
-        // 😿
         match self.body {
             RequestBody::Upload(_) => 0,
             _ => self.option.serialize_le(buffer)?,
         };
-
         buffer.put_u8(b'\n');
 
         buffer.put(&payload[..]);
-
         Ok(0)
     }
 }
