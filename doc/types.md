@@ -23,10 +23,10 @@ pub trait Scalar: Send + Sync + Clone + Debug + Default + PartialEq + PartialOrd
 }
 ```
 
-Enumerate all scalar types server defined in `ScalarImpl`. All raw types are wrapped with `Option` to avoid having to deal with annoying null value every time. Besides, temporal types are stored as `chrono::NativeDateTime` or `chrono::NativeTime` instead of raw `i32` and `i64`. In the same way, Decimal types are handled by excellent `rust_decimal`.
+Enumerate all scalar types server defined in `ScalarKind`. All raw types are wrapped with `Option` to avoid having to deal with annoying null value every time. Besides, temporal types are stored as `chrono::NativeDateTime` or `chrono::NativeTime` instead of raw `i32` and `i64`. In the same way, Decimal types are handled by excellent `rust_decimal`.
 
 ```rust
-pub enum ScalarImpl {
+pub enum ScalarKind {
     Void,
     Bool(Bool),
     Char(Char),
@@ -112,10 +112,10 @@ impl<S: Scalar> Vector<S> {
 }
 ```
 
-Enumerate some Vector types server defined in `VectorImpl`.  `Any Vector` and `Array Vector` are not implemented because I can't figure out how to serialize them.
+Enumerate some Vector types server defined in `VectorKind`.  `Any Vector` and `Array Vector` are not implemented because I can't figure out how to serialize them.
 
 ```rust
-pub enum VectorImpl {
+pub enum VectorKind {
     Void(Vector<()>),
     Bool(Vector<Bool>),
     Char(Vector<Char>),
@@ -142,30 +142,30 @@ pub trait Constant: Send + Sync + Clone {
 }
 ```
 
-Enumerate some common Constant types server defined in `ConstantImpl`.
+Enumerate some common Constant types server defined in `ConstantKind`.
 
 ```rust
-pub enum ConstantImpl {
-    Scalar(ScalarImpl),
-    Vector(VectorImpl),
-    Pair(PairImpl),
-    Dictionary(DictionaryImpl),
-    Set(SetImpl),
+pub enum ConstantKind {
+    Scalar(ScalarKind),
+    Vector(VectorKind),
+    Pair(PairKind),
+    Dictionary(DictionaryKind),
+    Set(SetKind),
 }
 ```
 
-It's a shame that `PairImpl` must allocate at heap or there is recursive definition. It's OK to store different types of data inside `PairImpl`, so trivial, common sense and deeply rooted in programmers' hearts, but deviated from DolphinDB's implementation, which only supports store the same type data together.
+It's a shame that `PairKind` must allocate at heap or there is recursive definition. It's OK to store different types of data inside `PairKind`, so trivial, common sense and deeply rooted in programmers' hearts, but deviated from DolphinDB's implementation, which only supports store the same type data together.
 
 ```rust
-pub type PairImpl = Box<(ConstantImpl, ConstantImpl)>;
+pub type PairKind = Box<(ConstantKind, ConstantKind)>;
 ```
 
-`DictionaryImpl` and `SetImpl` directly exploit std functionalities of `HashMap` and `HashSet`. Again, DolphinDB's implementation only support all keys are the same but Rust API type system allows arbitrary key types.
+`DictionaryKind` and `SetKind` directly exploit std functionalities of `HashMap` and `HashSet`. Again, DolphinDB's implementation only support all keys are the same but Rust API type system allows arbitrary key types.
 
 ```rust
-pub type DictionaryImpl = HashMap<ConstantImpl, ConstantImpl>;
+pub type DictionaryKind = HashMap<ConstantKind, ConstantKind>;
 
-pub type SetImpl =  HashSet<ConstantImpl>;
+pub type SetKind =  HashSet<ConstantKind>;
 ```
 
 #### To Do

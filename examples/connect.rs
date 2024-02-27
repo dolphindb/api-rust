@@ -1,6 +1,6 @@
 use rust_api::{
     client::ClientBuilder,
-    types::{ConstantImpl, Int, ScalarImpl},
+    types::{ConstantKind, Int, ScalarKind},
 };
 
 #[tokio::main]
@@ -15,7 +15,7 @@ async fn main() {
     let script = String::from("a = 1;a;");
     let res = client.run_script(script).await.unwrap();
     let value = match res.first() {
-        Some(ConstantImpl::Scalar(ScalarImpl::Int(i))) => *i,
+        Some(ConstantKind::Scalar(ScalarKind::Int(i))) => *i,
         _ => Int::new(None),
     };
     println!("a: {}", value.get().unwrap());

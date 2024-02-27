@@ -6,8 +6,8 @@ use std::{
 use crate::{Deserialize, Serialize};
 
 use super::{
-    dictionary::DictionaryImpl, pair::PairImpl, scalar::ScalarImpl, set::SetImpl,
-    vector::VectorImpl, Short, Vector,
+    dictionary::DictionaryKind, pair::PairKind, scalar::ScalarKind, set::SetKind,
+    vector::VectorKind, Short, Vector,
 };
 
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
@@ -23,26 +23,26 @@ pub trait Constant: Send + Sync + Clone {
 }
 
 #[derive(Debug, Clone)]
-pub enum ConstantImpl {
-    Scalar(ScalarImpl),
-    Vector(VectorImpl),
-    Pair(PairImpl),
-    Dictionary(DictionaryImpl),
-    Set(SetImpl),
+pub enum ConstantKind {
+    Scalar(ScalarKind),
+    Vector(VectorKind),
+    Pair(PairKind),
+    Dictionary(DictionaryKind),
+    Set(SetKind),
 }
 
-impl Default for ConstantImpl {
+impl Default for ConstantKind {
     fn default() -> Self {
-        Self::Scalar(ScalarImpl::Void)
+        Self::Scalar(ScalarKind::Void)
     }
 }
 
-impl ConstantImpl {
+impl ConstantKind {
     fn from_category(data_type: u8, data_form: u8) -> Option<Self> {
         match data_form {
-            0 => ScalarImpl::from_type(data_type).map(Self::Scalar),
-            1 => VectorImpl::from_type(data_type).map(Self::Vector),
-            2 => PairImpl::from_type(data_type).map(Self::Pair),
+            0 => ScalarKind::from_type(data_type).map(Self::Scalar),
+            1 => VectorKind::from_type(data_type).map(Self::Vector),
+            2 => PairKind::from_type(data_type).map(Self::Pair),
             4 => Some(Self::Set(HashSet::new())),
             5 => Some(Self::Dictionary(HashMap::new())),
             _ => None,
@@ -50,17 +50,17 @@ impl ConstantImpl {
     }
 }
 
-impl TryFrom<Vec<ConstantImpl>> for VectorImpl {
+impl TryFrom<Vec<ConstantKind>> for VectorKind {
     type Error = ();
 
-    fn try_from(value: Vec<ConstantImpl>) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<ConstantKind>) -> Result<Self, Self::Error> {
         if value.is_empty() {
-            return Ok(VectorImpl::Void(Vector::new()));
+            return Ok(VectorKind::Void(Vector::new()));
         }
 
         // todo(bureaucratic): any vector?
 
-        let scalars: Result<Vec<ScalarImpl>, ()> =
+        let scalars: Result<Vec<ScalarKind>, ()> =
             value.into_iter().map(|c| c.try_into()).collect();
         scalars?.try_into()
     }
@@ -110,18 +110,18 @@ impl Deserialize for (u8, u8) {
 
 macro_rules! try_from_impl {
     ($enum_name:ident, $struct_name:ident) => {
-        impl From<$struct_name> for ConstantImpl {
+        impl From<$struct_name> for ConstantKind {
             fn from(value: $struct_name) -> Self {
                 Self::$enum_name(value)
             }
         }
 
-        impl TryFrom<ConstantImpl> for $struct_name {
+        impl TryFrom<ConstantKind> for $struct_name {
             type Error = ();
 
-            fn try_from(value: ConstantImpl) -> Result<Self, Self::Error> {
+            fn try_from(value: ConstantKind) -> Result<Self, Self::Error> {
                 match value {
-                    ConstantImpl::$enum_name(value) => Ok(value),
+                    ConstantKind::$enum_name(value) => Ok(value),
                     _ => Err(()),
                 }
             }
@@ -137,7 +137,7 @@ macro_rules! try_from_impl {
 
 macro_rules! dispatch_serialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl Serialize for ConstantImpl {
+        impl Serialize for ConstantKind {
             fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
             where
                 B: bytes::BufMut,
@@ -165,7 +165,7 @@ macro_rules! dispatch_serialize {
 
 macro_rules! dispatch_deserialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl Deserialize for ConstantImpl {
+        impl Deserialize for ConstantKind {
             async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
             where
                 R: AsyncBufReadExt + Unpin,
@@ -216,11 +216,11 @@ macro_rules! dispatch_deserialize {
 macro_rules! for_all_constants {
     ($macro:tt) => {
         $macro!(
-            (Scalar, ScalarImpl),
-            (Vector, VectorImpl),
-            (Pair, PairImpl),
-            (Set, SetImpl),
-            (Dictionary, DictionaryImpl)
+            (Scalar, ScalarKind),
+            (Vector, VectorKind),
+            (Pair, PairKind),
+            (Set, SetKind),
+            (Dictionary, DictionaryKind)
         );
     };
 }

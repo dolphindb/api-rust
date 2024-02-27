@@ -1,4 +1,4 @@
-use crate::{types::ConstantImpl, Endian, Serialize};
+use crate::{types::ConstantKind, Endian, Serialize};
 
 use bytes::BufMut;
 use std::collections::HashMap;
@@ -96,12 +96,12 @@ impl Serialize for ScriptRequest {
 #[derive(Default, Debug)]
 pub(super) struct FunctionRequest {
     function: String,
-    args: Vec<ConstantImpl>,
+    args: Vec<ConstantKind>,
     endian: Endian,
 }
 
 impl FunctionRequest {
-    pub(super) fn new(function: String, args: Vec<ConstantImpl>, endian: Endian) -> Self {
+    pub(super) fn new(function: String, args: Vec<ConstantKind>, endian: Endian) -> Self {
         Self {
             function,
             args,
@@ -165,17 +165,17 @@ impl Serialize for FunctionRequest {
 
 #[derive(Default, Debug)]
 pub(super) struct UploadRequest {
-    variables: HashMap<String, ConstantImpl>,
+    variables: HashMap<String, ConstantKind>,
     endian: Endian,
 }
 
 impl UploadRequest {
-    pub(super) fn new(variables: HashMap<String, ConstantImpl>, endian: Endian) -> Self {
+    pub(super) fn new(variables: HashMap<String, ConstantKind>, endian: Endian) -> Self {
         Self { variables, endian }
     }
 
     // split hash-base variables into comma-split name string and Constants in Vec.
-    fn split_variables(&self) -> (String, Vec<ConstantImpl>) {
+    fn split_variables(&self) -> (String, Vec<ConstantKind>) {
         let maps = self
             .variables
             .iter()

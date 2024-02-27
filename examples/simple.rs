@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use rust_api::{
     client::ClientBuilder,
-    types::{Bool, ConstantImpl, DateHour, ScalarImpl, Vector, VectorImpl},
+    types::{Bool, ConstantKind, DateHour, ScalarKind, Vector, VectorKind},
 };
 
 fn main() {
@@ -27,15 +27,15 @@ fn main() {
     let mut variables = HashMap::new();
     variables.insert(
         "a".to_string(),
-        ConstantImpl::Scalar(ScalarImpl::Bool(Bool::new(Some(true)))),
+        ConstantKind::Scalar(ScalarKind::Bool(Bool::new(Some(true)))),
     );
 
     let mut map = HashMap::new();
     map.insert(
-        ScalarImpl::DateHour(DateHour::from_ymd_h(1970, 1, 1, 1)),
-        ConstantImpl::Scalar(ScalarImpl::Bool(Bool::new(None))),
+        ScalarKind::DateHour(DateHour::from_ymd_h(1970, 1, 1, 1)),
+        ConstantKind::Scalar(ScalarKind::Bool(Bool::new(None))),
     );
-    variables.insert("b".to_string(), ConstantImpl::Dictionary(map));
+    variables.insert("b".to_string(), ConstantKind::Dictionary(map));
     let res = rt
         .block_on(async { client.upload(variables).await })
         .unwrap();
@@ -51,7 +51,7 @@ fn main() {
         println!("{:?}", c);
     }
 
-    let v = VectorImpl::Decimal32(Vector::from_raw(&[
+    let v = VectorKind::Decimal32(Vector::from_raw(&[
         1.into(),
         2.into(),
         3.into(),
@@ -66,7 +66,7 @@ fn main() {
     let res = rt
         .block_on(async {
             client
-                .run_function(func, vec![ConstantImpl::Vector(v)])
+                .run_function(func, vec![ConstantKind::Vector(v)])
                 .await
         })
         .unwrap();

@@ -9,7 +9,7 @@ use tokio::{
 };
 
 use crate::{
-    request::Request, response::Response, types::ConstantImpl, Deserialize, Endian, Serialize,
+    request::Request, response::Response, types::ConstantKind, Deserialize, Endian, Serialize,
 };
 
 mod builder;
@@ -26,7 +26,7 @@ pub struct Client {
 }
 
 impl Client {
-    async fn run(&mut self, req: Request) -> Result<Vec<ConstantImpl>> {
+    async fn run(&mut self, req: Request) -> Result<Vec<ConstantKind>> {
         let mut buf = BytesMut::new();
         if matches!(self.endian, Endian::Big) {
             req.serialize(&mut buf)
@@ -55,7 +55,7 @@ impl Client {
     }
 
     /// Execute the script
-    pub async fn run_script(&mut self, script: String) -> Result<Vec<ConstantImpl>> {
+    pub async fn run_script(&mut self, script: String) -> Result<Vec<ConstantKind>> {
         let info = ScriptInfo::new(script);
         #[cfg(feature = "debug_pr")]
         println!("info: {:?}", info);
@@ -71,8 +71,8 @@ impl Client {
     pub async fn run_function(
         &mut self,
         function: String,
-        args: Vec<ConstantImpl>,
-    ) -> Result<Vec<ConstantImpl>> {
+        args: Vec<ConstantKind>,
+    ) -> Result<Vec<ConstantKind>> {
         let info = FunctionInfo::new(function, args, self.endian);
         let req = Request::new(self.session_id.clone(), RequestInfo::Function(info));
 
@@ -82,8 +82,8 @@ impl Client {
     /// Upload data to server
     pub async fn upload(
         &mut self,
-        variables: HashMap<String, ConstantImpl>,
-    ) -> Result<Vec<ConstantImpl>> {
+        variables: HashMap<String, ConstantKind>,
+    ) -> Result<Vec<ConstantKind>> {
         let info = UploadInfo::new(variables, self.endian);
         #[cfg(feature = "debug_pr")]
         println!("info: {:?}", info);

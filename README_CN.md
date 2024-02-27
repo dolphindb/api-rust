@@ -8,6 +8,11 @@
       - [1.2 `with_auth`](#12-with_auth)
       - [1.3 `with_ssl`](#13-with_ssl)
       - [1.4 `connect`](#14-connect)
+  - [2. `Client` 类型](#2-client-类型)
+    - [方法](#方法-1)
+      - [2.1 `run_script`](#21-run_script)
+      - [2.2 `run_function`](#22-run_function)
+      - [2.3 `upload`](#23-upload)
 
 ## 1. `ClientBuilder<A>` 类型
 
@@ -79,4 +84,64 @@ impl<A: ToSocketAddrs> ClientBuilder<A> {
 
 返回值：成功时返回 `Client` 实例的 `Result`，失败时返回错误。
 
+## 2. `Client` 类型
 
+`Client` 类型实例代表一个已连接的客户端。
+
+### 方法
+
+#### 2.1 `run_script`
+
+```rust
+impl Client {
+    pub async fn run_script(&mut self, script: String) -> Result<Vec<ConstantImpl>>
+}
+```
+
+作用：执行给定的脚本。
+
+参数：
+
+- `script`: 要执行的脚本内容，类型为 `String`。
+
+返回值：成功时返回执行结果的 `Vec<ConstantImpl>`，失败时返回错误。
+
+#### 2.2 `run_function`
+
+```rust
+impl Client {
+    pub async fn run_function(
+        &mut self,
+        function: String,
+        args: Vec<ConstantImpl>
+    ) -> Result<Vec<ConstantImpl>>
+}
+```
+
+作用：执行指定的函数。
+
+参数：
+
+- `function`: 要执行的函数名称，类型为 `String`。
+- `args`: 函数参数列表，类型为 `Vec<ConstantImpl>`。
+
+返回值：成功时返回执行结果的 `Vec<ConstantImpl>`，失败时返回错误。
+
+#### 2.3 `upload`
+
+```rust
+impl Client {
+    pub async fn upload(
+        &mut self,
+        variables: HashMap<String, ConstantImpl>
+    ) -> Result<Vec<ConstantImpl>>
+}
+```
+
+作用：上传数据到服务器。
+
+参数：
+
+- `variables`: 要上传的数据，键为变量名，值为 `ConstantImpl` 类型。
+
+返回值：成功时返回结果的 `Vec<ConstantImpl>`，失败时返回错误。<!-- TODO：这结果是什么？  -->

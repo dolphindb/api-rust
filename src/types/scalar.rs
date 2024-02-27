@@ -28,7 +28,7 @@ pub trait Scalar: Send + Sync + Clone + Debug + Default + PartialEq + PartialOrd
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Hash)]
-pub enum ScalarImpl {
+pub enum ScalarKind {
     Void,
     Bool(Bool),
     Char(Char),
@@ -58,7 +58,7 @@ pub enum ScalarImpl {
     Decimal128(Decimal128),
 }
 
-impl Default for ScalarImpl {
+impl Default for ScalarKind {
     fn default() -> Self {
         Self::Void
     }
@@ -82,18 +82,18 @@ impl Scalar for () {
     }
 }
 
-impl From<()> for ScalarImpl {
+impl From<()> for ScalarKind {
     fn from(_: ()) -> Self {
         Self::Void
     }
 }
 
-impl TryFrom<ScalarImpl> for () {
+impl TryFrom<ScalarKind> for () {
     type Error = ();
 
-    fn try_from(value: ScalarImpl) -> Result<Self, Self::Error> {
+    fn try_from(value: ScalarKind) -> Result<Self, Self::Error> {
         match value {
-            ScalarImpl::Void => Ok(()),
+            ScalarKind::Void => Ok(()),
             _ => Err(()),
         }
     }
@@ -101,12 +101,12 @@ impl TryFrom<ScalarImpl> for () {
 
 macro_rules! dispatch_data_type {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl ScalarImpl {
+        impl ScalarKind {
             pub fn data_type(&self) -> u8 {
                 match self {
-                    ScalarImpl::Void => 0,
+                    ScalarKind::Void => 0,
                     $(
-                        ScalarImpl::$enum_name(s) => s.data_type(),
+                        ScalarKind::$enum_name(s) => s.data_type(),
                     )*
                 }
             }
@@ -116,7 +116,7 @@ macro_rules! dispatch_data_type {
 
 macro_rules! dispatch_serialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl Serialize for ScalarImpl {
+        impl Serialize for ScalarKind {
             fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
             where
                 B: bytes::BufMut,
@@ -150,7 +150,7 @@ macro_rules! dispatch_serialize {
 
 macro_rules! dispatch_deserialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl Deserialize for ScalarImpl {
+        impl Deserialize for ScalarKind {
             async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
             where
                 R: AsyncBufReadExt + Unpin,
@@ -180,12 +180,12 @@ macro_rules! dispatch_deserialize {
 
 macro_rules! dispatch_display {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl Display for ScalarImpl {
+        impl Display for ScalarKind {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 match self {
-                    ScalarImpl::Void => write!(f, ""),
+                    ScalarKind::Void => write!(f, ""),
                     $(
-                        ScalarImpl::$enum_name(s) => write!(f, "{}", s),
+                        ScalarKind::$enum_name(s) => write!(f, "{}", s),
                     )*
                 }
             }
@@ -195,7 +195,7 @@ macro_rules! dispatch_display {
 
 macro_rules! dispatch_reflect {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl ScalarImpl {
+        impl ScalarKind {
             pub(crate) fn from_type(data_type: u8) -> Option<Self> {
                 match data_type {
                     0 => Some(Self::Void),
@@ -249,7 +249,7 @@ for_all_branches!(dispatch_display);
 
 for_all_branches!(dispatch_reflect);
 
-impl ScalarImpl {
+impl ScalarKind {
     pub const FORM_BYTE: u8 = 0;
 
     pub const fn data_form(&self) -> u8 {
@@ -257,7 +257,7 @@ impl ScalarImpl {
     }
 }
 
-impl Constant for ScalarImpl {
+impl Constant for ScalarKind {
     fn data_category(&self) -> u8 {
         Self::FORM_BYTE
     }

@@ -2,23 +2,23 @@ use std::io::{Error, ErrorKind};
 
 use crate::{Deserialize, Serialize};
 
-use super::{constant::Constant, scalar::ScalarImpl, VectorImpl};
+use super::{constant::Constant, scalar::ScalarKind, VectorKind};
 
 use tokio::io::AsyncBufReadExt;
 
-// pub type PairImpl = (ScalarImpl, ScalarImpl);
+// pub type PairKind = (ScalarKind, ScalarKind);
 
 #[derive(Debug, Clone, Default)]
-pub struct PairImpl {
-    first: ScalarImpl,
-    second: ScalarImpl,
+pub struct PairKind {
+    first: ScalarKind,
+    second: ScalarKind,
     data_type: u8,
 }
 
-impl PairImpl {
+impl PairKind {
     pub const FORM_BYTE: u8 = 1;
 
-    pub fn new(pair: (ScalarImpl, ScalarImpl)) -> Self {
+    pub fn new(pair: (ScalarKind, ScalarKind)) -> Self {
         let data_type = pair.0.data_type();
         Self {
             first: pair.0,
@@ -28,8 +28,8 @@ impl PairImpl {
     }
 
     pub(crate) fn from_type(data_type: u8) -> Option<Self> {
-        ScalarImpl::from_type(data_type)
-            .zip(ScalarImpl::from_type(data_type))
+        ScalarKind::from_type(data_type)
+            .zip(ScalarKind::from_type(data_type))
             .map(|(first, second)| Self {
                 first,
                 second,
@@ -41,24 +41,24 @@ impl PairImpl {
         self.data_type
     }
 
-    pub fn first(&self) -> &ScalarImpl {
+    pub fn first(&self) -> &ScalarKind {
         &self.first
     }
 
-    pub fn second(&self) -> &ScalarImpl {
+    pub fn second(&self) -> &ScalarKind {
         &self.second
     }
 
-    pub fn first_mut(&mut self) -> &mut ScalarImpl {
+    pub fn first_mut(&mut self) -> &mut ScalarKind {
         &mut self.first
     }
 
-    pub fn second_mut(&mut self) -> &mut ScalarImpl {
+    pub fn second_mut(&mut self) -> &mut ScalarKind {
         &mut self.second
     }
 }
 
-impl Constant for PairImpl {
+impl Constant for PairKind {
     fn data_category(&self) -> u8 {
         Self::FORM_BYTE
     }
@@ -72,30 +72,30 @@ impl Constant for PairImpl {
     }
 }
 
-impl TryFrom<PairImpl> for VectorImpl {
+impl TryFrom<PairKind> for VectorKind {
     type Error = ();
 
-    fn try_from(value: PairImpl) -> Result<Self, Self::Error> {
+    fn try_from(value: PairKind) -> Result<Self, Self::Error> {
         if value.first.data_type() != value.second.data_type() {
             Err(())
         } else {
             let v = vec![value.first, value.second];
-            TryInto::<VectorImpl>::try_into(v)
+            TryInto::<VectorKind>::try_into(v)
         }
     }
 }
 
-impl TryFrom<VectorImpl> for PairImpl {
+impl TryFrom<VectorKind> for PairKind {
     type Error = ();
 
-    fn try_from(value: VectorImpl) -> Result<Self, Self::Error> {
+    fn try_from(value: VectorKind) -> Result<Self, Self::Error> {
         if value.len() != 2 {
             return Err(());
         }
 
         let data_type = value.data_type();
-        let mut s: Vec<ScalarImpl> = value.into();
-        Ok(PairImpl {
+        let mut s: Vec<ScalarKind> = value.into();
+        Ok(PairKind {
             first: s.pop().unwrap(),
             second: s.pop().unwrap(),
             data_type,
@@ -103,12 +103,12 @@ impl TryFrom<VectorImpl> for PairImpl {
     }
 }
 
-impl Serialize for PairImpl {
+impl Serialize for PairKind {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
         B: bytes::BufMut,
     {
-        let v: VectorImpl = self.clone().try_into()?;
+        let v: VectorKind = self.clone().try_into()?;
         (v.data_type(), self.data_category()).serialize(buffer)?;
 
         buffer.put_i32(self.len() as i32);
@@ -122,7 +122,7 @@ impl Serialize for PairImpl {
     where
         B: bytes::BufMut,
     {
-        let v: VectorImpl = self.clone().try_into()?;
+        let v: VectorKind = self.clone().try_into()?;
         (v.data_type(), self.data_category()).serialize_le(buffer)?;
 
         buffer.put_i32_le(self.len() as i32);
@@ -133,13 +133,13 @@ impl Serialize for PairImpl {
     }
 }
 
-impl Deserialize for PairImpl {
+impl Deserialize for PairKind {
     async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
     where
         R: AsyncBufReadExt + Unpin,
     {
         let mut v =
-            VectorImpl::from_type(self.data_type).ok_or(Error::new(ErrorKind::InvalidData, ""))?;
+            VectorKind::from_type(self.data_type).ok_or(Error::new(ErrorKind::InvalidData, ""))?;
         v.deserialize(reader).await?;
 
         *self = v
@@ -154,7 +154,7 @@ impl Deserialize for PairImpl {
         R: AsyncBufReadExt + Unpin,
     {
         let mut v =
-            VectorImpl::from_type(self.data_type).ok_or(Error::new(ErrorKind::InvalidData, ""))?;
+            VectorKind::from_type(self.data_type).ok_or(Error::new(ErrorKind::InvalidData, ""))?;
         v.deserialize_le(reader).await?;
 
         *self = v

@@ -6,11 +6,11 @@ use tokio::io::AsyncBufReadExt;
 
 use crate::{Deserialize, Serialize};
 
-use super::{constant::Constant, ScalarImpl, VectorImpl};
+use super::{constant::Constant, ScalarKind, VectorKind};
 
-pub type SetImpl = HashSet<ScalarImpl>;
+pub type SetKind = HashSet<ScalarKind>;
 
-impl Constant for SetImpl {
+impl Constant for SetKind {
     fn data_category(&self) -> u8 {
         4
     }
@@ -24,19 +24,19 @@ impl Constant for SetImpl {
     }
 }
 
-impl From<VectorImpl> for SetImpl {
-    fn from(value: VectorImpl) -> Self {
-        let s: Vec<ScalarImpl> = value.into();
+impl From<VectorKind> for SetKind {
+    fn from(value: VectorKind) -> Self {
+        let s: Vec<ScalarKind> = value.into();
         s.into_iter().collect::<HashSet<_>>()
     }
 }
 
-pub(crate) fn set_keys(set: &SetImpl) -> Result<VectorImpl, ()> {
+pub(crate) fn set_keys(set: &SetKind) -> Result<VectorKind, ()> {
     let keys = set.iter().cloned().collect::<Vec<_>>();
     keys.try_into()
 }
 
-impl Serialize for SetImpl {
+impl Serialize for SetKind {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
         B: bytes::BufMut,
@@ -64,7 +64,7 @@ impl Serialize for SetImpl {
     }
 }
 
-impl Deserialize for SetImpl {
+impl Deserialize for SetKind {
     async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
     where
         R: AsyncBufReadExt + Unpin,
@@ -73,11 +73,11 @@ impl Deserialize for SetImpl {
         type_form.deserialize(reader).await?;
 
         let (data_type, data_form) = type_form;
-        if data_form != VectorImpl::FORM_BYTE {
+        if data_form != VectorKind::FORM_BYTE {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
-        let mut v = VectorImpl::from_type(data_type)
+        let mut v = VectorKind::from_type(data_type)
             .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
         v.deserialize(reader).await?;
@@ -95,11 +95,11 @@ impl Deserialize for SetImpl {
         type_form.deserialize(reader).await?;
 
         let (data_type, data_form) = type_form;
-        if data_form != VectorImpl::FORM_BYTE {
+        if data_form != VectorKind::FORM_BYTE {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
-        let mut v = VectorImpl::from_type(data_type)
+        let mut v = VectorKind::from_type(data_type)
             .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
         v.deserialize_le(reader).await?;

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{types::ConstantImpl, Endian};
+use crate::{types::ConstantKind, Endian};
 
 #[derive(Debug)]
 pub(crate) enum RequestInfo {
@@ -36,12 +36,12 @@ impl ScriptInfo {
 #[derive(Debug)]
 pub(crate) struct FunctionInfo {
     pub(crate) function: String,
-    pub(crate) args: Vec<ConstantImpl>,
+    pub(crate) args: Vec<ConstantKind>,
     pub(crate) endian: Endian,
 }
 
 impl FunctionInfo {
-    pub(super) fn new(function: String, args: Vec<ConstantImpl>, endian: Endian) -> Self {
+    pub(super) fn new(function: String, args: Vec<ConstantKind>, endian: Endian) -> Self {
         Self {
             function,
             args,
@@ -52,12 +52,12 @@ impl FunctionInfo {
 
 #[derive(Debug)]
 pub(crate) struct UploadInfo {
-    pub(crate) variables: HashMap<String, ConstantImpl>,
+    pub(crate) variables: HashMap<String, ConstantKind>,
     pub(crate) endian: Endian,
 }
 
 impl UploadInfo {
-    pub(super) fn new(variables: HashMap<String, ConstantImpl>, endian: Endian) -> Self {
+    pub(super) fn new(variables: HashMap<String, ConstantKind>, endian: Endian) -> Self {
         Self { variables, endian }
     }
 }

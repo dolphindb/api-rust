@@ -13,7 +13,7 @@ use super::scalar::*;
 use super::Scalar;
 
 #[derive(Debug, Clone)]
-pub enum VectorImpl {
+pub enum VectorKind {
     Void(Vector<()>),
     Bool(Vector<Bool>),
     Char(Vector<Char>),
@@ -43,7 +43,7 @@ pub enum VectorImpl {
     Decimal128(Vector<Decimal128>),
 }
 
-impl VectorImpl {
+impl VectorKind {
     pub const FORM_BYTE: u8 = 1;
 
     pub fn is_empty(&self) -> bool {
@@ -300,27 +300,27 @@ macro_rules! try_from_impl {
     };
 
     ($struct_name:ident, $enum_name:ident) => {
-        impl From<Vector<$struct_name>> for VectorImpl {
+        impl From<Vector<$struct_name>> for VectorKind {
             fn from(value: Vector<$struct_name>) -> Self {
                 Self::$enum_name(value)
             }
         }
 
-        impl From<Vector<$struct_name>> for Vec<ScalarImpl> {
+        impl From<Vector<$struct_name>> for Vec<ScalarKind> {
             fn from(value: Vector<$struct_name>) -> Self {
                 value.data.into_iter().map(|v| v.into()).collect::<Vec<_>>()
             }
         }
 
-        impl TryFrom<Vec<ScalarImpl>> for Vector<$struct_name> {
+        impl TryFrom<Vec<ScalarKind>> for Vector<$struct_name> {
             type Error = ();
 
-            fn try_from(value: Vec<ScalarImpl>) -> Result<Self, Self::Error> {
+            fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
                 let mut res = Vector::with_capacity(value.len());
 
                 for val in value {
                     match val {
-                        ScalarImpl::$enum_name(s) => res.push(s),
+                        ScalarKind::$enum_name(s) => res.push(s),
                         _ => return Err(()),
                     }
                 }
@@ -339,27 +339,27 @@ macro_rules! try_from_impl {
 
 for_all_scalars!(try_from_impl);
 
-impl From<Vector<()>> for VectorImpl {
+impl From<Vector<()>> for VectorKind {
     fn from(value: Vector<()>) -> Self {
         Self::Void(value)
     }
 }
 
-impl From<Vector<()>> for Vec<ScalarImpl> {
+impl From<Vector<()>> for Vec<ScalarKind> {
     fn from(value: Vector<()>) -> Self {
         value.data.into_iter().map(|v| v.into()).collect::<Vec<_>>()
     }
 }
 
-impl TryFrom<Vec<ScalarImpl>> for Vector<()> {
+impl TryFrom<Vec<ScalarKind>> for Vector<()> {
     type Error = ();
 
-    fn try_from(value: Vec<ScalarImpl>) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
         let mut res = Vector::with_capacity(value.len());
 
         for val in value {
             match val {
-                ScalarImpl::Void => res.push(()),
+                ScalarKind::Void => res.push(()),
                 _ => return Err(()),
             }
         }
@@ -370,12 +370,12 @@ impl TryFrom<Vec<ScalarImpl>> for Vector<()> {
 
 macro_rules! dispatch_data_type {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorImpl {
+        impl VectorKind {
             pub fn data_type(&self) -> u8 {
                 match self {
-                    VectorImpl::Void(_) => 0,
+                    VectorKind::Void(_) => 0,
                     $(
-                        VectorImpl::$enum_name(s) => s.data_type(),
+                        VectorKind::$enum_name(s) => s.data_type(),
                     )*
                 }
             }
@@ -385,12 +385,12 @@ macro_rules! dispatch_data_type {
 
 macro_rules! dispatch_len {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorImpl {
+        impl VectorKind {
             pub fn len(&self) -> usize {
                 match self {
-                    VectorImpl::Void(s) => s.len(),
+                    VectorKind::Void(s) => s.len(),
                     $(
-                        VectorImpl::$enum_name(s) => s.len(),
+                        VectorKind::$enum_name(s) => s.len(),
                     )*
                 }
             }
@@ -400,12 +400,12 @@ macro_rules! dispatch_len {
 
 macro_rules! dispatch_resize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorImpl {
+        impl VectorKind {
             pub fn resize(&mut self, new_len: usize) {
                 match self {
-                    VectorImpl::Void(s) => s.resize(new_len, ()),
+                    VectorKind::Void(s) => s.resize(new_len, ()),
                     $(
-                        VectorImpl::$enum_name(s) => s.resize(new_len, $struct_name::default()),
+                        VectorKind::$enum_name(s) => s.resize(new_len, $struct_name::default()),
                     )*
                 }
             }
@@ -415,29 +415,29 @@ macro_rules! dispatch_resize {
 
 macro_rules! dispatch_try_from {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl From<VectorImpl> for Vec<ScalarImpl> {
-            fn from(value: VectorImpl) -> Self {
+        impl From<VectorKind> for Vec<ScalarKind> {
+            fn from(value: VectorKind) -> Self {
                 match value {
-                    VectorImpl::Void(val) => val.into(),
+                    VectorKind::Void(val) => val.into(),
                     $(
-                        VectorImpl::$enum_name(val) => val.into(),
+                        VectorKind::$enum_name(val) => val.into(),
                     )*
                 }
             }
         }
 
-        impl TryFrom<Vec<ScalarImpl>> for VectorImpl {
+        impl TryFrom<Vec<ScalarKind>> for VectorKind {
             type Error = ();
 
-            fn try_from(value: Vec<ScalarImpl>) -> Result<Self, Self::Error> {
+            fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
                 if value.is_empty() {
                     return Ok(Self::Void(Vector::new()));
                 }
 
                 match value.first().unwrap() {
-                    ScalarImpl::Void => Ok(Self::Void(value.try_into()?)),
+                    ScalarKind::Void => Ok(Self::Void(value.try_into()?)),
                     $(
-                        ScalarImpl::$enum_name(_) => Ok(Self::$enum_name(value.try_into()?)),
+                        ScalarKind::$enum_name(_) => Ok(Self::$enum_name(value.try_into()?)),
                     )*
                 }
             }
@@ -447,15 +447,15 @@ macro_rules! dispatch_try_from {
 
 macro_rules! dispatch_serialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorImpl {
+        impl VectorKind {
             pub(crate) fn serialize_data<B>(&self, buffer: &mut B) -> Result<usize, ()>
             where
                 B: bytes::BufMut,
             {
                 match self {
-                    VectorImpl::Void(s) => s.serialize(buffer),
+                    VectorKind::Void(s) => s.serialize(buffer),
                     $(
-                        VectorImpl::$enum_name(s) => s.serialize(buffer),
+                        VectorKind::$enum_name(s) => s.serialize(buffer),
                     )*
                 }
             }
@@ -465,9 +465,9 @@ macro_rules! dispatch_serialize {
                 B: bytes::BufMut,
             {
                 match self {
-                    VectorImpl::Void(s) => s.serialize_le(buffer),
+                    VectorKind::Void(s) => s.serialize_le(buffer),
                     $(
-                        VectorImpl::$enum_name(s) => s.serialize_le(buffer),
+                        VectorKind::$enum_name(s) => s.serialize_le(buffer),
                     )*
                 }
             }
@@ -477,15 +477,15 @@ macro_rules! dispatch_serialize {
 
 macro_rules! dispatch_deserialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorImpl {
+        impl VectorKind {
             pub(crate) async fn deserialize_data<R>(&mut self, reader: &mut R) -> std::io::Result<()>
             where
                 R: AsyncBufReadExt + Unpin,
             {
                 match self {
-                    VectorImpl::Void(s) => s.deserialize(reader).await,
+                    VectorKind::Void(s) => s.deserialize(reader).await,
                     $(
-                        VectorImpl::$enum_name(s) => s.deserialize(reader).await,
+                        VectorKind::$enum_name(s) => s.deserialize(reader).await,
                     )*
                 }
             }
@@ -495,9 +495,9 @@ macro_rules! dispatch_deserialize {
                 R: AsyncBufReadExt + Unpin,
             {
                 match self {
-                    VectorImpl::Void(s) => s.deserialize_le(reader).await,
+                    VectorKind::Void(s) => s.deserialize_le(reader).await,
                     $(
-                        VectorImpl::$enum_name(s) => s.deserialize_le(reader).await,
+                        VectorKind::$enum_name(s) => s.deserialize_le(reader).await,
                     )*
                 }
             }
@@ -507,7 +507,7 @@ macro_rules! dispatch_deserialize {
 
 macro_rules! dispatch_reflect {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorImpl {
+        impl VectorKind {
             pub(crate) fn from_type(data_type: u8) -> Option<Self> {
                 match data_type {
                     0 => Some(Self::Void(Vector::new())),
@@ -535,7 +535,7 @@ for_all_branches!(dispatch_deserialize);
 
 for_all_branches!(dispatch_reflect);
 
-impl Constant for VectorImpl {
+impl Constant for VectorKind {
     fn data_category(&self) -> u8 {
         Self::FORM_BYTE
     }
@@ -549,7 +549,7 @@ impl Constant for VectorImpl {
     }
 }
 
-impl Serialize for VectorImpl {
+impl Serialize for VectorKind {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
         B: bytes::BufMut,
@@ -577,7 +577,7 @@ impl Serialize for VectorImpl {
     }
 }
 
-impl Deserialize for VectorImpl {
+impl Deserialize for VectorKind {
     async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
     where
         R: AsyncBufReadExt + Unpin,

@@ -164,18 +164,18 @@ macro_rules! try_from_impl {
     };
 
     ($struct_name:ident, $enum_name:ident) => {
-        impl From<$struct_name> for ScalarImpl {
+        impl From<$struct_name> for ScalarKind {
             fn from(value: $struct_name) -> Self {
                 Self::$enum_name(value)
             }
         }
 
-        impl TryFrom<ScalarImpl> for $struct_name {
+        impl TryFrom<ScalarKind> for $struct_name {
             type Error = ();
 
-            fn try_from(value: ScalarImpl) -> Result<Self, Self::Error> {
+            fn try_from(value: ScalarKind) -> Result<Self, Self::Error> {
                 match value {
-                    ScalarImpl::$enum_name(value) => Ok(value),
+                    ScalarKind::$enum_name(value) => Ok(value),
                     _ => Err(()),
                 }
             }

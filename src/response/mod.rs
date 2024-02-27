@@ -1,5 +1,5 @@
 mod header;
-use crate::types::ConstantImpl;
+use crate::types::ConstantKind;
 use crate::Deserialize;
 
 use self::header::ResponseHeader;
@@ -15,7 +15,7 @@ struct ExecuteResult {
 pub(crate) struct Response {
     pub(crate) header: ResponseHeader,
     res: ExecuteResult,
-    pub(crate) data: Vec<ConstantImpl>,
+    pub(crate) data: Vec<ConstantKind>,
 }
 
 impl Deserialize for Response {
@@ -34,7 +34,7 @@ impl Deserialize for Response {
         println!("response string: {:?}", self.res);
 
         for _ in 0..self.header.counts {
-            let mut c = ConstantImpl::default();
+            let mut c = ConstantKind::default();
             c.deserialize(reader).await?;
             self.data.push(c)
         }
@@ -51,7 +51,7 @@ impl Deserialize for Response {
         self.res.deserialize_le(reader).await?;
 
         for _ in 0..self.header.counts {
-            let mut c = ConstantImpl::default();
+            let mut c = ConstantKind::default();
             c.deserialize_le(reader).await?;
             self.data.push(c)
         }
