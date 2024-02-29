@@ -101,10 +101,6 @@ impl DolphinString {
 macro_rules! getter_impl {
     ($raw_type:tt, $struct_name:ident) => {
         impl $struct_name {
-            pub const fn is_null(&self) -> bool {
-                self.0.is_none()
-            }
-
             pub const fn get(&self) -> &Option<$raw_type> {
                 &self.0
             }
@@ -266,8 +262,6 @@ macro_rules! scalar_trait_impl {
 }
 
 pub trait NotDecimal {}
-
-pub trait IsDecimal {}
 
 macro_rules! non_decimal_marker {
     (Decimal32) => {};

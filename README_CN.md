@@ -18,18 +18,18 @@
     - [`ConstantKind` 枚举](#constantkind-枚举)
     - [`ScalarKind` 枚举](#scalarkind-枚举)
       - [方法](#方法-2)
-        - [`data_type`](#data_type)
+        - [`RAW_TYPE`](#raw_type)
         - [`data_form`](#data_form)
       - [实现 `Constant` 特征的方法](#实现-constant-特征的方法)
     - [`VectorKind` 枚举](#vectorkind-枚举)
       - [方法](#方法-3)
-        - [`data_type`](#data_type-1)
+        - [`RAW_TYPE`](#raw_type-1)
         - [`resize`](#resize)
       - [实现 `Constant` 特征的方法](#实现-constant-特征的方法-1)
     - [`Pair` 类型](#pair-类型)
       - [方法](#方法-4)
         - [`new`](#new)
-        - [`data_type`](#data_type-2)
+        - [`RAW_TYPE`](#raw_type-2)
         - [`first`](#first)
         - [`first_mut`](#first_mut)
         - [`second`](#second)
@@ -42,7 +42,20 @@
       - [方法](#方法-6)
       - [实现 `Constant` 特征的方法](#实现-constant-特征的方法-4)
     - [3.2 数据类型](#32-数据类型)
-      - [`Void`](#void)
+      - [类型对应表](#类型对应表)
+      - [除 `Void` 外所有标量类型均实现了的方法：](#除-void-外所有标量类型均实现了的方法)
+        - [`new`](#new-1)
+        - [`data_type`](#data_type)
+        - [`set`](#set)
+        - [`set_unchecked`](#set_unchecked)
+        - [`get`](#get)
+        - [`get_mut`](#get_mut)
+        - [`as_ref`](#as_ref)
+        - [`as_mut`](#as_mut)
+        - [`into_inner`](#into_inner)
+      - [实现 Scalar 特征的方法：](#实现-scalar-特征的方法)
+      - [实现 From 和 TryFrom 特征的方法：](#实现-from-和-tryfrom-特征的方法)
+      - [实现 Display 特征的方法：](#实现-display-特征的方法)
   - [4. 特征说明](#4-特征说明)
     - [4.1 `Constant` 特征](#41-constant-特征)
       - [方法](#方法-7)
@@ -50,9 +63,9 @@
         - [`len`](#len)
         - [`is_empty`](#is_empty)
     - [4.2 `Scalar` 特征](#42-scalar-特征)
-    - [4.3 `IsDecimal` 特征](#43-isdecimal-特征)
-    - [4.4 `NotDecimal` 特征](#44-notdecimal-特征)
-    - [4.5 `DecimalInterface` 特征](#45-decimalinterface-特征)
+        - [`is_null`](#is_null)
+        - [`new`](#new-2)
+        - [`data_type`](#data_type-1)
 
 ## 1. `ClientBuilder<A>` 类型
 
@@ -241,10 +254,10 @@ pub enum ScalarKind {
 
 #### 方法
 
-##### `data_type`
+##### `RAW_TYPE`
 
 ```rust
-pub const fn data_type(&self) -> u8
+pub const fn RAW_TYPE(&self) -> u8
 ```
 
 返回一个 `u8` 值，表示该数据类型。
@@ -296,10 +309,10 @@ pub enum VectorKind {
 
 #### 方法
 
-##### `data_type`
+##### `RAW_TYPE`
 
 ```rust
-pub fn data_type(&self) -> u8
+pub fn RAW_TYPE(&self) -> u8
 ```
 
 返回一个 `u8` 值，表示该数据类型。
@@ -334,10 +347,10 @@ pub fn new(pair: (ScalarKind, ScalarKind)) -> Self
 
 构造一个 Pair 对象。
 
-##### `data_type`
+##### `RAW_TYPE`
 
 ```rust
-pub fn data_type(&self) -> u8
+pub fn RAW_TYPE(&self) -> u8
 ```
 
 返回一个 `u8` 值，表示该数据类型。
@@ -417,33 +430,120 @@ pub fn second_mut(&mut self) -> &mut ScalarKind
 
 ### 3.2 数据类型
 
-对应 ScalarKind 枚举下的类型。
+#### 类型对应表
 
-#### `Void`
+| DolphinDB 类型 | Rust 类型         | 类型值 |
+| -------------- | ----------------- | ------ |
+| Void           | ()                | 0      |
+| Bool           | bool              | 1      |
+| Char           | u8                | 2      |
+| Short          | i16               | 3      |
+| Int            | i32               | 4      |
+| Long           | i64               | 5      |
+| Date           | NaiveDate         | 6      |
+| Month          | NaiveDate         | 7      |
+| Time           | NaiveTime         | 8      |
+| Minute         | NaiveTime         | 9      |
+| Second         | NaiveTime         | 10     |
+| DateTime       | NaiveDateTime     | 11     |
+| TimeStamp      | NaiveDateTime     | 12     |
+| NanoTime       | NaiveTime         | 13     |
+| NanoTimeStamp  | NaiveDateTime     | 14     |
+| Float          | OrderedFloat<f32> | 15     |
+| Double         | OrderedFloat<f64> | 16     |
+| DolphinString  | Option<String>    | 18     |
+| DateHour       | NaiveDateTime     | 28     |
 
-<!-- Bool(Bool)
-Char(Char)
-Short(Short)
-Int(Int)
-Long(Long)
-Date(Date)
-Month(Month)
-Time(Time)
-Minute(Minute)
-Second(Second)
-DateTime(DateTime)
-TimeStamp(TimeStamp)
-NanoTime(NanoTime)
-NanoTimeStamp(NanoTimeStamp)
-Float(Float)
-Double(Double)
-String(DolphinString)
-DateHour(DateHour)
-Decimal32(Decimal32)
-Decimal64(Decimal64)
-Decimal128(Decimal128) -->
+<!--  TODO decimal
+| Decimal32      | Decimal           | 37      |
+| Decimal64      | Decimal           | 38      |
+| Decimal128     | Decimal           | 39      | -->
 
-<!-- TODO: 实现 Display 特征，to_string -->
+#### 除 `Void` 外所有标量类型均实现了的方法：<!-- todo Void 类型 -->
+
+下面文档中使用 `RAW_TYPE` 代表 DolphinDB 类型对应的 Rust 类型，如 `Bool` 对应 `bool`，`Char` 对应 `char` 等，详见[类型对应表](#类型对应表)。
+
+##### `new`
+
+```rust
+pub fn new(val: Option<RAW_TYPE>) -> Self
+```
+
+创建该类型的对象。
+
+##### `data_type`
+
+```rust
+pub const fn data_type(&self) -> u8
+```
+
+返回一个 `u8` 值，表示该数据类型值。
+
+##### `set`
+
+```rust
+pub fn set(&mut self, val: Option<RAW_TYPE>)
+```
+
+设置数据。
+
+##### `set_unchecked`
+
+```rust
+pub fn set_unchecked(&mut self, val: RAW_TYPE)
+```
+
+使用原始类型设置数据。
+
+##### `get`
+
+```rust
+pub const fn get(&self) -> &Option<RAW_TYPE>
+```
+
+获取对内部 `Option<RAW_TYPE>` 的不可变引用。
+
+##### `get_mut`
+
+```rust
+pub fn get_mut(&mut self) -> &mut Option<RAW_TYPE>
+```
+
+获取对内部 `Option<RAW_TYPE>` 的可变引用。
+
+##### `as_ref`
+
+```rust
+pub const fn as_ref(&self) -> Option<&RAW_TYPE>
+```
+
+将对象转换为 `Option` 的不可变引用。
+
+##### `as_mut`
+
+```rust
+pub fn as_mut(&mut self) -> Option<&mut RAW_TYPE>
+```
+
+将对象转换为 `Option` 的可变引用。
+
+##### `into_inner`
+
+```rust
+pub fn into_inner(self) -> Option<RAW_TYPE>
+```
+
+消耗 `self`，返回内部的 `Option<RAW_TYPE>`，这允许你取得对象内部持有的值，并结束对象的生命周期。
+
+#### 实现 Scalar 特征的方法：
+
+- [`is_null`](#is_null)
+- [`new`](#new-2)
+- [`data_type`](#data_type-1)
+
+#### 实现 From 和 TryFrom 特征的方法：<!-- todo -->
+
+#### 实现 Display 特征的方法：<!-- todo -->
 
 ## 4. 特征说明
 
@@ -475,12 +575,36 @@ fn is_empty(&self) -> bool
 
 返回一个 `bool` 值，表示对象是否为空。
 
-<!-- data_type 和 data_form 应该是 ConstantKind 要用的吧，目前的实现有问题 -->
+<!-- RAW_TYPE 和 data_form 应该是 ConstantKind 要用的吧，目前的实现有问题 -->
 
 ### 4.2 `Scalar` 特征
 
-### 4.3 `IsDecimal` 特征
+所有标量类型均实现了 Scalar 特征，Self::RawType 是 DolphinDB 标量类型对应的 Rust 类型，详见[类型对应表](#类型对应表)。
 
-### 4.4 `NotDecimal` 特征
+##### `is_null`
 
-### 4.5 `DecimalInterface` 特征
+```rust
+pub const fn is_null(&self) -> bool
+```
+
+判断是否为空。
+
+##### `new`
+
+```rust
+pub fn new(raw: Self::RawType) -> Self
+```
+
+创建该类型的对象，与标量类型实现的 new 函数同名，如果要使用需要使用完全限定语法。
+
+##### `data_type`
+
+```rust
+fn data_type() -> u8
+```
+
+返回一个 `u8` 值，表示该数据类型值，与标量类型实现的 data_type 函数同名，如果要使用需要使用完全限定语法。
+
+<!-- ### 4.3 `NotDecimal` 特征
+
+### 4.4 `DecimalInterface` 特征 -->

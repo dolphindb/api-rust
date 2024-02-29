@@ -187,7 +187,7 @@ impl<S: Scalar> Vector<S> {
         let mut data = Vec::with_capacity(raw.len());
 
         for val in raw.iter() {
-            data.push(S::new(S::to_owned(*val)));
+            data.push(S::new(S::to_owned(*val))); // todo: optimize?
         }
 
         Self { data }
