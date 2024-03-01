@@ -1,7 +1,5 @@
 use crate::Deserialize;
 use crate::Serialize;
-use byteorder::{WriteBytesExt, BE, LE};
-use bytes::BufMut;
 use std::io::{Error, ErrorKind};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 use std::slice::SliceIndex;
@@ -37,11 +35,8 @@ pub enum VectorKind {
     String(Vector<DolphinString>),
 
     DateHour(Vector<DateHour>),
-
-    Decimal32(Vector<Decimal32>),
-    Decimal64(Vector<Decimal64>),
-    Decimal128(Vector<Decimal128>),
 }
+// todo any is Vector<ConstantKind> ??
 
 impl VectorKind {
     pub const FORM_BYTE: u8 = 1;
@@ -193,10 +188,6 @@ impl<S: Scalar> Vector<S> {
         Self { data }
     }
 
-    pub fn data_type(&self) -> u8 {
-        S::data_type()
-    }
-
     /// Appends a primitive element to the back of a collection.
     pub fn push_raw(&mut self, value: S::RefType<'_>) {
         self.data.push(S::new(S::to_owned(value)))
@@ -228,47 +219,6 @@ where
     }
 }
 
-macro_rules! serialize_decimal {
-    ($raw_type:tt, $write_func:ident, $func_name:ident, $endian:tt) => {
-        fn $func_name<B>(&self, buffer: &mut B) -> Result<usize, ()>
-        where
-            B: bytes::BufMut,
-        {
-            let mut writer = buffer.writer();
-
-            let mut replica = self.clone();
-            replica.scale_to_same();
-
-            let _ = writer.write_u32::<$endian>(replica.max_scale());
-
-            for mantissa in replica.iter().map(|d| d.mantissa().unwrap_or($raw_type::MIN)) {
-                let _ = writer.$write_func::<$endian>(mantissa);
-            }
-
-            Ok(0)
-        }
-    };
-
-    ($(($raw_type:tt, $struct_name:ident, $write_func:ident)), *) => {
-        $(
-            impl Serialize for $struct_name {
-                serialize_decimal!($raw_type, $write_func, serialize, BE);
-                serialize_decimal!($raw_type, $write_func, serialize_le, LE);
-            }
-        )*
-    };
-}
-
-type Decimal32Vector = Vector<Decimal32>;
-type Decimal64Vector = Vector<Decimal64>;
-type Decimal128Vector = Vector<Decimal128>;
-
-serialize_decimal!(
-    (i32, Decimal32Vector, write_i32),
-    (i64, Decimal64Vector, write_i64),
-    (i128, Decimal128Vector, write_i128)
-);
-
 impl<S> Deserialize for Vector<S>
 where
     S: Scalar + Deserialize,
@@ -293,51 +243,6 @@ where
         Ok(())
     }
 }
-
-macro_rules! try_from_impl {
-    (DolphinString, DolphinString) => {
-        try_from_impl!(DolphinString, String);
-    };
-
-    ($struct_name:ident, $enum_name:ident) => {
-        impl From<Vector<$struct_name>> for VectorKind {
-            fn from(value: Vector<$struct_name>) -> Self {
-                Self::$enum_name(value)
-            }
-        }
-
-        impl From<Vector<$struct_name>> for Vec<ScalarKind> {
-            fn from(value: Vector<$struct_name>) -> Self {
-                value.data.into_iter().map(|v| v.into()).collect::<Vec<_>>()
-            }
-        }
-
-        impl TryFrom<Vec<ScalarKind>> for Vector<$struct_name> {
-            type Error = ();
-
-            fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
-                let mut res = Vector::with_capacity(value.len());
-
-                for val in value {
-                    match val {
-                        ScalarKind::$enum_name(s) => res.push(s),
-                        _ => return Err(()),
-                    }
-                }
-
-                Ok(res)
-            }
-        }
-    };
-
-    ($(($raw_type:tt, $enum_name:ident)), *) => {
-        $(
-            try_from_impl!($enum_name, $enum_name);
-        )*
-    };
-}
-
-for_all_scalars!(try_from_impl);
 
 impl From<Vector<()>> for VectorKind {
     fn from(value: Vector<()>) -> Self {
@@ -368,21 +273,6 @@ impl TryFrom<Vec<ScalarKind>> for Vector<()> {
     }
 }
 
-macro_rules! dispatch_data_type {
-    ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorKind {
-            pub fn data_type(&self) -> u8 {
-                match self {
-                    VectorKind::Void(_) => 0,
-                    $(
-                        VectorKind::$enum_name(s) => s.data_type(),
-                    )*
-                }
-            }
-        }
-    };
-}
-
 macro_rules! dispatch_len {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
         impl VectorKind {
@@ -406,38 +296,6 @@ macro_rules! dispatch_resize {
                     VectorKind::Void(s) => s.resize(new_len, ()),
                     $(
                         VectorKind::$enum_name(s) => s.resize(new_len, $struct_name::default()),
-                    )*
-                }
-            }
-        }
-    };
-}
-
-macro_rules! dispatch_try_from {
-    ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl From<VectorKind> for Vec<ScalarKind> {
-            fn from(value: VectorKind) -> Self {
-                match value {
-                    VectorKind::Void(val) => val.into(),
-                    $(
-                        VectorKind::$enum_name(val) => val.into(),
-                    )*
-                }
-            }
-        }
-
-        impl TryFrom<Vec<ScalarKind>> for VectorKind {
-            type Error = ();
-
-            fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
-                if value.is_empty() {
-                    return Ok(Self::Void(Vector::new()));
-                }
-
-                match value.first().unwrap() {
-                    ScalarKind::Void => Ok(Self::Void(value.try_into()?)),
-                    $(
-                        ScalarKind::$enum_name(_) => Ok(Self::$enum_name(value.try_into()?)),
                     )*
                 }
             }
@@ -512,7 +370,7 @@ macro_rules! dispatch_reflect {
                 match data_type {
                     0 => Some(Self::Void(Vector::new())),
                     $(
-                        $struct_name::DATA_BYTE => Some(Self::$enum_name(Vector::new())),
+                        $struct_name::DATA_TYPE => Some(Self::$enum_name(Vector::new())),
                     )*
                     _ => None,
                 }
@@ -521,13 +379,9 @@ macro_rules! dispatch_reflect {
     };
 }
 
-for_all_branches!(dispatch_data_type);
-
 for_all_branches!(dispatch_len);
 
 for_all_branches!(dispatch_resize);
-
-for_all_branches!(dispatch_try_from);
 
 for_all_branches!(dispatch_serialize);
 
@@ -607,23 +461,105 @@ impl Deserialize for VectorKind {
     }
 }
 
-impl<S> Vector<S>
-where
-    S: DecimalInterface,
-{
-    pub(crate) fn max_scale(&self) -> u32 {
-        self.iter()
-            .map(|d| d.scale())
-            .filter_map(|s| s)
-            .max()
-            .unwrap_or(0)
-    }
+// todo
 
-    pub(crate) fn scale_to_same(&mut self) {
-        let max_scale = self.iter().map(|d| d.scale()).filter_map(|s| s).max();
-
-        if let Some(new_scale) = max_scale {
-            self.iter_mut().for_each(|s| s.rescale(new_scale));
+macro_rules! dispatch_try_from {
+    ($(($enum_name:ident, $struct_name:ident)),*) => {
+        impl From<VectorKind> for Vec<ScalarKind> {
+            fn from(value: VectorKind) -> Self {
+                match value {
+                    VectorKind::Void(val) => val.into(),
+                    $(
+                        VectorKind::$enum_name(val) => val.into(),
+                    )*
+                }
+            }
         }
+
+        impl TryFrom<Vec<ScalarKind>> for VectorKind {
+            type Error = ();
+
+            fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
+                if value.is_empty() {
+                    return Ok(Self::Void(Vector::new()));
+                }
+
+                match value.first().unwrap() {
+                    ScalarKind::Void => Ok(Self::Void(value.try_into()?)),
+                    $(
+                        ScalarKind::$enum_name(_) => Ok(Self::$enum_name(value.try_into()?)),
+                    )*
+                }
+            }
+        }
+    };
+}
+for_all_branches!(dispatch_try_from);
+
+macro_rules! try_from_impl {
+    (DolphinString, DolphinString) => {
+        try_from_impl!(DolphinString, String);
+    };
+
+    ($struct_name:ident, $enum_name:ident) => {
+        impl From<Vector<$struct_name>> for VectorKind {
+            fn from(value: Vector<$struct_name>) -> Self {
+                Self::$enum_name(value)
+            }
+        }
+
+        impl From<Vector<$struct_name>> for Vec<ScalarKind> {
+            fn from(value: Vector<$struct_name>) -> Self {
+                value.data.into_iter().map(|v| v.into()).collect::<Vec<_>>()
+            }
+        }
+
+        impl TryFrom<Vec<ScalarKind>> for Vector<$struct_name> {
+            type Error = ();
+
+            fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
+                let mut res = Vector::with_capacity(value.len());
+
+                for val in value {
+                    match val {
+                        ScalarKind::$enum_name(s) => res.push(s),
+                        _ => return Err(()),
+                    }
+                }
+
+                Ok(res)
+            }
+        }
+    };
+
+    ($(($raw_type:tt, $enum_name:ident)), *) => {
+        $(
+            try_from_impl!($enum_name, $enum_name);
+        )*
+    };
+}
+for_all_branches!(try_from_impl);
+
+// implement Basic for VectorKind
+macro_rules! dispatch_data_type {
+    ($(($enum_name:ident, $struct_name:ident)),*) => {
+        impl Basic for VectorKind {
+            fn data_type(&self) -> u8 {
+                match self {
+                    VectorKind::Void(_) => 0,
+                    $(
+                        VectorKind::$enum_name(s) => s.data_type(),
+                    )*
+                }
+            }
+        }
+    };
+}
+for_all_branches!(dispatch_data_type);
+
+// implement Basic for Vector<S>
+impl<S: Scalar> Basic for Vector<S> {
+    fn data_type(&self) -> u8 {
+        <S as Scalar>::data_type()
     }
 }

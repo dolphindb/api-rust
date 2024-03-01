@@ -1,7 +1,4 @@
-use rust_api::{
-    client::ClientBuilder,
-    types::{ConstantKind, Int, ScalarKind},
-};
+use rust_api::{client::ClientBuilder, types::Basic};
 
 #[tokio::main]
 async fn main() {
@@ -16,5 +13,5 @@ async fn main() {
     let res = client.run_script(script).await.unwrap();
 
     let c = res.first().unwrap();
-    // TODO data_type data_form and Constant trait
+    println!("{}", c.get_int().unwrap());
 }

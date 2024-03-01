@@ -1,3 +1,6 @@
+mod body;
+mod header;
+
 use bytes::BufMut;
 use std::io::Write;
 
@@ -8,9 +11,6 @@ use crate::{
 };
 use body::{FunctionRequest, RequestBody, ScriptRequest, UploadRequest};
 use header::RequestHeader;
-
-mod body;
-mod header;
 
 #[derive(Debug)]
 pub struct BehaviorOptions {

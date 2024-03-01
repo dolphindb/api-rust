@@ -2,11 +2,9 @@ use std::io::{Error, ErrorKind};
 
 use crate::{Deserialize, Serialize};
 
-use super::{constant::Constant, scalar::ScalarKind, VectorKind};
+use super::{constant::Constant, scalar::ScalarKind, Basic, VectorKind};
 
 use tokio::io::AsyncBufReadExt;
-
-// pub type Pair = (ScalarKind, ScalarKind);
 
 #[derive(Debug, Clone, Default)]
 pub struct Pair {
@@ -162,5 +160,12 @@ impl Deserialize for Pair {
             .map_err(|_| Error::new(ErrorKind::InvalidData, ""))?;
 
         Ok(())
+    }
+}
+
+// implement Basic trait for Pair
+impl Basic for Pair {
+    fn data_type(&self) -> u8 {
+        self.data_type()
     }
 }

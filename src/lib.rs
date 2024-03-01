@@ -2,6 +2,7 @@ use bytes::BufMut;
 use tokio::io::AsyncBufReadExt;
 
 pub mod client;
+pub mod error;
 mod request;
 mod response;
 pub mod types;

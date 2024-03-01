@@ -6,7 +6,7 @@ use tokio::io::AsyncBufReadExt;
 
 use crate::{Deserialize, Serialize};
 
-use super::{constant::Constant, ScalarKind, VectorKind};
+use super::{constant::Constant, Basic, ScalarKind, VectorKind, ANY_TYPE_VALUE};
 
 pub type Set = HashSet<ScalarKind>;
 
@@ -107,5 +107,12 @@ impl Deserialize for Set {
         *self = v.into();
 
         Ok(())
+    }
+}
+
+// implement Basic trait for Set
+impl Basic for Set {
+    fn data_type(&self) -> u8 {
+        ANY_TYPE_VALUE
     }
 }

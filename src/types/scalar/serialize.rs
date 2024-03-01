@@ -121,37 +121,3 @@ macro_rules! serialize_i64_temporal {
 
 serialize_i32_temporal!(Date, Month, Time, Minute, Second, DateTime, DateHour);
 serialize_i64_temporal!(TimeStamp, NanoTime, NanoTimeStamp);
-
-macro_rules! serialize_decimal {
-    ($raw_type:tt, $write_func:ident, $func_name:ident, $endian:tt) => {
-        fn $func_name<B>(&self, buffer: &mut B) -> Result<usize, ()>
-        where
-            B: bytes::BufMut,
-        {
-            let mut writer = buffer.writer();
-
-            writer
-                .write_i32::<$endian>(self.scale().unwrap_or(0) as i32)
-                .unwrap();
-            writer
-                .$write_func::<$endian>(self.mantissa().unwrap_or($raw_type::MIN))
-                .unwrap();
-            Ok(0)
-        }
-    };
-
-    ($(($raw_type:tt, $struct_name:ident, $write_func:ident)), *) => {
-        $(
-            impl Serialize for $struct_name {
-                serialize_decimal!($raw_type, $write_func, serialize, BE);
-                serialize_decimal!($raw_type, $write_func, serialize_le, LE);
-            }
-        )*
-    };
-}
-
-serialize_decimal!(
-    (i32, Decimal32, write_i32),
-    (i64, Decimal64, write_i64),
-    (i128, Decimal128, write_i128)
-);

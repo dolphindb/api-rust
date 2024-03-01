@@ -1,3 +1,9 @@
+mod builder;
+mod request_info;
+
+pub use builder::ClientBuilder;
+pub(crate) use request_info::*;
+
 use bytes::BytesMut;
 use std::{
     collections::HashMap,
@@ -11,12 +17,6 @@ use tokio::{
 use crate::{
     request::Request, response::Response, types::ConstantKind, Deserialize, Endian, Serialize,
 };
-
-mod builder;
-mod request_info;
-
-pub use builder::ClientBuilder;
-pub(crate) use request_info::*;
 
 /// The connected client
 pub struct Client {

@@ -1,8 +1,9 @@
 mod header;
+
+use self::header::ResponseHeader;
 use crate::types::ConstantKind;
 use crate::Deserialize;
 
-use self::header::ResponseHeader;
 use std::io::{Error, ErrorKind, Result};
 use tokio::io::AsyncBufReadExt;
 

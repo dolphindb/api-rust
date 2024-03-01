@@ -184,38 +184,3 @@ deserialize_i32_temporal!(
 );
 
 deserialize_i64_temporal!((TimeStamp, i64), (NanoTime, u64), (NanoTimeStamp, i64));
-
-macro_rules! deserialize_decimal {
-    ($raw_type:tt, $read_func:ident, $func_name:ident) => {
-        async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
-        where
-            R: AsyncBufReadExt + Unpin,
-        {
-            let scale = reader.read_i32().await?;
-            let mantissa = reader.$read_func().await?;
-
-            if mantissa != $raw_type::MIN {
-                *self = Self::from_raw(mantissa, scale as u32);
-            } else {
-                self.set(None);
-            }
-
-            Ok(())
-        }
-    };
-
-    ($(($raw_type:tt, $struct_name:ident, $read_func:ident, $read_func_le:ident)), *) => {
-        $(
-            impl Deserialize for $struct_name {
-                deserialize_decimal!($raw_type, $read_func, deserialize);
-                deserialize_decimal!($raw_type, $read_func_le, deserialize_le);
-            }
-        )*
-    };
-}
-
-deserialize_decimal!(
-    (i32, Decimal32, read_i32, read_i32_le),
-    (i64, Decimal64, read_i64, read_i64_le),
-    (i128, Decimal128, read_i128, read_i128_le)
-);

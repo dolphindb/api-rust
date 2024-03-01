@@ -6,8 +6,8 @@ use crate::{Deserialize, Serialize};
 
 use super::{
     constant::{Constant, ConstantKind},
-    scalar::ScalarKind,
-    VectorKind,
+    scalar::{ScalarKind, ANY_TYPE_VALUE},
+    Basic, VectorKind,
 };
 
 pub type Dictionary = HashMap<ScalarKind, ConstantKind>;
@@ -159,5 +159,12 @@ impl Deserialize for Dictionary {
             .map_err(|_| Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
         Ok(())
+    }
+}
+
+// implement Basic trait for Dictionary
+impl Basic for Dictionary {
+    fn data_type(&self) -> u8 {
+        ANY_TYPE_VALUE
     }
 }

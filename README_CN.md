@@ -604,7 +604,3 @@ fn data_type() -> u8
 ```
 
 返回一个 `u8` 值，表示该数据类型值，与标量类型实现的 data_type 函数同名，如果要使用需要使用完全限定语法。
-
-<!-- ### 4.3 `NotDecimal` 特征
-
-### 4.4 `DecimalInterface` 特征 -->

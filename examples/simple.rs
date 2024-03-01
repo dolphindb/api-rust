@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use rust_api::{
     client::ClientBuilder,
-    types::{Bool, ConstantKind, DateHour, ScalarKind, Vector, VectorKind},
+    types::{Bool, ConstantKind, DateHour, ScalarKind},
 };
 
 fn main() {
@@ -46,29 +46,6 @@ fn main() {
     let script = String::from("b;");
     let res = rt
         .block_on(async { client.run_script(script).await })
-        .unwrap();
-    for c in res {
-        println!("{:?}", c);
-    }
-
-    let v = VectorKind::Decimal32(Vector::from_raw(&[
-        1.into(),
-        2.into(),
-        3.into(),
-        4.into(),
-        5.into(),
-        6.into(),
-        7.into(),
-        8.into(),
-    ]));
-    println!("{:?}", v);
-    let func = String::from("max");
-    let res = rt
-        .block_on(async {
-            client
-                .run_function(func, vec![ConstantKind::Vector(v)])
-                .await
-        })
         .unwrap();
     for c in res {
         println!("{:?}", c);

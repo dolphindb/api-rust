@@ -5,10 +5,10 @@ use std::{
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::{
-    dictionary::Dictionary, pair::Pair, scalar::ScalarKind, set::Set, vector::VectorKind, Short,
-    Vector,
+    scalar::{Basic, Dictionary, Pair, ScalarKind, Vector, VectorKind},
+    Set, Short,
 };
-use crate::{Deserialize, Serialize};
+use crate::{error::RuntimeError, Deserialize, Serialize};
 
 pub trait Constant: Send + Sync + Clone {
     /// data category identifier for serialization.
@@ -25,8 +25,8 @@ pub enum ConstantKind {
     Scalar(ScalarKind),
     Vector(VectorKind),
     Pair(Pair),
-    Dictionary(Dictionary),
     Set(Set),
+    Dictionary(Dictionary),
 }
 
 impl Default for ConstantKind {
@@ -106,30 +106,15 @@ impl Deserialize for (u8, u8) {
     }
 }
 
-macro_rules! try_from_impl {
-    ($enum_name:ident, $struct_name:ident) => {
-        impl From<$struct_name> for ConstantKind {
-            fn from(value: $struct_name) -> Self {
-                Self::$enum_name(value)
-            }
-        }
-
-        impl TryFrom<ConstantKind> for $struct_name {
-            type Error = ();
-
-            fn try_from(value: ConstantKind) -> Result<Self, Self::Error> {
-                match value {
-                    ConstantKind::$enum_name(value) => Ok(value),
-                    _ => Err(()),
-                }
-            }
-        }
-    };
-
-    ($(($enum_name:ident, $struct_name:ident)), *) => {
-        $(
-            try_from_impl!($enum_name, $struct_name);
-        )*
+macro_rules! for_all_constants {
+    ($macro:tt) => {
+        $macro!(
+            (Scalar, ScalarKind),
+            (Vector, VectorKind),
+            (Pair, Pair),
+            (Set, Set),
+            (Dictionary, Dictionary)
+        );
     };
 }
 
@@ -160,6 +145,8 @@ macro_rules! dispatch_serialize {
         }
     };
 }
+
+for_all_constants!(dispatch_serialize);
 
 macro_rules! dispatch_deserialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
@@ -210,21 +197,81 @@ macro_rules! dispatch_deserialize {
         }
     };
 }
+for_all_constants!(dispatch_deserialize);
 
-macro_rules! for_all_constants {
-    ($macro:tt) => {
-        $macro!(
-            (Scalar, ScalarKind),
-            (Vector, VectorKind),
-            (Pair, Pair),
-            (Set, Set),
-            (Dictionary, Dictionary)
-        );
+macro_rules! try_from_impl {
+    ($enum_name:ident, $struct_name:ident) => {
+        impl From<$struct_name> for ConstantKind {
+            fn from(value: $struct_name) -> Self {
+                Self::$enum_name(value)
+            }
+        }
+
+        impl TryFrom<ConstantKind> for $struct_name {
+            type Error = ();
+
+            fn try_from(value: ConstantKind) -> Result<Self, Self::Error> {
+                match value {
+                    ConstantKind::$enum_name(value) => Ok(value),
+                    _ => Err(()),
+                }
+            }
+        }
+    };
+
+    ($(($enum_name:ident, $struct_name:ident)), *) => {
+        $(
+            try_from_impl!($enum_name, $struct_name);
+        )*
     };
 }
-
 for_all_constants!(try_from_impl);
 
-for_all_constants!(dispatch_serialize);
+// implement Basic trait for ConstantKind
+impl Basic for ConstantKind {
+    fn data_type(&self) -> u8 {
+        match self {
+            ConstantKind::Scalar(obj) => obj.data_type(),
+            ConstantKind::Vector(obj) => obj.data_type(),
+            ConstantKind::Pair(obj) => obj.data_type(),
+            ConstantKind::Set(obj) => obj.data_type(),
+            ConstantKind::Dictionary(obj) => obj.data_type(),
+        }
+    }
 
-for_all_constants!(dispatch_deserialize);
+    fn is_null(&self) -> bool {
+        match self {
+            ConstantKind::Scalar(obj) => obj.is_null(),
+            ConstantKind::Vector(obj) => obj.is_null(),
+            ConstantKind::Pair(obj) => obj.is_null(),
+            ConstantKind::Set(obj) => obj.is_null(),
+            ConstantKind::Dictionary(obj) => obj.is_null(),
+        }
+    }
+
+    // implementation of Basic getters
+    fn get_bool(&self) -> Result<bool, RuntimeError> {
+        match self {
+            ConstantKind::Scalar(obj) => obj.get_bool(),
+            _ => Err(RuntimeError::GetBoolFail),
+        }
+    }
+    fn get_char(&self) -> Result<u8, RuntimeError> {
+        match self {
+            ConstantKind::Scalar(obj) => obj.get_char(),
+            _ => Err(RuntimeError::GetCharFail),
+        }
+    }
+    fn get_short(&self) -> Result<i16, RuntimeError> {
+        match self {
+            ConstantKind::Scalar(obj) => obj.get_short(),
+            _ => Err(RuntimeError::GetShortFail),
+        }
+    }
+    fn get_int(&self) -> Result<i32, RuntimeError> {
+        match self {
+            ConstantKind::Scalar(obj) => obj.get_int(),
+            _ => Err(RuntimeError::GetIntFail),
+        }
+    }
+}
