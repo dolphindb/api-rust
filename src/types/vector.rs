@@ -7,9 +7,9 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::scalar::{for_all_branches, Scalar};
 use super::{
-    Basic, Bool, Char, Constant, DataType, Date, DateHour, DateTime, DolphinString, Double, Float,
-    Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind, Second, Short, Time,
-    TimeStamp,
+    Basic, Bool, Char, Constant, DataForm, DataType, Date, DateHour, DateTime, DolphinString,
+    Double, Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind,
+    Second, Short, Time, TimeStamp,
 };
 
 #[derive(Debug, Clone)]
@@ -554,6 +554,10 @@ macro_rules! dispatch_data_type {
                     )*
                 }
             }
+
+            fn data_form(&self) -> DataForm {
+                DataForm::Vector
+            }
         }
     };
 }
@@ -563,5 +567,9 @@ for_all_branches!(dispatch_data_type);
 impl<S: Scalar> Basic for Vector<S> {
     fn data_type(&self) -> DataType {
         <S as Scalar>::data_type()
+    }
+
+    fn data_form(&self) -> DataForm {
+        DataForm::Vector
     }
 }

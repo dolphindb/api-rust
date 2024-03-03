@@ -5,7 +5,8 @@ use std::{
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::{
-    scalar::ScalarKind, vector::Vector, Basic, DataType, Dictionary, Pair, Set, Short, VectorKind,
+    scalar::ScalarKind, vector::Vector, Basic, DataForm, DataType, Dictionary, Pair, Set, Short,
+    VectorKind,
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
@@ -249,6 +250,16 @@ impl Basic for ConstantKind {
         }
     }
 
+    fn data_form(&self) -> DataForm {
+        match self {
+            ConstantKind::Scalar(obj) => obj.data_form(),
+            ConstantKind::Vector(obj) => obj.data_form(),
+            ConstantKind::Pair(obj) => obj.data_form(),
+            ConstantKind::Set(obj) => obj.data_form(),
+            ConstantKind::Dictionary(obj) => obj.data_form(),
+        }
+    }
+
     // implementation of Basic getters
     fn get_bool(&self) -> Result<bool, RuntimeError> {
         match self {
@@ -272,6 +283,30 @@ impl Basic for ConstantKind {
         match self {
             ConstantKind::Scalar(obj) => obj.get_int(),
             _ => Err(RuntimeError::GetIntFail),
+        }
+    }
+    fn get_long(&self) -> Result<i64, RuntimeError> {
+        match self {
+            ConstantKind::Scalar(obj) => obj.get_long(),
+            _ => Err(RuntimeError::GetLongFail),
+        }
+    }
+    fn get_float(&self) -> Result<f32, RuntimeError> {
+        match self {
+            ConstantKind::Scalar(obj) => obj.get_float(),
+            _ => Err(RuntimeError::GetFloatFail),
+        }
+    }
+    fn get_double(&self) -> Result<f64, RuntimeError> {
+        match self {
+            ConstantKind::Scalar(obj) => obj.get_double(),
+            _ => Err(RuntimeError::GetDoubleFail),
+        }
+    }
+    fn get_string(&self) -> Result<&str, RuntimeError> {
+        match self {
+            ConstantKind::Scalar(obj) => obj.get_string(),
+            _ => Err(RuntimeError::GetStringFail),
         }
     }
 }

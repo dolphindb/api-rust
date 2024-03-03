@@ -451,7 +451,7 @@ pub fn second_mut(&mut self) -> &mut ScalarKind
 | NanoTimeStamp  | NaiveDateTime     | 14     |
 | Float          | OrderedFloat<f32> | 15     |
 | Double         | OrderedFloat<f64> | 16     |
-| DolphinString  | Option<String>    | 18     |
+| DolphinString  | String            | 18     |
 | DateHour       | NaiveDateTime     | 28     |
 
 <!--  TODO decimal

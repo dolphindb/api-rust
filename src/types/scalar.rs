@@ -3,8 +3,8 @@ mod serialize;
 mod temporal;
 
 use super::{
-    Basic, Bool, Char, Constant, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
-    Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
+    Basic, Bool, Char, Constant, DataType, Date, DateHour, DateTime, DolphinString, Double, Float,
+    Int, Long, Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
 };
 use crate::{Deserialize, Serialize};
 use std::{
@@ -12,112 +12,6 @@ use std::{
     hash::Hash,
 };
 use tokio::io::AsyncBufReadExt;
-
-// TODO: delete DataByte
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
-pub enum DataType {
-    Void,
-    Bool,
-    Char,
-    Short,
-    Int,
-    Long,
-    Date,
-    Month,
-    Time,
-    Minute,
-    Second,
-    DateTime,
-    TimeStamp,
-    NanoTime,
-    NanoTimeStamp,
-    Float,
-    Double,
-    Placeholder1,
-    DolphinString, // todo
-    Placeholder2,
-    Placeholder3,
-    Placeholder4,
-    Placeholder5,
-    Placeholder6,
-    Placeholder7,
-    Any,
-    Placeholder8,
-    Placeholder9,
-    DateHour,
-}
-
-// todo: use From or TryFrom trait
-impl DataType {
-    pub fn from_u8(data_type: u8) -> Option<DataType> {
-        match data_type {
-            0 => Some(DataType::Void),
-            1 => Some(DataType::Bool),
-            2 => Some(DataType::Char),
-            3 => Some(DataType::Short),
-            4 => Some(DataType::Int),
-            5 => Some(DataType::Long),
-            6 => Some(DataType::Date),
-            7 => Some(DataType::Month),
-            8 => Some(DataType::Time),
-            9 => Some(DataType::Minute),
-            10 => Some(DataType::Second),
-            11 => Some(DataType::DateTime),
-            12 => Some(DataType::TimeStamp),
-            13 => Some(DataType::NanoTime),
-            14 => Some(DataType::NanoTimeStamp),
-            15 => Some(DataType::Float),
-            16 => Some(DataType::Double),
-            17 => Some(DataType::Placeholder1),
-            18 => Some(DataType::DolphinString),
-            19 => Some(DataType::Placeholder2),
-            20 => Some(DataType::Placeholder3),
-            21 => Some(DataType::Placeholder4),
-            22 => Some(DataType::Placeholder5),
-            23 => Some(DataType::Placeholder6),
-            24 => Some(DataType::Placeholder7),
-            25 => Some(DataType::Any),
-            26 => Some(DataType::Placeholder8),
-            27 => Some(DataType::Placeholder9),
-            28 => Some(DataType::DateHour),
-            _ => None,
-        }
-    }
-
-    pub fn to_u8(&self) -> u8 {
-        match self {
-            DataType::Void => 0,
-            DataType::Bool => 1,
-            DataType::Char => 2,
-            DataType::Short => 3,
-            DataType::Int => 4,
-            DataType::Long => 5,
-            DataType::Date => 6,
-            DataType::Month => 7,
-            DataType::Time => 8,
-            DataType::Minute => 9,
-            DataType::Second => 10,
-            DataType::DateTime => 11,
-            DataType::TimeStamp => 12,
-            DataType::NanoTime => 13,
-            DataType::NanoTimeStamp => 14,
-            DataType::Float => 15,
-            DataType::Double => 16,
-            DataType::Placeholder1 => 17,
-            DataType::DolphinString => 18,
-            DataType::Placeholder2 => 19,
-            DataType::Placeholder3 => 20,
-            DataType::Placeholder4 => 21,
-            DataType::Placeholder5 => 22,
-            DataType::Placeholder6 => 23,
-            DataType::Placeholder7 => 24,
-            DataType::Any => 25,
-            DataType::Placeholder8 => 26,
-            DataType::Placeholder9 => 27,
-            DataType::DateHour => 28,
-        }
-    }
-}
 
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Hash)]
 pub enum ScalarKind {
@@ -297,10 +191,6 @@ for_all_branches!(dispatch_reflect);
 
 impl ScalarKind {
     pub const FORM_BYTE: u8 = 0;
-
-    pub const fn data_form(&self) -> u8 {
-        Self::FORM_BYTE
-    }
 }
 
 impl Constant for ScalarKind {

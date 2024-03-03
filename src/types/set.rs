@@ -4,7 +4,7 @@ use std::{
 };
 use tokio::io::AsyncBufReadExt;
 
-use super::{constant::Constant, Basic, DataType, ScalarKind, VectorKind};
+use super::{constant::Constant, Basic, DataForm, DataType, ScalarKind, VectorKind};
 use crate::{Deserialize, Serialize};
 
 pub type Set = HashSet<ScalarKind>;
@@ -117,5 +117,9 @@ impl Deserialize for Set {
 impl Basic for Set {
     fn data_type(&self) -> DataType {
         DataType::Any
+    }
+
+    fn data_form(&self) -> DataForm {
+        DataForm::Set
     }
 }

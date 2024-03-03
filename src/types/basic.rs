@@ -1,11 +1,151 @@
 use super::{
-    Bool, Char, DataType, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
-    Minute, Month, NanoTime, NanoTimeStamp, ScalarKind, Second, Short, Time, TimeStamp,
+    Bool, Char, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long, Minute, Month,
+    NanoTime, NanoTimeStamp, ScalarKind, Second, Short, Time, TimeStamp,
 };
 use crate::error::RuntimeError;
 
+// data type enum implementation
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+pub enum DataType {
+    Void,
+    Bool,
+    Char,
+    Short,
+    Int,
+    Long,
+    Date,
+    Month,
+    Time,
+    Minute,
+    Second,
+    DateTime,
+    TimeStamp,
+    NanoTime,
+    NanoTimeStamp,
+    Float,
+    Double,
+    Placeholder1,
+    DolphinString,
+    Placeholder2,
+    Placeholder3,
+    Placeholder4,
+    Placeholder5,
+    Placeholder6,
+    Placeholder7,
+    Any,
+    Placeholder8,
+    Placeholder9,
+    DateHour,
+}
+
+// todo: use From or TryFrom trait
+impl DataType {
+    pub fn from_u8(data_type: u8) -> Option<DataType> {
+        match data_type {
+            0 => Some(DataType::Void),
+            1 => Some(DataType::Bool),
+            2 => Some(DataType::Char),
+            3 => Some(DataType::Short),
+            4 => Some(DataType::Int),
+            5 => Some(DataType::Long),
+            6 => Some(DataType::Date),
+            7 => Some(DataType::Month),
+            8 => Some(DataType::Time),
+            9 => Some(DataType::Minute),
+            10 => Some(DataType::Second),
+            11 => Some(DataType::DateTime),
+            12 => Some(DataType::TimeStamp),
+            13 => Some(DataType::NanoTime),
+            14 => Some(DataType::NanoTimeStamp),
+            15 => Some(DataType::Float),
+            16 => Some(DataType::Double),
+            17 => Some(DataType::Placeholder1),
+            18 => Some(DataType::DolphinString),
+            19 => Some(DataType::Placeholder2),
+            20 => Some(DataType::Placeholder3),
+            21 => Some(DataType::Placeholder4),
+            22 => Some(DataType::Placeholder5),
+            23 => Some(DataType::Placeholder6),
+            24 => Some(DataType::Placeholder7),
+            25 => Some(DataType::Any),
+            26 => Some(DataType::Placeholder8),
+            27 => Some(DataType::Placeholder9),
+            28 => Some(DataType::DateHour),
+            _ => None,
+        }
+    }
+
+    pub fn to_u8(&self) -> u8 {
+        match self {
+            DataType::Void => 0,
+            DataType::Bool => 1,
+            DataType::Char => 2,
+            DataType::Short => 3,
+            DataType::Int => 4,
+            DataType::Long => 5,
+            DataType::Date => 6,
+            DataType::Month => 7,
+            DataType::Time => 8,
+            DataType::Minute => 9,
+            DataType::Second => 10,
+            DataType::DateTime => 11,
+            DataType::TimeStamp => 12,
+            DataType::NanoTime => 13,
+            DataType::NanoTimeStamp => 14,
+            DataType::Float => 15,
+            DataType::Double => 16,
+            DataType::Placeholder1 => 17,
+            DataType::DolphinString => 18,
+            DataType::Placeholder2 => 19,
+            DataType::Placeholder3 => 20,
+            DataType::Placeholder4 => 21,
+            DataType::Placeholder5 => 22,
+            DataType::Placeholder6 => 23,
+            DataType::Placeholder7 => 24,
+            DataType::Any => 25,
+            DataType::Placeholder8 => 26,
+            DataType::Placeholder9 => 27,
+            DataType::DateHour => 28,
+        }
+    }
+}
+
+// data form
+pub enum DataForm {
+    Scalar,
+    Vector,
+    Pair,
+    Placeholder,
+    Set,
+    Dictionary,
+    Table,
+}
+
+impl DataForm {
+    pub fn to_u8(&self) -> u8 {
+        match self {
+            DataForm::Scalar => 0,
+            DataForm::Vector => 1,
+            DataForm::Pair => 2,
+            DataForm::Placeholder => 3,
+            DataForm::Set => 4,
+            DataForm::Dictionary => 5,
+            DataForm::Table => 6,
+        }
+    }
+}
+
+// data category
+// todo
+
 pub trait Basic: Send + Sync + Clone {
     fn data_type(&self) -> DataType;
+
+    fn data_form(&self) -> DataForm {
+        // the default implementation of all scalar types and ScalarKind
+        DataForm::Scalar
+    }
+
     fn is_null(&self) -> bool {
         false
     }
@@ -22,6 +162,18 @@ pub trait Basic: Send + Sync + Clone {
     }
     fn get_int(&self) -> Result<i32, RuntimeError> {
         Err(RuntimeError::GetIntFail)
+    }
+    fn get_long(&self) -> Result<i64, RuntimeError> {
+        Err(RuntimeError::GetLongFail)
+    }
+    fn get_float(&self) -> Result<f32, RuntimeError> {
+        Err(RuntimeError::GetFloatFail)
+    }
+    fn get_double(&self) -> Result<f64, RuntimeError> {
+        Err(RuntimeError::GetDoubleFail)
+    }
+    fn get_string(&self) -> Result<&str, RuntimeError> {
+        Err(RuntimeError::GetStringFail)
     }
 }
 
@@ -98,6 +250,30 @@ impl Basic for ScalarKind {
         match self {
             ScalarKind::Int(obj) => obj.get_int(),
             _ => Err(RuntimeError::GetIntFail),
+        }
+    }
+    fn get_long(&self) -> Result<i64, RuntimeError> {
+        match self {
+            ScalarKind::Long(obj) => obj.get_long(),
+            _ => Err(RuntimeError::GetLongFail),
+        }
+    }
+    fn get_float(&self) -> Result<f32, RuntimeError> {
+        match self {
+            ScalarKind::Float(obj) => obj.get_float(),
+            _ => Err(RuntimeError::GetFloatFail),
+        }
+    }
+    fn get_double(&self) -> Result<f64, RuntimeError> {
+        match self {
+            ScalarKind::Double(obj) => obj.get_double(),
+            _ => Err(RuntimeError::GetDoubleFail),
+        }
+    }
+    fn get_string(&self) -> Result<&str, RuntimeError> {
+        match self {
+            ScalarKind::String(obj) => obj.get_string(),
+            _ => Err(RuntimeError::GetStringFail),
         }
     }
 }
@@ -226,6 +402,10 @@ impl Basic for DolphinString {
     fn is_null(&self) -> bool {
         self.0.is_some()
     }
+
+    fn get_string(&self) -> Result<&str, RuntimeError> {
+        Ok(self.0.as_deref().unwrap_or(""))
+    }
 }
 
 impl Basic for DateHour {
@@ -288,6 +468,10 @@ impl Basic for Long {
     fn is_null(&self) -> bool {
         self.0.is_some()
     }
+
+    fn get_long(&self) -> Result<i64, RuntimeError> {
+        self.0.map_or(Ok(i64::MIN), Ok)
+    }
 }
 
 impl Basic for Float {
@@ -298,6 +482,12 @@ impl Basic for Float {
     fn is_null(&self) -> bool {
         self.0.is_some()
     }
+
+    fn get_float(&self) -> Result<f32, RuntimeError> {
+        Ok(self
+            .0
+            .map_or(f32::MIN, |ordered_float| ordered_float.into_inner()))
+    }
 }
 
 impl Basic for Double {
@@ -307,5 +497,11 @@ impl Basic for Double {
 
     fn is_null(&self) -> bool {
         self.0.is_some()
+    }
+
+    fn get_double(&self) -> Result<f64, RuntimeError> {
+        Ok(self
+            .0
+            .map_or(f64::MIN, |ordered_float| ordered_float.into_inner()))
     }
 }

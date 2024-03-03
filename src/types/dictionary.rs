@@ -5,7 +5,7 @@ use tokio::io::AsyncBufReadExt;
 use super::{
     constant::{Constant, ConstantKind},
     scalar::ScalarKind,
-    Basic, DataType, VectorKind,
+    Basic, DataForm, DataType, VectorKind,
 };
 use crate::{Deserialize, Serialize};
 
@@ -173,5 +173,9 @@ impl Deserialize for Dictionary {
 impl Basic for Dictionary {
     fn data_type(&self) -> DataType {
         DataType::Any
+    }
+
+    fn data_form(&self) -> DataForm {
+        DataForm::Dictionary
     }
 }

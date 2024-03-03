@@ -1,7 +1,7 @@
 use std::io::{Error, ErrorKind};
 use tokio::io::AsyncBufReadExt;
 
-use super::{constant::Constant, scalar::ScalarKind, Basic, DataType, VectorKind};
+use super::{constant::Constant, scalar::ScalarKind, Basic, DataForm, DataType, VectorKind};
 use crate::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
@@ -12,7 +12,7 @@ pub struct Pair {
 }
 
 impl Pair {
-    pub const FORM_BYTE: u8 = 1;
+    pub const FORM_BYTE: u8 = 1; // todo: remove
 
     pub fn new(pair: (ScalarKind, ScalarKind)) -> Self {
         let data_type = pair.0.data_type();
@@ -165,5 +165,9 @@ impl Deserialize for Pair {
 impl Basic for Pair {
     fn data_type(&self) -> DataType {
         self.data_type()
+    }
+
+    fn data_form(&self) -> DataForm {
+        DataForm::Pair
     }
 }

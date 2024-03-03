@@ -10,4 +10,12 @@ pub enum RuntimeError {
     GetShortFail,
     #[error("The object can't be converted to int scalar.")]
     GetIntFail,
+    #[error("The object can't be converted to long scalar.")]
+    GetLongFail,
+    #[error("The object can't be converted to float scalar.")]
+    GetFloatFail,
+    #[error("The object can't be converted to double scalar.")]
+    GetDoubleFail,
+    #[error("The object can't be converted to string scalar.")]
+    GetStringFail,
 }

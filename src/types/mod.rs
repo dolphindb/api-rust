@@ -6,11 +6,11 @@ mod scalar;
 mod set;
 mod vector;
 
-pub use basic::Basic;
+pub use basic::{Basic, DataForm, DataType};
 pub use constant::{Constant, ConstantKind};
 pub use dictionary::Dictionary;
 pub use pair::Pair;
-pub use scalar::{DataType, Scalar, ScalarKind};
+pub use scalar::{Scalar, ScalarKind};
 pub use set::Set;
 pub use vector::VectorKind;
 
