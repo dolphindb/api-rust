@@ -6,7 +6,7 @@ mod scalar;
 mod set;
 mod vector;
 
-pub use basic::{Basic, DataForm, DataType};
+pub use basic::{Basic, DataCategory, DataForm, DataType};
 pub use constant::{Constant, ConstantKind};
 pub use dictionary::Dictionary;
 pub use pair::Pair;

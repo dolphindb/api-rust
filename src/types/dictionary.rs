@@ -5,46 +5,68 @@ use tokio::io::AsyncBufReadExt;
 use super::{
     constant::{Constant, ConstantKind},
     scalar::ScalarKind,
-    Basic, DataForm, DataType, VectorKind,
+    Basic, DataCategory, DataForm, DataType, VectorKind,
 };
 use crate::{Deserialize, Serialize};
 
-pub type Dictionary = HashMap<ScalarKind, ConstantKind>;
+#[derive(Debug, Clone)]
+pub struct Dictionary {
+    data: HashMap<ScalarKind, ConstantKind>,
+    data_type: DataType,
+}
 
-impl Constant for Dictionary {
-    fn data_category(&self) -> u8 {
-        5
+impl Dictionary {
+    pub fn new(data_type: DataType) -> Self {
+        Self {
+            data: HashMap::new(),
+            data_type,
+        }
     }
 
+    pub fn insert(&mut self, key: ScalarKind, value: ConstantKind) {
+        self.data.insert(key, value);
+    }
+
+    pub(crate) fn from_type(data_type: DataType) -> Option<Self> {
+        Some(Dictionary {
+            data: HashMap::new(),
+            data_type,
+        })
+    }
+}
+
+impl Constant for Dictionary {
     fn is_empty(&self) -> bool {
-        self.is_empty()
+        self.data.is_empty()
     }
 }
 
 pub(crate) fn dictionary_keys(dict: &Dictionary) -> Result<VectorKind, ()> {
-    let keys = dict.iter().map(|(k, _v)| k.clone()).collect::<Vec<_>>();
+    // todo: borrow?
+    let keys = dict.data.keys().cloned().collect::<Vec<_>>();
     keys.try_into()
 }
 
 pub(crate) fn dictionary_values(dict: &Dictionary) -> Result<VectorKind, ()> {
-    let values = dict.iter().map(|(_k, v)| v.clone()).collect::<Vec<_>>();
+    // todo: borrow?
+    let values = dict.data.values().cloned().collect::<Vec<_>>();
     values.try_into()
 }
 
 pub(crate) fn from_vectors(keys: VectorKind, values: VectorKind) -> Result<Dictionary, ()> {
     let keys: Vec<ScalarKind> = keys.into();
+    let data_type = values.data_type();
     let values: Vec<ScalarKind> = values.into();
 
     if keys.len() != values.len() {
         return Err(());
     }
 
-    let dict = keys
+    let data = keys
         .into_iter()
         .zip(values.into_iter().map(ConstantKind::Scalar))
         .collect::<HashMap<_, _>>();
-
-    Ok(dict)
+    Ok(Dictionary { data, data_type })
 }
 
 impl Serialize for Dictionary {
@@ -55,7 +77,7 @@ impl Serialize for Dictionary {
         let keys = dictionary_keys(self)?;
         let values = dictionary_values(self)?;
 
-        (values.data_type().to_u8(), self.data_category()).serialize(buffer)?;
+        (values.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
         keys.serialize(buffer)?;
         values.serialize(buffer)?;
@@ -70,7 +92,7 @@ impl Serialize for Dictionary {
         let keys = dictionary_keys(self)?;
         let values = dictionary_values(self)?;
 
-        (values.data_type().to_u8(), self.data_category()).serialize_le(buffer)?;
+        (values.data_type().to_u8(), self.data_form().to_u8()).serialize_le(buffer)?;
 
         keys.serialize_le(buffer)?;
         values.serialize_le(buffer)?;
@@ -89,7 +111,7 @@ impl Deserialize for Dictionary {
 
         let (data_type, data_form) = type_form;
 
-        if data_form != VectorKind::FORM_BYTE {
+        if data_form != DataForm::Vector.to_u8() {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
@@ -105,7 +127,7 @@ impl Deserialize for Dictionary {
 
         let (data_type, data_form) = type_form;
 
-        if data_form != VectorKind::FORM_BYTE {
+        if data_form != DataForm::Vector.to_u8() {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
@@ -131,7 +153,7 @@ impl Deserialize for Dictionary {
 
         let (data_type, data_form) = type_form;
 
-        if data_form != VectorKind::FORM_BYTE {
+        if data_form != DataForm::Vector.to_u8() {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
@@ -147,7 +169,7 @@ impl Deserialize for Dictionary {
 
         let (data_type, data_form) = type_form;
 
-        if data_form != VectorKind::FORM_BYTE {
+        if data_form != DataForm::Vector.to_u8() {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
@@ -168,7 +190,11 @@ impl Deserialize for Dictionary {
 // implement Basic trait for Dictionary
 impl Basic for Dictionary {
     fn data_type(&self) -> DataType {
-        DataType::Any
+        self.data_type
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::from_data_type(&self.data_type)
     }
 
     fn data_form(&self) -> DataForm {
@@ -176,6 +202,6 @@ impl Basic for Dictionary {
     }
 
     fn size(&self) -> usize {
-        self.len()
+        self.data.len()
     }
 }

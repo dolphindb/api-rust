@@ -2,22 +2,21 @@
 2. Basic
    1. [x] data_type
    2. [x] data_form
-   3. data_category
+   3. [x] data_category
    5. [x] size
    6. [x] is_empty
    7. [x] is_null
-   8. is_number
-   9. get_bool/char/short/int/long/float/double/string /date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp
-   10. set_bool/char/short/int/long/float/double/string /date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp
-   11. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer
-   12. set_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer
-   13. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_by_index
-   15. set_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_by_index
-   16. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer_by_index
-   17. set_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer_by_index
-   18. hasNull
-   19. append
-   10. remove
+   8. get_bool/char/short/int/long/float/double/string /date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp
+   9.  set_bool/char/short/int/long/float/double/string /date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp
+   10. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer
+   11. set_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer
+   12. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_by_index
+   13. set_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_by_index
+   14. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer_by_index
+   15. set_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer_by_index
+   16. hasNull
+   17. append
+   18. remove
 3. Constant:
    1. isScalar
    2. isVector

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use rust_api::{
     client::ClientBuilder,
-    types::{Bool, ConstantKind, DateHour, ScalarKind},
+    types::{Bool, ConstantKind, DataType, DateHour, Dictionary, ScalarKind},
 };
 
 fn main() {
@@ -30,12 +30,12 @@ fn main() {
         ConstantKind::Scalar(ScalarKind::Bool(Bool::new(Some(true)))),
     );
 
-    let mut map = HashMap::new();
-    map.insert(
+    let mut dict = Dictionary::new(DataType::Bool);
+    dict.insert(
         ScalarKind::DateHour(DateHour::from_ymd_h(1970, 1, 1, 1)),
         ConstantKind::Scalar(ScalarKind::Bool(Bool::new(None))),
     );
-    variables.insert("b".to_string(), ConstantKind::Dictionary(map));
+    variables.insert("b".to_string(), ConstantKind::Dictionary(dict));
     let res = rt
         .block_on(async { client.upload(variables).await })
         .unwrap();

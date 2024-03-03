@@ -1,19 +1,13 @@
-use std::{
-    collections::{HashMap, HashSet},
-    io::{Error, ErrorKind},
-};
+use std::io::{Error, ErrorKind};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::{
-    scalar::ScalarKind, vector::Vector, Basic, DataForm, DataType, Dictionary, Pair, Set, Short,
-    VectorKind,
+    scalar::ScalarKind, vector::Vector, Basic, DataCategory, DataForm, DataType, Dictionary, Pair,
+    Set, Short, VectorKind,
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
 pub trait Constant: Send + Sync + Clone {
-    /// data category identifier for serialization.
-    fn data_category(&self) -> u8;
-
     fn is_empty(&self) -> bool;
 }
 
@@ -39,8 +33,8 @@ impl ConstantKind {
             0 => ScalarKind::from_type(data_type).map(Self::Scalar),
             1 => VectorKind::from_type(data_type).map(Self::Vector),
             2 => Pair::from_type(data_type).map(Self::Pair),
-            4 => Some(Self::Set(HashSet::new())),
-            5 => Some(Self::Dictionary(HashMap::new())),
+            4 => Set::from_type(data_type).map(Self::Set),
+            5 => Dictionary::from_type(data_type).map(Self::Dictionary),
             _ => None,
         }
     }
@@ -234,6 +228,16 @@ impl Basic for ConstantKind {
             ConstantKind::Pair(obj) => obj.data_type(),
             ConstantKind::Set(obj) => obj.data_type(),
             ConstantKind::Dictionary(obj) => obj.data_type(),
+        }
+    }
+
+    fn data_category(&self) -> DataCategory {
+        match self {
+            ConstantKind::Scalar(obj) => obj.data_category(),
+            ConstantKind::Vector(obj) => obj.data_category(),
+            ConstantKind::Pair(obj) => obj.data_category(),
+            ConstantKind::Set(obj) => obj.data_category(),
+            ConstantKind::Dictionary(obj) => obj.data_category(),
         }
     }
 

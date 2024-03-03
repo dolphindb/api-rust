@@ -66,7 +66,7 @@ macro_rules! dispatch_serialize {
             where
                 B: bytes::BufMut,
             {
-                (self.data_type().to_u8(), self.data_category()).serialize(buffer)?;
+                (self.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
                 match self {
                     Self::Void => ().serialize(buffer),
@@ -80,7 +80,7 @@ macro_rules! dispatch_serialize {
             where
                 B: bytes::BufMut,
             {
-                (self.data_type().to_u8(), self.data_category()).serialize_le(buffer)?;
+                (self.data_type().to_u8(), self.data_form().to_u8()).serialize_le(buffer)?;
 
                 match self {
                     Self::Void => ().serialize_le(buffer),
@@ -189,15 +189,7 @@ for_all_branches!(dispatch_display);
 
 for_all_branches!(dispatch_reflect);
 
-impl ScalarKind {
-    pub const FORM_BYTE: u8 = 0;
-}
-
 impl Constant for ScalarKind {
-    fn data_category(&self) -> u8 {
-        Self::FORM_BYTE
-    }
-
     fn is_empty(&self) -> bool {
         false
     }

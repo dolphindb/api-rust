@@ -7,9 +7,9 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::scalar::{for_all_branches, Scalar};
 use super::{
-    Basic, Bool, Char, Constant, DataForm, DataType, Date, DateHour, DateTime, DolphinString,
-    Double, Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind,
-    Second, Short, Time, TimeStamp,
+    Basic, Bool, Char, Constant, DataCategory, DataForm, DataType, Date, DateHour, DateTime,
+    DolphinString, Double, Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal,
+    ScalarKind, Second, Short, Time, TimeStamp,
 };
 
 #[derive(Debug, Clone)]
@@ -41,8 +41,6 @@ pub enum VectorKind {
 // todo any is Vector<ConstantKind> ??
 
 impl VectorKind {
-    pub const FORM_BYTE: u8 = 1;
-
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -392,10 +390,6 @@ for_all_branches!(dispatch_deserialize);
 for_all_branches!(dispatch_reflect);
 
 impl Constant for VectorKind {
-    fn data_category(&self) -> u8 {
-        Self::FORM_BYTE
-    }
-
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -406,7 +400,7 @@ impl Serialize for VectorKind {
     where
         B: bytes::BufMut,
     {
-        (self.data_type().to_u8(), self.data_category()).serialize(buffer)?;
+        (self.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
         buffer.put_i32(self.len() as i32);
         buffer.put_i32(1);
@@ -420,7 +414,7 @@ impl Serialize for VectorKind {
     where
         B: bytes::BufMut,
     {
-        (self.data_type().to_u8(), self.data_category()).serialize_le(buffer)?;
+        (self.data_type().to_u8(), self.data_form().to_u8()).serialize_le(buffer)?;
 
         buffer.put_i32_le(self.len() as i32);
         buffer.put_i32(1);
@@ -551,6 +545,10 @@ macro_rules! dispatch_data_type {
                 }
             }
 
+            fn data_category(&self) -> DataCategory {
+                DataCategory::from_data_type(&self.data_type())
+            }
+
             fn data_form(&self) -> DataForm {
                 DataForm::Vector
             }
@@ -567,6 +565,10 @@ for_all_branches!(dispatch_data_type);
 impl<S: Scalar> Basic for Vector<S> {
     fn data_type(&self) -> DataType {
         <S as Scalar>::data_type()
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::from_data_type(&self.data_type())
     }
 
     fn data_form(&self) -> DataForm {

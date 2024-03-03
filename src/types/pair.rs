@@ -1,7 +1,9 @@
 use std::io::{Error, ErrorKind};
 use tokio::io::AsyncBufReadExt;
 
-use super::{constant::Constant, scalar::ScalarKind, Basic, DataForm, DataType, VectorKind};
+use super::{
+    constant::Constant, scalar::ScalarKind, Basic, DataCategory, DataForm, DataType, VectorKind,
+};
 use crate::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
@@ -12,8 +14,6 @@ pub struct Pair {
 }
 
 impl Pair {
-    pub const FORM_BYTE: u8 = 1; // todo: remove
-
     pub fn new(pair: (ScalarKind, ScalarKind)) -> Self {
         let data_type = pair.0.data_type();
         Self {
@@ -55,10 +55,6 @@ impl Pair {
 }
 
 impl Constant for Pair {
-    fn data_category(&self) -> u8 {
-        Self::FORM_BYTE
-    }
-
     fn is_empty(&self) -> bool {
         false
     }
@@ -101,7 +97,7 @@ impl Serialize for Pair {
         B: bytes::BufMut,
     {
         let v: VectorKind = self.clone().try_into()?;
-        (v.data_type().to_u8(), self.data_category()).serialize(buffer)?;
+        (v.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
         buffer.put_i32(self.size() as i32);
         buffer.put_i32(1);
@@ -115,7 +111,7 @@ impl Serialize for Pair {
         B: bytes::BufMut,
     {
         let v: VectorKind = self.clone().try_into()?;
-        (v.data_type().to_u8(), self.data_category()).serialize_le(buffer)?;
+        (v.data_type().to_u8(), self.data_form().to_u8()).serialize_le(buffer)?;
 
         buffer.put_i32_le(self.size() as i32);
         buffer.put_i32_le(1);
@@ -161,6 +157,10 @@ impl Deserialize for Pair {
 impl Basic for Pair {
     fn data_type(&self) -> DataType {
         self.data_type()
+    }
+
+    fn data_category(&self) -> DataCategory {
+        self.first.data_category()
     }
 
     fn data_form(&self) -> DataForm {

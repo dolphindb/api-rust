@@ -4,30 +4,44 @@ use std::{
 };
 use tokio::io::AsyncBufReadExt;
 
-use super::{constant::Constant, Basic, DataForm, DataType, ScalarKind, VectorKind};
+use super::{constant::Constant, Basic, DataCategory, DataForm, DataType, ScalarKind, VectorKind};
 use crate::{Deserialize, Serialize};
 
-pub type Set = HashSet<ScalarKind>;
+// ! all elements in Set must have the same type
+#[derive(Debug, Clone)]
+pub struct Set {
+    data: HashSet<ScalarKind>,
+    data_type: DataType,
+}
+
+impl Set {
+    pub(crate) fn from_type(data_type: DataType) -> Option<Self> {
+        Some(Set {
+            data: HashSet::new(),
+            data_type,
+        })
+    }
+}
 
 impl Constant for Set {
-    fn data_category(&self) -> u8 {
-        4
-    }
-
     fn is_empty(&self) -> bool {
-        self.is_empty()
+        self.data.is_empty()
     }
 }
 
 impl From<VectorKind> for Set {
     fn from(value: VectorKind) -> Self {
+        let data_type = value.data_type();
         let s: Vec<ScalarKind> = value.into();
-        s.into_iter().collect::<HashSet<_>>()
+        Self {
+            data: s.into_iter().collect::<HashSet<_>>(),
+            data_type,
+        }
     }
 }
 
 pub(crate) fn set_keys(set: &Set) -> Result<VectorKind, ()> {
-    let keys = set.iter().cloned().collect::<Vec<_>>();
+    let keys = set.data.iter().cloned().collect::<Vec<_>>();
     keys.try_into()
 }
 
@@ -38,7 +52,7 @@ impl Serialize for Set {
     {
         let keys = set_keys(self)?;
 
-        (keys.data_type().to_u8(), self.data_category()).serialize(buffer)?;
+        (keys.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
         keys.serialize(buffer)?;
 
@@ -51,7 +65,7 @@ impl Serialize for Set {
     {
         let keys = set_keys(self)?;
 
-        (keys.data_type().to_u8(), self.data_category()).serialize(buffer)?;
+        (keys.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
         keys.serialize(buffer)?;
 
@@ -68,7 +82,7 @@ impl Deserialize for Set {
         type_form.deserialize(reader).await?;
 
         let (data_type, data_form) = type_form;
-        if data_form != VectorKind::FORM_BYTE {
+        if data_form != DataForm::Vector.to_u8() {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
@@ -92,7 +106,7 @@ impl Deserialize for Set {
         type_form.deserialize(reader).await?;
 
         let (data_type, data_form) = type_form;
-        if data_form != VectorKind::FORM_BYTE {
+        if data_form != DataForm::Vector.to_u8() {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
@@ -112,7 +126,11 @@ impl Deserialize for Set {
 // implement Basic trait for Set
 impl Basic for Set {
     fn data_type(&self) -> DataType {
-        DataType::Any
+        self.data_type
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::from_data_type(&self.data_type)
     }
 
     fn data_form(&self) -> DataForm {
@@ -120,6 +138,6 @@ impl Basic for Set {
     }
 
     fn size(&self) -> usize {
-        self.len()
+        self.data.len()
     }
 }

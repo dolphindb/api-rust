@@ -24,18 +24,9 @@ pub enum DataType {
     NanoTimeStamp,
     Float,
     Double,
-    Placeholder1,
-    DolphinString,
-    Placeholder2,
-    Placeholder3,
-    Placeholder4,
-    Placeholder5,
-    Placeholder6,
-    Placeholder7,
-    Any,
-    Placeholder8,
-    Placeholder9,
-    DateHour,
+    DolphinString = 18,
+    Any = 25,
+    DateHour = 28,
 }
 
 // todo: use From or TryFrom trait
@@ -59,17 +50,8 @@ impl DataType {
             14 => Some(DataType::NanoTimeStamp),
             15 => Some(DataType::Float),
             16 => Some(DataType::Double),
-            17 => Some(DataType::Placeholder1),
             18 => Some(DataType::DolphinString),
-            19 => Some(DataType::Placeholder2),
-            20 => Some(DataType::Placeholder3),
-            21 => Some(DataType::Placeholder4),
-            22 => Some(DataType::Placeholder5),
-            23 => Some(DataType::Placeholder6),
-            24 => Some(DataType::Placeholder7),
             25 => Some(DataType::Any),
-            26 => Some(DataType::Placeholder8),
-            27 => Some(DataType::Placeholder9),
             28 => Some(DataType::DateHour),
             _ => None,
         }
@@ -94,17 +76,8 @@ impl DataType {
             DataType::NanoTimeStamp => 14,
             DataType::Float => 15,
             DataType::Double => 16,
-            DataType::Placeholder1 => 17,
             DataType::DolphinString => 18,
-            DataType::Placeholder2 => 19,
-            DataType::Placeholder3 => 20,
-            DataType::Placeholder4 => 21,
-            DataType::Placeholder5 => 22,
-            DataType::Placeholder6 => 23,
-            DataType::Placeholder7 => 24,
             DataType::Any => 25,
-            DataType::Placeholder8 => 26,
-            DataType::Placeholder9 => 27,
             DataType::DateHour => 28,
         }
     }
@@ -136,10 +109,57 @@ impl DataForm {
 }
 
 // data category
-// todo
+pub enum DataCategory {
+    Nothing,
+    Logical,
+    Integral,
+    Floating,
+    Temporal,
+    Literal,
+    Mixed = 7,
+}
+
+// todo: use From or TryFrom trait
+impl DataCategory {
+    pub fn from_data_type(data_type: &DataType) -> DataCategory {
+        match data_type {
+            DataType::Void => DataCategory::Nothing,
+            DataType::Bool => DataCategory::Logical,
+            DataType::Char | DataType::Short | DataType::Int | DataType::Long => {
+                DataCategory::Integral
+            }
+            DataType::Float | DataType::Double => DataCategory::Floating,
+            DataType::Date
+            | DataType::Month
+            | DataType::Time
+            | DataType::Minute
+            | DataType::Second
+            | DataType::DateTime
+            | DataType::TimeStamp
+            | DataType::NanoTime
+            | DataType::NanoTimeStamp
+            | DataType::DateHour => DataCategory::Temporal,
+            DataType::DolphinString => DataCategory::Literal,
+            DataType::Any => DataCategory::Mixed,
+        }
+    }
+
+    pub fn to_u8(&self) -> u8 {
+        match self {
+            DataCategory::Nothing => 0,
+            DataCategory::Logical => 1,
+            DataCategory::Integral => 2,
+            DataCategory::Floating => 3,
+            DataCategory::Temporal => 4,
+            DataCategory::Literal => 5,
+            DataCategory::Mixed => 7,
+        }
+    }
+}
 
 pub trait Basic: Send + Sync + Clone {
     fn data_type(&self) -> DataType;
+    fn data_category(&self) -> DataCategory;
 
     fn data_form(&self) -> DataForm {
         // the default implementation of all Scalar and ScalarKind
@@ -210,6 +230,30 @@ impl Basic for ScalarKind {
             ScalarKind::Double(obj) => obj.data_type(),
             ScalarKind::String(obj) => obj.data_type(),
             ScalarKind::DateHour(obj) => obj.data_type(),
+        }
+    }
+
+    fn data_category(&self) -> DataCategory {
+        match self {
+            ScalarKind::Void => DataCategory::Nothing,
+            ScalarKind::Bool(obj) => obj.data_category(),
+            ScalarKind::Char(obj) => obj.data_category(),
+            ScalarKind::Short(obj) => obj.data_category(),
+            ScalarKind::Int(obj) => obj.data_category(),
+            ScalarKind::Long(obj) => obj.data_category(),
+            ScalarKind::Date(obj) => obj.data_category(),
+            ScalarKind::Month(obj) => obj.data_category(),
+            ScalarKind::Time(obj) => obj.data_category(),
+            ScalarKind::Minute(obj) => obj.data_category(),
+            ScalarKind::Second(obj) => obj.data_category(),
+            ScalarKind::DateTime(obj) => obj.data_category(),
+            ScalarKind::TimeStamp(obj) => obj.data_category(),
+            ScalarKind::NanoTime(obj) => obj.data_category(),
+            ScalarKind::NanoTimeStamp(obj) => obj.data_category(),
+            ScalarKind::Float(obj) => obj.data_category(),
+            ScalarKind::Double(obj) => obj.data_category(),
+            ScalarKind::String(obj) => obj.data_category(),
+            ScalarKind::DateHour(obj) => obj.data_category(),
         }
     }
 
@@ -294,6 +338,10 @@ impl Basic for () {
         DataType::Void
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Nothing
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(true)
     }
@@ -302,6 +350,10 @@ impl Basic for () {
 impl Basic for Bool {
     fn data_type(&self) -> DataType {
         DataType::Bool
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Logical
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
@@ -319,6 +371,10 @@ impl Basic for Date {
         DataType::Date
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(self.0.is_some())
     }
@@ -327,6 +383,10 @@ impl Basic for Date {
 impl Basic for Month {
     fn data_type(&self) -> DataType {
         DataType::Month
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
@@ -339,6 +399,10 @@ impl Basic for Time {
         DataType::Time
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(self.0.is_some())
     }
@@ -347,6 +411,10 @@ impl Basic for Time {
 impl Basic for Minute {
     fn data_type(&self) -> DataType {
         DataType::Minute
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
@@ -359,6 +427,10 @@ impl Basic for Second {
         DataType::Second
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(self.0.is_some())
     }
@@ -367,6 +439,10 @@ impl Basic for Second {
 impl Basic for DateTime {
     fn data_type(&self) -> DataType {
         DataType::DateTime
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
@@ -379,6 +455,10 @@ impl Basic for TimeStamp {
         DataType::TimeStamp
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(self.0.is_some())
     }
@@ -387,6 +467,10 @@ impl Basic for TimeStamp {
 impl Basic for NanoTime {
     fn data_type(&self) -> DataType {
         DataType::NanoTime
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
@@ -399,6 +483,10 @@ impl Basic for NanoTimeStamp {
         DataType::NanoTimeStamp
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(self.0.is_some())
     }
@@ -407,6 +495,10 @@ impl Basic for NanoTimeStamp {
 impl Basic for DolphinString {
     fn data_type(&self) -> DataType {
         DataType::DolphinString
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Literal
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
@@ -423,6 +515,10 @@ impl Basic for DateHour {
         DataType::DateHour
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Temporal
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(self.0.is_some())
     }
@@ -431,6 +527,10 @@ impl Basic for DateHour {
 impl Basic for Char {
     fn data_type(&self) -> DataType {
         DataType::Char
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Integral
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
@@ -447,6 +547,10 @@ impl Basic for Short {
         DataType::Short
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Integral
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(self.0.is_some())
     }
@@ -461,6 +565,10 @@ impl Basic for Int {
         DataType::Int
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Integral
+    }
+
     fn is_null(&self) -> Result<bool, RuntimeError> {
         Ok(self.0.is_some())
     }
@@ -473,6 +581,10 @@ impl Basic for Int {
 impl Basic for Long {
     fn data_type(&self) -> DataType {
         DataType::Long
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Integral
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
@@ -493,6 +605,10 @@ impl Basic for Float {
         Ok(self.0.is_some())
     }
 
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Floating
+    }
+
     fn get_float(&self) -> Result<f32, RuntimeError> {
         Ok(self
             .0
@@ -503,6 +619,10 @@ impl Basic for Float {
 impl Basic for Double {
     fn data_type(&self) -> DataType {
         DataType::Double
+    }
+
+    fn data_category(&self) -> DataCategory {
+        DataCategory::Floating
     }
 
     fn is_null(&self) -> Result<bool, RuntimeError> {
