@@ -2,7 +2,10 @@ use crate::Deserialize;
 use std::io::{Error, ErrorKind, Result};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
-use super::*;
+use super::{
+    Bool, Char, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long, Minute, Month,
+    NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
+};
 
 impl Deserialize for () {
     async fn deserialize<R>(&mut self, reader: &mut R) -> Result<()>

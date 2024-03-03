@@ -4,9 +4,8 @@ use std::{
 };
 use tokio::io::AsyncBufReadExt;
 
+use super::{constant::Constant, scalar::ANY_TYPE_VALUE, Basic, ScalarKind, VectorKind};
 use crate::{Deserialize, Serialize};
-
-use super::{constant::Constant, Basic, ScalarKind, VectorKind, ANY_TYPE_VALUE};
 
 pub type Set = HashSet<ScalarKind>;
 

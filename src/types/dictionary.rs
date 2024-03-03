@@ -2,13 +2,12 @@ use std::collections::HashMap;
 use std::io::{Error, ErrorKind};
 use tokio::io::AsyncBufReadExt;
 
-use crate::{Deserialize, Serialize};
-
 use super::{
     constant::{Constant, ConstantKind},
     scalar::{ScalarKind, ANY_TYPE_VALUE},
     Basic, VectorKind,
 };
+use crate::{Deserialize, Serialize};
 
 pub type Dictionary = HashMap<ScalarKind, ConstantKind>;
 

@@ -1,3 +1,4 @@
+mod basic;
 mod constant;
 mod dictionary;
 mod pair;
@@ -5,19 +6,17 @@ mod scalar;
 mod set;
 mod vector;
 
-// todo ::* ?
-pub use constant::*;
-pub use dictionary::*;
-pub use pair::*;
-pub use scalar::*;
-pub use set::*;
-pub use vector::*;
+pub use basic::Basic;
+pub use constant::{Constant, ConstantKind};
+pub use dictionary::Dictionary;
+pub use pair::Pair;
+pub use scalar::{Scalar, ScalarKind};
+pub use set::Set;
+pub use vector::VectorKind;
 
 use chrono::naive::{NaiveDate, NaiveDateTime, NaiveTime};
 use ordered_float::OrderedFloat;
 use std::fmt::{self, Debug, Display};
-
-use crate::error::RuntimeError;
 
 type OrderedFloatF32 = OrderedFloat<f32>;
 type OrderedFloatF64 = OrderedFloat<f64>;
@@ -265,227 +264,7 @@ macro_rules! non_decimal_marker {
 }
 for_all_scalars!(non_decimal_marker);
 
-// implement Basic trait for scalar types
-impl Basic for () {
-    fn data_type(&self) -> u8 {
-        0
-    }
-
-    fn is_null(&self) -> bool {
-        true
-    }
-}
-
-impl Basic for Bool {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-
-    fn get_bool(&self) -> Result<bool, RuntimeError> {
-        // TODO bool 的 null 值是什么？？
-        self.0.map_or(Ok(false), Ok) // todo: bug
-    }
-}
-
-impl Basic for Date {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for Month {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for Time {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for Minute {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for Second {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for DateTime {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for TimeStamp {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for NanoTime {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for NanoTimeStamp {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for DolphinString {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for DateHour {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for Char {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-
-    fn get_char(&self) -> Result<u8, RuntimeError> {
-        self.0.map_or(Ok(u8::MIN), Ok)
-    }
-}
-
-impl Basic for Short {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-
-    fn get_short(&self) -> Result<i16, RuntimeError> {
-        self.0.map_or(Ok(i16::MIN), Ok)
-    }
-}
-
-impl Basic for Int {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-
-    fn get_int(&self) -> Result<i32, RuntimeError> {
-        self.0.map_or(Ok(i32::MIN), Ok)
-    }
-}
-
-impl Basic for Long {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for Float {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
-impl Basic for Double {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
-    }
-
-    fn is_null(&self) -> bool {
-        self.0.is_some()
-    }
-}
-
 // implement Scalar trait for scalar types
-impl Scalar for () {
-    type RawType = ();
-    type RefType<'a> = ();
-
-    fn new(_: Self::RawType) -> Self {}
-    fn to_owned(_: Self::RefType<'_>) -> Self::RawType {}
-
-    fn data_type() -> u8 {
-        0
-    }
-}
-
 macro_rules! scalar_trait_impl {
     (String, DolphinString) => {
         impl Scalar for DolphinString {

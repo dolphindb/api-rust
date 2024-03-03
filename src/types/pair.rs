@@ -1,10 +1,8 @@
 use std::io::{Error, ErrorKind};
-
-use crate::{Deserialize, Serialize};
+use tokio::io::AsyncBufReadExt;
 
 use super::{constant::Constant, scalar::ScalarKind, Basic, VectorKind};
-
-use tokio::io::AsyncBufReadExt;
+use crate::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default)]
 pub struct Pair {

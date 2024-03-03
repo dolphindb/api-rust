@@ -5,7 +5,10 @@ use chrono::{
     Datelike, Days, Months,
 };
 
-use super::super::*;
+use super::{
+    Basic, Date, DateHour, DateTime, Minute, Month, NanoTime, NanoTimeStamp, Second, Time,
+    TimeStamp,
+};
 
 impl Date {
     /// Makes a new [`Date`] from the calendar date (year, month and day).

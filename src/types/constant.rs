@@ -4,10 +4,7 @@ use std::{
 };
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
-use super::{
-    scalar::{Basic, Dictionary, Pair, ScalarKind, Vector, VectorKind},
-    Set, Short,
-};
+use super::{scalar::ScalarKind, vector::Vector, Basic, Dictionary, Pair, Set, Short, VectorKind};
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
 pub trait Constant: Send + Sync + Clone {

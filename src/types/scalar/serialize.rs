@@ -1,9 +1,11 @@
-use crate::Serialize;
+use byteorder::{WriteBytesExt, BE, LE};
 use bytes::BufMut;
 
-use byteorder::{WriteBytesExt, BE, LE};
-
-use super::scalar::*;
+use super::{
+    Bool, Char, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long, Minute, Month,
+    NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
+};
+use crate::Serialize;
 
 impl Serialize for () {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>

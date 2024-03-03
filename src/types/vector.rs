@@ -5,10 +5,11 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 use std::slice::SliceIndex;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
-use self::constant::Constant;
-
-use super::scalar::*;
-use super::Scalar;
+use super::scalar::{for_all_branches, Scalar};
+use super::{
+    Basic, Bool, Char, Constant, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
+    Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind, Second, Short, Time, TimeStamp,
+};
 
 #[derive(Debug, Clone)]
 pub enum VectorKind {
