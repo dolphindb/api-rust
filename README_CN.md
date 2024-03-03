@@ -584,7 +584,7 @@ fn is_empty(&self) -> bool
 ##### `is_null`
 
 ```rust
-pub const fn is_null(&self) -> bool
+pub const fn is_null(&self) -> Result<bool, RuntimeError>
 ```
 
 判断是否为空。

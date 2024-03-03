@@ -396,10 +396,6 @@ impl Constant for VectorKind {
         Self::FORM_BYTE
     }
 
-    fn len(&self) -> usize {
-        self.len()
-    }
-
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -558,6 +554,10 @@ macro_rules! dispatch_data_type {
             fn data_form(&self) -> DataForm {
                 DataForm::Vector
             }
+
+            fn size(&self) -> usize {
+                self.len()
+            }
         }
     };
 }
@@ -571,5 +571,9 @@ impl<S: Scalar> Basic for Vector<S> {
 
     fn data_form(&self) -> DataForm {
         DataForm::Vector
+    }
+
+    fn size(&self) -> usize {
+        self.len()
     }
 }

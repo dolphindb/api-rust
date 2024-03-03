@@ -198,10 +198,6 @@ impl Constant for ScalarKind {
         Self::FORM_BYTE
     }
 
-    fn len(&self) -> usize {
-        1
-    }
-
     fn is_empty(&self) -> bool {
         false
     }

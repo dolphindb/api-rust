@@ -14,10 +14,6 @@ impl Constant for Set {
         4
     }
 
-    fn len(&self) -> usize {
-        self.len()
-    }
-
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -121,5 +117,9 @@ impl Basic for Set {
 
     fn data_form(&self) -> DataForm {
         DataForm::Set
+    }
+
+    fn size(&self) -> usize {
+        self.len()
     }
 }

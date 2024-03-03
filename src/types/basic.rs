@@ -142,38 +142,48 @@ pub trait Basic: Send + Sync + Clone {
     fn data_type(&self) -> DataType;
 
     fn data_form(&self) -> DataForm {
-        // the default implementation of all scalar types and ScalarKind
+        // the default implementation of all Scalar and ScalarKind
         DataForm::Scalar
     }
 
-    fn is_null(&self) -> bool {
-        false
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        // the default implementation of the types other than Scalar, ScalarKind and ConstantKind
+        Err(RuntimeError::NotSupportInterface)
+    }
+
+    fn size(&self) -> usize {
+        // the default implementation of all Scalar and ScalarKind
+        1
+    }
+
+    fn is_empty(&self) -> bool {
+        self.size() == 0
     }
 
     // default implementation of Basic getters
     fn get_bool(&self) -> Result<bool, RuntimeError> {
-        Err(RuntimeError::GetBoolFail)
+        Err(RuntimeError::NotBoolScalar)
     }
     fn get_char(&self) -> Result<u8, RuntimeError> {
-        Err(RuntimeError::GetCharFail)
+        Err(RuntimeError::NotCharScalar)
     }
     fn get_short(&self) -> Result<i16, RuntimeError> {
-        Err(RuntimeError::GetShortFail)
+        Err(RuntimeError::NotShortScalar)
     }
     fn get_int(&self) -> Result<i32, RuntimeError> {
-        Err(RuntimeError::GetIntFail)
+        Err(RuntimeError::NotIntScalar)
     }
     fn get_long(&self) -> Result<i64, RuntimeError> {
-        Err(RuntimeError::GetLongFail)
+        Err(RuntimeError::NotLongScalar)
     }
     fn get_float(&self) -> Result<f32, RuntimeError> {
-        Err(RuntimeError::GetFloatFail)
+        Err(RuntimeError::NotFloatScalar)
     }
     fn get_double(&self) -> Result<f64, RuntimeError> {
-        Err(RuntimeError::GetDoubleFail)
+        Err(RuntimeError::NotDoubleScalar)
     }
     fn get_string(&self) -> Result<&str, RuntimeError> {
-        Err(RuntimeError::GetStringFail)
+        Err(RuntimeError::NotStringScalar)
     }
 }
 
@@ -203,9 +213,9 @@ impl Basic for ScalarKind {
         }
     }
 
-    fn is_null(&self) -> bool {
+    fn is_null(&self) -> Result<bool, RuntimeError> {
         match self {
-            ScalarKind::Void => true,
+            ScalarKind::Void => Ok(true),
             ScalarKind::Bool(obj) => obj.is_null(),
             ScalarKind::Char(obj) => obj.is_null(),
             ScalarKind::Short(obj) => obj.is_null(),
@@ -231,49 +241,49 @@ impl Basic for ScalarKind {
     fn get_bool(&self) -> Result<bool, RuntimeError> {
         match self {
             ScalarKind::Bool(obj) => obj.get_bool(),
-            _ => Err(RuntimeError::GetBoolFail),
+            _ => Err(RuntimeError::NotBoolScalar),
         }
     }
     fn get_char(&self) -> Result<u8, RuntimeError> {
         match self {
             ScalarKind::Char(obj) => obj.get_char(),
-            _ => Err(RuntimeError::GetCharFail),
+            _ => Err(RuntimeError::NotCharScalar),
         }
     }
     fn get_short(&self) -> Result<i16, RuntimeError> {
         match self {
             ScalarKind::Short(obj) => obj.get_short(),
-            _ => Err(RuntimeError::GetShortFail),
+            _ => Err(RuntimeError::NotShortScalar),
         }
     }
     fn get_int(&self) -> Result<i32, RuntimeError> {
         match self {
             ScalarKind::Int(obj) => obj.get_int(),
-            _ => Err(RuntimeError::GetIntFail),
+            _ => Err(RuntimeError::NotIntScalar),
         }
     }
     fn get_long(&self) -> Result<i64, RuntimeError> {
         match self {
             ScalarKind::Long(obj) => obj.get_long(),
-            _ => Err(RuntimeError::GetLongFail),
+            _ => Err(RuntimeError::NotLongScalar),
         }
     }
     fn get_float(&self) -> Result<f32, RuntimeError> {
         match self {
             ScalarKind::Float(obj) => obj.get_float(),
-            _ => Err(RuntimeError::GetFloatFail),
+            _ => Err(RuntimeError::NotFloatScalar),
         }
     }
     fn get_double(&self) -> Result<f64, RuntimeError> {
         match self {
             ScalarKind::Double(obj) => obj.get_double(),
-            _ => Err(RuntimeError::GetDoubleFail),
+            _ => Err(RuntimeError::NotDoubleScalar),
         }
     }
     fn get_string(&self) -> Result<&str, RuntimeError> {
         match self {
             ScalarKind::String(obj) => obj.get_string(),
-            _ => Err(RuntimeError::GetStringFail),
+            _ => Err(RuntimeError::NotStringScalar),
         }
     }
 }
@@ -284,8 +294,8 @@ impl Basic for () {
         DataType::Void
     }
 
-    fn is_null(&self) -> bool {
-        true
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(true)
     }
 }
 
@@ -294,8 +304,8 @@ impl Basic for Bool {
         DataType::Bool
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 
     fn get_bool(&self) -> Result<bool, RuntimeError> {
@@ -309,8 +319,8 @@ impl Basic for Date {
         DataType::Date
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -319,8 +329,8 @@ impl Basic for Month {
         DataType::Month
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -329,8 +339,8 @@ impl Basic for Time {
         DataType::Time
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -339,8 +349,8 @@ impl Basic for Minute {
         DataType::Minute
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -349,8 +359,8 @@ impl Basic for Second {
         DataType::Second
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -359,8 +369,8 @@ impl Basic for DateTime {
         DataType::DateTime
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -369,8 +379,8 @@ impl Basic for TimeStamp {
         DataType::TimeStamp
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -379,8 +389,8 @@ impl Basic for NanoTime {
         DataType::NanoTime
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -389,8 +399,8 @@ impl Basic for NanoTimeStamp {
         DataType::NanoTimeStamp
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -399,8 +409,8 @@ impl Basic for DolphinString {
         DataType::DolphinString
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 
     fn get_string(&self) -> Result<&str, RuntimeError> {
@@ -413,8 +423,8 @@ impl Basic for DateHour {
         DataType::DateHour
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 }
 
@@ -423,8 +433,8 @@ impl Basic for Char {
         DataType::Char
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 
     fn get_char(&self) -> Result<u8, RuntimeError> {
@@ -437,8 +447,8 @@ impl Basic for Short {
         DataType::Short
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 
     fn get_short(&self) -> Result<i16, RuntimeError> {
@@ -451,8 +461,8 @@ impl Basic for Int {
         DataType::Int
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 
     fn get_int(&self) -> Result<i32, RuntimeError> {
@@ -465,8 +475,8 @@ impl Basic for Long {
         DataType::Long
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 
     fn get_long(&self) -> Result<i64, RuntimeError> {
@@ -479,8 +489,8 @@ impl Basic for Float {
         DataType::Float
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 
     fn get_float(&self) -> Result<f32, RuntimeError> {
@@ -495,8 +505,8 @@ impl Basic for Double {
         DataType::Double
     }
 
-    fn is_null(&self) -> bool {
-        self.0.is_some()
+    fn is_null(&self) -> Result<bool, RuntimeError> {
+        Ok(self.0.is_some())
     }
 
     fn get_double(&self) -> Result<f64, RuntimeError> {

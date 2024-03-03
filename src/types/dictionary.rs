@@ -16,10 +16,6 @@ impl Constant for Dictionary {
         5
     }
 
-    fn len(&self) -> usize {
-        self.len()
-    }
-
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -177,5 +173,9 @@ impl Basic for Dictionary {
 
     fn data_form(&self) -> DataForm {
         DataForm::Dictionary
+    }
+
+    fn size(&self) -> usize {
+        self.len()
     }
 }

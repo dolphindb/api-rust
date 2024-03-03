@@ -2,20 +2,23 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum RuntimeError {
-    #[error("The object can't be converted to bool scalar.")]
-    GetBoolFail,
-    #[error("The object can't be converted to char scalar.")]
-    GetCharFail,
-    #[error("The object can't be converted to short scalar.")]
-    GetShortFail,
-    #[error("The object can't be converted to int scalar.")]
-    GetIntFail,
-    #[error("The object can't be converted to long scalar.")]
-    GetLongFail,
-    #[error("The object can't be converted to float scalar.")]
-    GetFloatFail,
-    #[error("The object can't be converted to double scalar.")]
-    GetDoubleFail,
-    #[error("The object can't be converted to string scalar.")]
-    GetStringFail,
+    #[error("The object is not a bool scalar.")]
+    NotBoolScalar,
+    #[error("The object is not a to char scalar.")]
+    NotCharScalar,
+    #[error("The object is not a to short scalar.")]
+    NotShortScalar,
+    #[error("The object is not a to int scalar.")]
+    NotIntScalar,
+    #[error("The object is not a to long scalar.")]
+    NotLongScalar,
+    #[error("The object is not a to float scalar.")]
+    NotFloatScalar,
+    #[error("The object is not a to double scalar.")]
+    NotDoubleScalar,
+    #[error("The object is not a to string scalar.")]
+    NotStringScalar,
+
+    #[error("The object doesn't support this interface.")]
+    NotSupportInterface,
 }

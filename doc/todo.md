@@ -3,12 +3,12 @@
    1. [x] data_type
    2. [x] data_form
    3. data_category
-   5. len
-   6. is_empty
-   7. is_null
+   5. [x] size
+   6. [x] is_empty
+   7. [x] is_null
    8. is_number
-   9. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp
-   10. set_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp
+   9. get_bool/char/short/int/long/float/double/string /date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp
+   10. set_bool/char/short/int/long/float/double/string /date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp
    11. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer
    12. set_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_buffer
    13. get_bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp_by_index
@@ -55,3 +55,4 @@
 11. any vector
 12. 类型转换，更容易地从 ConstantKind 转换为 下层的类型
 13. bool char 类型的范围错了，参考文档和序列化
+14. 删掉 len，因为有了 size

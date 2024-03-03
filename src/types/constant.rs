@@ -14,9 +14,6 @@ pub trait Constant: Send + Sync + Clone {
     /// data category identifier for serialization.
     fn data_category(&self) -> u8;
 
-    /// Returns the number of elements in [`Constant`].
-    fn len(&self) -> usize;
-
     fn is_empty(&self) -> bool;
 }
 
@@ -240,13 +237,10 @@ impl Basic for ConstantKind {
         }
     }
 
-    fn is_null(&self) -> bool {
+    fn is_null(&self) -> Result<bool, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.is_null(),
-            ConstantKind::Vector(obj) => obj.is_null(),
-            ConstantKind::Pair(obj) => obj.is_null(),
-            ConstantKind::Set(obj) => obj.is_null(),
-            ConstantKind::Dictionary(obj) => obj.is_null(),
+            _ => Err(RuntimeError::NotSupportInterface),
         }
     }
 
@@ -260,53 +254,63 @@ impl Basic for ConstantKind {
         }
     }
 
+    fn size(&self) -> usize {
+        match self {
+            ConstantKind::Scalar(obj) => obj.size(),
+            ConstantKind::Vector(obj) => obj.size(),
+            ConstantKind::Pair(obj) => obj.size(),
+            ConstantKind::Set(obj) => obj.size(),
+            ConstantKind::Dictionary(obj) => obj.size(),
+        }
+    }
+
     // implementation of Basic getters
     fn get_bool(&self) -> Result<bool, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.get_bool(),
-            _ => Err(RuntimeError::GetBoolFail),
+            _ => Err(RuntimeError::NotBoolScalar),
         }
     }
     fn get_char(&self) -> Result<u8, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.get_char(),
-            _ => Err(RuntimeError::GetCharFail),
+            _ => Err(RuntimeError::NotCharScalar),
         }
     }
     fn get_short(&self) -> Result<i16, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.get_short(),
-            _ => Err(RuntimeError::GetShortFail),
+            _ => Err(RuntimeError::NotShortScalar),
         }
     }
     fn get_int(&self) -> Result<i32, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.get_int(),
-            _ => Err(RuntimeError::GetIntFail),
+            _ => Err(RuntimeError::NotIntScalar),
         }
     }
     fn get_long(&self) -> Result<i64, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.get_long(),
-            _ => Err(RuntimeError::GetLongFail),
+            _ => Err(RuntimeError::NotLongScalar),
         }
     }
     fn get_float(&self) -> Result<f32, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.get_float(),
-            _ => Err(RuntimeError::GetFloatFail),
+            _ => Err(RuntimeError::NotFloatScalar),
         }
     }
     fn get_double(&self) -> Result<f64, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.get_double(),
-            _ => Err(RuntimeError::GetDoubleFail),
+            _ => Err(RuntimeError::NotDoubleScalar),
         }
     }
     fn get_string(&self) -> Result<&str, RuntimeError> {
         match self {
             ConstantKind::Scalar(obj) => obj.get_string(),
-            _ => Err(RuntimeError::GetStringFail),
+            _ => Err(RuntimeError::NotStringScalar),
         }
     }
 }

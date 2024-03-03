@@ -21,73 +21,7 @@ use std::fmt::{self, Debug, Display};
 type OrderedFloatF32 = OrderedFloat<f32>;
 type OrderedFloatF64 = OrderedFloat<f64>;
 
-// implement DolphinString struct
-#[derive(Default, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub struct DolphinString(Option<String>);
-
-impl DolphinString {
-    pub fn new(val: Option<String>) -> Self {
-        Self(val)
-    }
-
-    pub fn set(&mut self, val: Option<String>) {
-        self.0 = val;
-    }
-
-    pub fn set_unchecked(&mut self, val: String) {
-        self.0 = Some(val)
-    }
-}
-
-//  implement trivial functions
-macro_rules! trivial_impl {
-    ($raw_type:tt, $struct_name:ident, $data_type:tt) => {
-        #[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-        pub struct $struct_name(Option<$raw_type>);
-
-        impl $struct_name {
-            pub fn new(val: Option<$raw_type>) -> Self {
-                Self(val)
-            }
-
-            pub fn set(&mut self, val: Option<$raw_type>) {
-                self.0 = val;
-            }
-
-            pub fn set_unchecked(&mut self, val: $raw_type) {
-                self.0 = Some(val);
-            }
-        }
-    };
-
-    ($(($raw_type:tt, $struct_name:ident, $data_type:tt)), *) => {
-        $(
-            trivial_impl!($raw_type, $struct_name, $data_type);
-        )*
-    };
-}
-
-trivial_impl!(
-    (bool, Bool, 1),
-    (u8, Char, 2),
-    (i16, Short, 3),
-    (i32, Int, 4),
-    (i64, Long, 5),
-    (NaiveDate, Date, 6),
-    (NaiveDate, Month, 7),
-    (NaiveTime, Time, 8),
-    (NaiveTime, Minute, 9),
-    (NaiveTime, Second, 10),
-    (NaiveDateTime, DateTime, 11),
-    (NaiveDateTime, TimeStamp, 12),
-    (NaiveTime, NanoTime, 13),
-    (NaiveDateTime, NanoTimeStamp, 14),
-    (OrderedFloatF32, Float, 15),
-    (OrderedFloatF64, Double, 16),
-    (NaiveDateTime, DateHour, 28)
-);
-
-// helper macro
+// helper iterator macro
 macro_rules! for_all_scalars {
     ($macro:tt) => {
         $macro!(
@@ -113,10 +47,64 @@ macro_rules! for_all_scalars {
     };
 }
 
-// implement getter functions for scalar types
-macro_rules! getter_impl {
+//  implement trivial functions
+macro_rules! trivial_impl {
+    (String, DolphinString) => {
+        #[derive(Default, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+        pub struct DolphinString(Option<String>);
+
+        impl DolphinString {
+            pub fn new(val: Option<String>) -> Self {
+                Self(val)
+            }
+
+            pub fn set(&mut self, val: Option<String>) {
+                self.0 = val;
+            }
+
+            pub fn set_unchecked(&mut self, val: String) {
+                self.0 = Some(val)
+            }
+
+            pub const fn get(&self) -> &Option<String> {
+                &self.0
+            }
+
+            pub const fn as_ref(&self) -> Option<&String> {
+                self.0.as_ref()
+            }
+
+            pub fn get_mut(&mut self) -> &mut Option<String> {
+                &mut self.0
+            }
+
+            pub fn as_mut(&mut self) -> Option<&mut String> {
+                self.0.as_mut()
+            }
+
+            pub fn into_inner(self) -> Option<String> {
+                self.0
+            }
+        }
+    };
+
     ($raw_type:tt, $struct_name:ident) => {
+        #[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+        pub struct $struct_name(Option<$raw_type>);
+
         impl $struct_name {
+            pub fn new(val: Option<$raw_type>) -> Self {
+                Self(val)
+            }
+
+            pub fn set(&mut self, val: Option<$raw_type>) {
+                self.0 = val;
+            }
+
+            pub fn set_unchecked(&mut self, val: $raw_type) {
+                self.0 = Some(val);
+            }
+
             pub const fn get(&self) -> &Option<$raw_type> {
                 &self.0
             }
@@ -141,11 +129,11 @@ macro_rules! getter_impl {
 
     ($(($raw_type:tt, $struct_name:ident)), *) => {
         $(
-            getter_impl!($raw_type, $struct_name);
+            trivial_impl!($raw_type, $struct_name);
         )*
     };
 }
-for_all_scalars!(getter_impl);
+for_all_scalars!(trivial_impl);
 
 // implement Display trait for scalar types
 macro_rules! from_impl {
@@ -234,11 +222,7 @@ pub trait NotDecimal {}
 impl NotDecimal for () {}
 
 macro_rules! non_decimal_marker {
-    (Decimal32) => {};
-
-    (Decimal64) => {};
-
-    (Decimal128) => {};
+    (Decimal32 | Decimal64 | Decimal128) => {};
 
     ($struct_name:ident) => {
         impl NotDecimal for $struct_name {}

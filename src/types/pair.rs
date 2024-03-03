@@ -59,10 +59,6 @@ impl Constant for Pair {
         Self::FORM_BYTE
     }
 
-    fn len(&self) -> usize {
-        2
-    }
-
     fn is_empty(&self) -> bool {
         false
     }
@@ -107,7 +103,7 @@ impl Serialize for Pair {
         let v: VectorKind = self.clone().try_into()?;
         (v.data_type().to_u8(), self.data_category()).serialize(buffer)?;
 
-        buffer.put_i32(self.len() as i32);
+        buffer.put_i32(self.size() as i32);
         buffer.put_i32(1);
 
         v.serialize_data(buffer)?;
@@ -121,7 +117,7 @@ impl Serialize for Pair {
         let v: VectorKind = self.clone().try_into()?;
         (v.data_type().to_u8(), self.data_category()).serialize_le(buffer)?;
 
-        buffer.put_i32_le(self.len() as i32);
+        buffer.put_i32_le(self.size() as i32);
         buffer.put_i32_le(1);
 
         v.serialize_data(buffer)?;
@@ -169,5 +165,9 @@ impl Basic for Pair {
 
     fn data_form(&self) -> DataForm {
         DataForm::Pair
+    }
+
+    fn size(&self) -> usize {
+        2
     }
 }
