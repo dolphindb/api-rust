@@ -10,7 +10,7 @@ pub use basic::Basic;
 pub use constant::{Constant, ConstantKind};
 pub use dictionary::Dictionary;
 pub use pair::Pair;
-pub use scalar::{Scalar, ScalarKind};
+pub use scalar::{DataType, Scalar, ScalarKind};
 pub use set::Set;
 pub use vector::VectorKind;
 
@@ -26,14 +26,8 @@ type OrderedFloatF64 = OrderedFloat<f64>;
 pub struct DolphinString(Option<String>);
 
 impl DolphinString {
-    const DATA_TYPE: u8 = 18;
-
     pub fn new(val: Option<String>) -> Self {
         Self(val)
-    }
-
-    pub fn data_type() -> u8 {
-        Self::DATA_TYPE
     }
 
     pub fn set(&mut self, val: Option<String>) {
@@ -52,14 +46,8 @@ macro_rules! trivial_impl {
         pub struct $struct_name(Option<$raw_type>);
 
         impl $struct_name {
-            const DATA_TYPE: u8 = $data_type;
-
             pub fn new(val: Option<$raw_type>) -> Self {
                 Self(val)
-            }
-
-            pub const fn data_type() -> u8 {
-                Self::DATA_TYPE
             }
 
             pub fn set(&mut self, val: Option<$raw_type>) {
@@ -279,8 +267,8 @@ macro_rules! scalar_trait_impl {
                 ref_data.to_string()
             }
 
-            fn data_type() -> u8 {
-                Self::data_type()
+            fn data_type() -> DataType {
+                DataType::DolphinString
             }
         }
     };
@@ -298,8 +286,8 @@ macro_rules! scalar_trait_impl {
                 ref_data
             }
 
-            fn data_type() -> u8 {
-                Self::data_type()
+            fn data_type() -> DataType {
+                DataType::$struct_name
             }
         }
     };

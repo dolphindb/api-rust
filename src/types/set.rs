@@ -4,7 +4,7 @@ use std::{
 };
 use tokio::io::AsyncBufReadExt;
 
-use super::{constant::Constant, scalar::ANY_TYPE_VALUE, Basic, ScalarKind, VectorKind};
+use super::{constant::Constant, Basic, DataType, ScalarKind, VectorKind};
 use crate::{Deserialize, Serialize};
 
 pub type Set = HashSet<ScalarKind>;
@@ -42,7 +42,7 @@ impl Serialize for Set {
     {
         let keys = set_keys(self)?;
 
-        (keys.data_type(), self.data_category()).serialize(buffer)?;
+        (keys.data_type().to_u8(), self.data_category()).serialize(buffer)?;
 
         keys.serialize(buffer)?;
 
@@ -55,7 +55,7 @@ impl Serialize for Set {
     {
         let keys = set_keys(self)?;
 
-        (keys.data_type(), self.data_category()).serialize(buffer)?;
+        (keys.data_type().to_u8(), self.data_category()).serialize(buffer)?;
 
         keys.serialize(buffer)?;
 
@@ -76,6 +76,8 @@ impl Deserialize for Set {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
+        let data_type = DataType::from_u8(data_type)
+            .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
         let mut v = VectorKind::from_type(data_type)
             .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
@@ -98,6 +100,8 @@ impl Deserialize for Set {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
+        let data_type = DataType::from_u8(data_type)
+            .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
         let mut v = VectorKind::from_type(data_type)
             .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
@@ -111,7 +115,7 @@ impl Deserialize for Set {
 
 // implement Basic trait for Set
 impl Basic for Set {
-    fn data_type(&self) -> u8 {
-        ANY_TYPE_VALUE
+    fn data_type(&self) -> DataType {
+        DataType::Any
     }
 }

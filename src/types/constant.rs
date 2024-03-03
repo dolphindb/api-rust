@@ -4,7 +4,9 @@ use std::{
 };
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
-use super::{scalar::ScalarKind, vector::Vector, Basic, Dictionary, Pair, Set, Short, VectorKind};
+use super::{
+    scalar::ScalarKind, vector::Vector, Basic, DataType, Dictionary, Pair, Set, Short, VectorKind,
+};
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
 pub trait Constant: Send + Sync + Clone {
@@ -34,6 +36,7 @@ impl Default for ConstantKind {
 
 impl ConstantKind {
     fn from_category(data_type: u8, data_form: u8) -> Option<Self> {
+        let data_type = DataType::from_u8(data_type)?;
         match data_form {
             0 => ScalarKind::from_type(data_type).map(Self::Scalar),
             1 => VectorKind::from_type(data_type).map(Self::Vector),
@@ -226,7 +229,7 @@ for_all_constants!(try_from_impl);
 
 // implement Basic trait for ConstantKind
 impl Basic for ConstantKind {
-    fn data_type(&self) -> u8 {
+    fn data_type(&self) -> DataType {
         match self {
             ConstantKind::Scalar(obj) => obj.data_type(),
             ConstantKind::Vector(obj) => obj.data_type(),

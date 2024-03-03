@@ -1,14 +1,14 @@
 use std::io::{Error, ErrorKind};
 use tokio::io::AsyncBufReadExt;
 
-use super::{constant::Constant, scalar::ScalarKind, Basic, VectorKind};
+use super::{constant::Constant, scalar::ScalarKind, Basic, DataType, VectorKind};
 use crate::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Pair {
     first: ScalarKind,
     second: ScalarKind,
-    data_type: u8,
+    data_type: DataType,
 }
 
 impl Pair {
@@ -23,7 +23,7 @@ impl Pair {
         }
     }
 
-    pub(crate) fn from_type(data_type: u8) -> Option<Self> {
+    pub(crate) fn from_type(data_type: DataType) -> Option<Self> {
         ScalarKind::from_type(data_type)
             .zip(ScalarKind::from_type(data_type))
             .map(|(first, second)| Self {
@@ -33,7 +33,7 @@ impl Pair {
             })
     }
 
-    pub fn data_type(&self) -> u8 {
+    pub fn data_type(&self) -> DataType {
         self.data_type
     }
 
@@ -105,7 +105,7 @@ impl Serialize for Pair {
         B: bytes::BufMut,
     {
         let v: VectorKind = self.clone().try_into()?;
-        (v.data_type(), self.data_category()).serialize(buffer)?;
+        (v.data_type().to_u8(), self.data_category()).serialize(buffer)?;
 
         buffer.put_i32(self.len() as i32);
         buffer.put_i32(1);
@@ -119,7 +119,7 @@ impl Serialize for Pair {
         B: bytes::BufMut,
     {
         let v: VectorKind = self.clone().try_into()?;
-        (v.data_type(), self.data_category()).serialize_le(buffer)?;
+        (v.data_type().to_u8(), self.data_category()).serialize_le(buffer)?;
 
         buffer.put_i32_le(self.len() as i32);
         buffer.put_i32_le(1);
@@ -163,7 +163,7 @@ impl Deserialize for Pair {
 
 // implement Basic trait for Pair
 impl Basic for Pair {
-    fn data_type(&self) -> u8 {
+    fn data_type(&self) -> DataType {
         self.data_type()
     }
 }

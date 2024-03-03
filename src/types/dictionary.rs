@@ -4,8 +4,8 @@ use tokio::io::AsyncBufReadExt;
 
 use super::{
     constant::{Constant, ConstantKind},
-    scalar::{ScalarKind, ANY_TYPE_VALUE},
-    Basic, VectorKind,
+    scalar::ScalarKind,
+    Basic, DataType, VectorKind,
 };
 use crate::{Deserialize, Serialize};
 
@@ -59,7 +59,7 @@ impl Serialize for Dictionary {
         let keys = dictionary_keys(self)?;
         let values = dictionary_values(self)?;
 
-        (values.data_type(), self.data_category()).serialize(buffer)?;
+        (values.data_type().to_u8(), self.data_category()).serialize(buffer)?;
 
         keys.serialize(buffer)?;
         values.serialize(buffer)?;
@@ -74,7 +74,7 @@ impl Serialize for Dictionary {
         let keys = dictionary_keys(self)?;
         let values = dictionary_values(self)?;
 
-        (values.data_type(), self.data_category()).serialize_le(buffer)?;
+        (values.data_type().to_u8(), self.data_category()).serialize_le(buffer)?;
 
         keys.serialize_le(buffer)?;
         values.serialize_le(buffer)?;
@@ -97,6 +97,8 @@ impl Deserialize for Dictionary {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
+        let data_type = DataType::from_u8(data_type)
+            .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
         let mut keys = VectorKind::from_type(data_type)
             .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
@@ -111,6 +113,8 @@ impl Deserialize for Dictionary {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
+        let data_type = DataType::from_u8(data_type)
+            .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
         let mut values = VectorKind::from_type(data_type)
             .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
@@ -135,6 +139,8 @@ impl Deserialize for Dictionary {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
+        let data_type = DataType::from_u8(data_type)
+            .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
         let mut keys = VectorKind::from_type(data_type)
             .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
@@ -149,6 +155,8 @@ impl Deserialize for Dictionary {
             return Err(Error::new(ErrorKind::InvalidData, "expect vector."));
         }
 
+        let data_type = DataType::from_u8(data_type)
+            .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
         let mut values = VectorKind::from_type(data_type)
             .ok_or(Error::new(ErrorKind::InvalidData, "unknown data type."))?;
 
@@ -163,7 +171,7 @@ impl Deserialize for Dictionary {
 
 // implement Basic trait for Dictionary
 impl Basic for Dictionary {
-    fn data_type(&self) -> u8 {
-        ANY_TYPE_VALUE
+    fn data_type(&self) -> DataType {
+        DataType::Any
     }
 }

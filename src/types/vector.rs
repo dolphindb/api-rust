@@ -7,8 +7,9 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::scalar::{for_all_branches, Scalar};
 use super::{
-    Basic, Bool, Char, Constant, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
-    Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind, Second, Short, Time, TimeStamp,
+    Basic, Bool, Char, Constant, DataType, Date, DateHour, DateTime, DolphinString, Double, Float,
+    Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind, Second, Short, Time,
+    TimeStamp,
 };
 
 #[derive(Debug, Clone)]
@@ -367,11 +368,11 @@ macro_rules! dispatch_deserialize {
 macro_rules! dispatch_reflect {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
         impl VectorKind {
-            pub(crate) fn from_type(data_type: u8) -> Option<Self> {
+            pub(crate) fn from_type(data_type: DataType) -> Option<Self> {
                 match data_type {
-                    0 => Some(Self::Void(Vector::new())),
+                    DataType::Void => Some(Self::Void(Vector::new())),
                     $(
-                        $struct_name::DATA_TYPE => Some(Self::$enum_name(Vector::new())),
+                        DataType::$struct_name => Some(Self::$enum_name(Vector::new())),
                     )*
                     _ => None,
                 }
@@ -409,7 +410,7 @@ impl Serialize for VectorKind {
     where
         B: bytes::BufMut,
     {
-        (self.data_type(), self.data_category()).serialize(buffer)?;
+        (self.data_type().to_u8(), self.data_category()).serialize(buffer)?;
 
         buffer.put_i32(self.len() as i32);
         buffer.put_i32(1);
@@ -423,7 +424,7 @@ impl Serialize for VectorKind {
     where
         B: bytes::BufMut,
     {
-        (self.data_type(), self.data_category()).serialize_le(buffer)?;
+        (self.data_type().to_u8(), self.data_category()).serialize_le(buffer)?;
 
         buffer.put_i32_le(self.len() as i32);
         buffer.put_i32(1);
@@ -545,9 +546,9 @@ for_all_branches!(try_from_impl);
 macro_rules! dispatch_data_type {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
         impl Basic for VectorKind {
-            fn data_type(&self) -> u8 {
+            fn data_type(&self) -> DataType {
                 match self {
-                    VectorKind::Void(_) => 0,
+                    VectorKind::Void(_) => DataType::Void,
                     $(
                         VectorKind::$enum_name(s) => s.data_type(),
                     )*
@@ -560,7 +561,7 @@ for_all_branches!(dispatch_data_type);
 
 // implement Basic for Vector<S>
 impl<S: Scalar> Basic for Vector<S> {
-    fn data_type(&self) -> u8 {
+    fn data_type(&self) -> DataType {
         <S as Scalar>::data_type()
     }
 }

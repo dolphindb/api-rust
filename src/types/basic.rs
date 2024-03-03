@@ -1,11 +1,11 @@
 use super::{
-    Bool, Char, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long, Minute, Month,
-    NanoTime, NanoTimeStamp, ScalarKind, Second, Short, Time, TimeStamp,
+    Bool, Char, DataType, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
+    Minute, Month, NanoTime, NanoTimeStamp, ScalarKind, Second, Short, Time, TimeStamp,
 };
 use crate::error::RuntimeError;
 
 pub trait Basic: Send + Sync + Clone {
-    fn data_type(&self) -> u8;
+    fn data_type(&self) -> DataType;
     fn is_null(&self) -> bool {
         false
     }
@@ -27,9 +27,9 @@ pub trait Basic: Send + Sync + Clone {
 
 // implement Basic trait for ScalarKind
 impl Basic for ScalarKind {
-    fn data_type(&self) -> u8 {
+    fn data_type(&self) -> DataType {
         match self {
-            ScalarKind::Void => 0,
+            ScalarKind::Void => DataType::Void,
             ScalarKind::Bool(obj) => obj.data_type(),
             ScalarKind::Char(obj) => obj.data_type(),
             ScalarKind::Short(obj) => obj.data_type(),
@@ -104,8 +104,8 @@ impl Basic for ScalarKind {
 
 // implement Basic trait for scalar types
 impl Basic for () {
-    fn data_type(&self) -> u8 {
-        0
+    fn data_type(&self) -> DataType {
+        DataType::Void
     }
 
     fn is_null(&self) -> bool {
@@ -114,8 +114,8 @@ impl Basic for () {
 }
 
 impl Basic for Bool {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Bool
     }
 
     fn is_null(&self) -> bool {
@@ -129,8 +129,8 @@ impl Basic for Bool {
 }
 
 impl Basic for Date {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Date
     }
 
     fn is_null(&self) -> bool {
@@ -139,8 +139,8 @@ impl Basic for Date {
 }
 
 impl Basic for Month {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Month
     }
 
     fn is_null(&self) -> bool {
@@ -149,8 +149,8 @@ impl Basic for Month {
 }
 
 impl Basic for Time {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Time
     }
 
     fn is_null(&self) -> bool {
@@ -159,8 +159,8 @@ impl Basic for Time {
 }
 
 impl Basic for Minute {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Minute
     }
 
     fn is_null(&self) -> bool {
@@ -169,8 +169,8 @@ impl Basic for Minute {
 }
 
 impl Basic for Second {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Second
     }
 
     fn is_null(&self) -> bool {
@@ -179,8 +179,8 @@ impl Basic for Second {
 }
 
 impl Basic for DateTime {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::DateTime
     }
 
     fn is_null(&self) -> bool {
@@ -189,8 +189,8 @@ impl Basic for DateTime {
 }
 
 impl Basic for TimeStamp {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::TimeStamp
     }
 
     fn is_null(&self) -> bool {
@@ -199,8 +199,8 @@ impl Basic for TimeStamp {
 }
 
 impl Basic for NanoTime {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::NanoTime
     }
 
     fn is_null(&self) -> bool {
@@ -209,8 +209,8 @@ impl Basic for NanoTime {
 }
 
 impl Basic for NanoTimeStamp {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::NanoTimeStamp
     }
 
     fn is_null(&self) -> bool {
@@ -219,8 +219,8 @@ impl Basic for NanoTimeStamp {
 }
 
 impl Basic for DolphinString {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::DolphinString
     }
 
     fn is_null(&self) -> bool {
@@ -229,8 +229,8 @@ impl Basic for DolphinString {
 }
 
 impl Basic for DateHour {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::DateHour
     }
 
     fn is_null(&self) -> bool {
@@ -239,8 +239,8 @@ impl Basic for DateHour {
 }
 
 impl Basic for Char {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Char
     }
 
     fn is_null(&self) -> bool {
@@ -253,8 +253,8 @@ impl Basic for Char {
 }
 
 impl Basic for Short {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Short
     }
 
     fn is_null(&self) -> bool {
@@ -267,8 +267,8 @@ impl Basic for Short {
 }
 
 impl Basic for Int {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Int
     }
 
     fn is_null(&self) -> bool {
@@ -281,8 +281,8 @@ impl Basic for Int {
 }
 
 impl Basic for Long {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Long
     }
 
     fn is_null(&self) -> bool {
@@ -291,8 +291,8 @@ impl Basic for Long {
 }
 
 impl Basic for Float {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Float
     }
 
     fn is_null(&self) -> bool {
@@ -301,8 +301,8 @@ impl Basic for Float {
 }
 
 impl Basic for Double {
-    fn data_type(&self) -> u8 {
-        Self::DATA_TYPE
+    fn data_type(&self) -> DataType {
+        DataType::Double
     }
 
     fn is_null(&self) -> bool {
