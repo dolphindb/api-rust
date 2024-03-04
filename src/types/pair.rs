@@ -1,10 +1,8 @@
 use std::io::{Error, ErrorKind};
 use tokio::io::AsyncBufReadExt;
 
-use super::{
-    constant::Constant, scalar::ScalarKind, Basic, DataCategory, DataForm, DataType, VectorKind,
-};
-use crate::{Deserialize, Serialize};
+use super::{scalar::ScalarKind, Basic, DataCategory, DataForm, DataType, VectorKind};
+use crate::{error::RuntimeError, Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub struct Pair {
@@ -54,18 +52,12 @@ impl Pair {
     }
 }
 
-impl Constant for Pair {
-    fn is_empty(&self) -> bool {
-        false
-    }
-}
-
 impl TryFrom<Pair> for VectorKind {
-    type Error = ();
+    type Error = RuntimeError;
 
     fn try_from(value: Pair) -> Result<Self, Self::Error> {
         if value.first.data_type() != value.second.data_type() {
-            Err(())
+            Err(RuntimeError::ConvertFail)
         } else {
             let v = vec![value.first, value.second];
             TryInto::<VectorKind>::try_into(v)
@@ -74,11 +66,11 @@ impl TryFrom<Pair> for VectorKind {
 }
 
 impl TryFrom<VectorKind> for Pair {
-    type Error = ();
+    type Error = RuntimeError;
 
     fn try_from(value: VectorKind) -> Result<Self, Self::Error> {
         if value.len() != 2 {
-            return Err(());
+            return Err(RuntimeError::ConvertFail);
         }
 
         let data_type = value.data_type();
@@ -96,7 +88,7 @@ impl Serialize for Pair {
     where
         B: bytes::BufMut,
     {
-        let v: VectorKind = self.clone().try_into()?;
+        let v: VectorKind = self.clone().try_into().map_err(|_| ())?;
         (v.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
         buffer.put_i32(self.size() as i32);
@@ -110,7 +102,7 @@ impl Serialize for Pair {
     where
         B: bytes::BufMut,
     {
-        let v: VectorKind = self.clone().try_into()?;
+        let v: VectorKind = self.clone().try_into().map_err(|_| ())?;
         (v.data_type().to_u8(), self.data_form().to_u8()).serialize_le(buffer)?;
 
         buffer.put_i32_le(self.size() as i32);

@@ -7,7 +7,7 @@ mod set;
 mod vector;
 
 pub use basic::{Basic, DataCategory, DataForm, DataType};
-pub use constant::{Constant, ConstantKind};
+pub use constant::ConstantKind;
 pub use dictionary::Dictionary;
 pub use pair::Pair;
 pub use scalar::{Scalar, ScalarKind};
@@ -17,6 +17,8 @@ pub use vector::VectorKind;
 use chrono::naive::{NaiveDate, NaiveDateTime, NaiveTime};
 use ordered_float::OrderedFloat;
 use std::fmt::{self, Debug, Display};
+
+use crate::error::RuntimeError;
 
 type OrderedFloatF32 = OrderedFloat<f32>;
 type OrderedFloatF64 = OrderedFloat<f64>;
@@ -145,10 +147,10 @@ macro_rules! from_impl {
         }
 
         impl TryFrom<$struct_name> for $raw_type {
-            type Error = ();
+            type Error = RuntimeError;
 
             fn try_from(value: $struct_name) -> Result<Self, Self::Error> {
-                value.0.ok_or(()).map(|v| v)
+                value.0.ok_or(RuntimeError::ConvertFail).map(|v| v)
             }
         }
     };
@@ -175,12 +177,12 @@ macro_rules! from_impl2 {
         }
 
         impl TryFrom<ScalarKind> for $struct_name {
-            type Error = ();
+            type Error = RuntimeError;
 
             fn try_from(value: ScalarKind) -> Result<Self, Self::Error> {
                 match value {
                     ScalarKind::$enum_name(value) => Ok(value),
-                    _ => Err(()),
+                    _ => Err(RuntimeError::ConvertFail),
                 }
             }
         }

@@ -7,10 +7,6 @@ use super::{
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
-pub trait Constant: Send + Sync + Clone {
-    fn is_empty(&self) -> bool;
-}
-
 #[derive(Debug, Clone)]
 pub enum ConstantKind {
     Scalar(ScalarKind),
@@ -41,16 +37,14 @@ impl ConstantKind {
 }
 
 impl TryFrom<Vec<ConstantKind>> for VectorKind {
-    type Error = ();
+    type Error = RuntimeError;
 
     fn try_from(value: Vec<ConstantKind>) -> Result<Self, Self::Error> {
         if value.is_empty() {
             return Ok(VectorKind::Void(Vector::new()));
         }
 
-        // todo(bureaucratic): any vector?
-
-        let scalars: Result<Vec<ScalarKind>, ()> =
+        let scalars: Result<Vec<ScalarKind>, Self::Error> =
             value.into_iter().map(|c| c.try_into()).collect();
         scalars?.try_into()
     }
@@ -200,12 +194,12 @@ macro_rules! try_from_impl {
         }
 
         impl TryFrom<ConstantKind> for $struct_name {
-            type Error = ();
+            type Error = RuntimeError;
 
             fn try_from(value: ConstantKind) -> Result<Self, Self::Error> {
                 match value {
                     ConstantKind::$enum_name(value) => Ok(value),
-                    _ => Err(()),
+                    _ => Err(RuntimeError::ConvertFail),
                 }
             }
         }

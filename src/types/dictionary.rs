@@ -3,9 +3,7 @@ use std::io::{Error, ErrorKind};
 use tokio::io::AsyncBufReadExt;
 
 use super::{
-    constant::{Constant, ConstantKind},
-    scalar::ScalarKind,
-    Basic, DataCategory, DataForm, DataType, VectorKind,
+    constant::ConstantKind, scalar::ScalarKind, Basic, DataCategory, DataForm, DataType, VectorKind,
 };
 use crate::{Deserialize, Serialize};
 
@@ -35,22 +33,16 @@ impl Dictionary {
     }
 }
 
-impl Constant for Dictionary {
-    fn is_empty(&self) -> bool {
-        self.data.is_empty()
-    }
-}
-
 pub(crate) fn dictionary_keys(dict: &Dictionary) -> Result<VectorKind, ()> {
     // todo: borrow?
     let keys = dict.data.keys().cloned().collect::<Vec<_>>();
-    keys.try_into()
+    keys.try_into().map_err(|_| ())
 }
 
 pub(crate) fn dictionary_values(dict: &Dictionary) -> Result<VectorKind, ()> {
     // todo: borrow?
     let values = dict.data.values().cloned().collect::<Vec<_>>();
-    values.try_into()
+    values.try_into().map_err(|_| ())
 }
 
 pub(crate) fn from_vectors(keys: VectorKind, values: VectorKind) -> Result<Dictionary, ()> {

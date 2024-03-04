@@ -9,10 +9,9 @@ async fn main() {
         .unwrap();
     println!("connect successfully");
 
-    let script = String::from("a = \"aa\";a;");
+    let script = String::from("a = 1.1;a;");
     let res = client.run_script(script).await.unwrap();
 
     let c = res.first().unwrap();
-    println!("{}", c.data_type().to_u8());
-    // println!("{}", c.get_int().unwrap());
+    println!("{}, {}", c.data_type().to_u8(), c.get_double().unwrap());
 }

@@ -1,16 +1,15 @@
-use crate::Deserialize;
-use crate::Serialize;
 use std::io::{Error, ErrorKind};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 use std::slice::SliceIndex;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
-use super::scalar::{for_all_branches, Scalar};
 use super::{
-    Basic, Bool, Char, Constant, DataCategory, DataForm, DataType, Date, DateHour, DateTime,
-    DolphinString, Double, Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal,
-    ScalarKind, Second, Short, Time, TimeStamp,
+    scalar::{for_all_branches, Scalar},
+    Basic, Bool, Char, DataCategory, DataForm, DataType, Date, DateHour, DateTime, DolphinString,
+    Double, Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind,
+    Second, Short, Time, TimeStamp,
 };
+use crate::{error::RuntimeError, Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub enum VectorKind {
@@ -20,7 +19,6 @@ pub enum VectorKind {
     Short(Vector<Short>),
     Int(Vector<Int>),
     Long(Vector<Long>),
-
     Date(Vector<Date>),
     Month(Vector<Month>),
     Time(Vector<Time>),
@@ -30,12 +28,9 @@ pub enum VectorKind {
     TimeStamp(Vector<TimeStamp>),
     NanoTime(Vector<NanoTime>),
     NanoTimeStamp(Vector<NanoTimeStamp>),
-
     Float(Vector<Float>),
     Double(Vector<Double>),
-
     String(Vector<DolphinString>),
-
     DateHour(Vector<DateHour>),
 }
 // todo any is Vector<ConstantKind> ??
@@ -257,7 +252,7 @@ impl From<Vector<()>> for Vec<ScalarKind> {
 }
 
 impl TryFrom<Vec<ScalarKind>> for Vector<()> {
-    type Error = ();
+    type Error = RuntimeError;
 
     fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
         let mut res = Vector::with_capacity(value.len());
@@ -265,7 +260,7 @@ impl TryFrom<Vec<ScalarKind>> for Vector<()> {
         for val in value {
             match val {
                 ScalarKind::Void => res.push(()),
-                _ => return Err(()),
+                _ => return Err(RuntimeError::ConvertFail),
             }
         }
 
@@ -389,12 +384,6 @@ for_all_branches!(dispatch_deserialize);
 
 for_all_branches!(dispatch_reflect);
 
-impl Constant for VectorKind {
-    fn is_empty(&self) -> bool {
-        self.is_empty()
-    }
-}
-
 impl Serialize for VectorKind {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
@@ -469,7 +458,7 @@ macro_rules! dispatch_try_from {
         }
 
         impl TryFrom<Vec<ScalarKind>> for VectorKind {
-            type Error = ();
+            type Error = RuntimeError;
 
             fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
                 if value.is_empty() {
@@ -507,7 +496,7 @@ macro_rules! try_from_impl {
         }
 
         impl TryFrom<Vec<ScalarKind>> for Vector<$struct_name> {
-            type Error = ();
+            type Error = RuntimeError;
 
             fn try_from(value: Vec<ScalarKind>) -> Result<Self, Self::Error> {
                 let mut res = Vector::with_capacity(value.len());
@@ -515,7 +504,7 @@ macro_rules! try_from_impl {
                 for val in value {
                     match val {
                         ScalarKind::$enum_name(s) => res.push(s),
-                        _ => return Err(()),
+                        _ => return Err(RuntimeError::ConvertFail),
                     }
                 }
 

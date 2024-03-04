@@ -3,10 +3,10 @@ mod serialize;
 mod temporal;
 
 use super::{
-    Basic, Bool, Char, Constant, DataType, Date, DateHour, DateTime, DolphinString, Double, Float,
-    Int, Long, Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
+    Basic, Bool, Char, DataType, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
+    Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
 };
-use crate::{Deserialize, Serialize};
+use crate::{error::RuntimeError, Deserialize, Serialize};
 use std::{
     fmt::{self, Debug, Display},
     hash::Hash,
@@ -49,12 +49,12 @@ impl From<()> for ScalarKind {
 }
 
 impl TryFrom<ScalarKind> for () {
-    type Error = ();
+    type Error = RuntimeError;
 
     fn try_from(value: ScalarKind) -> Result<Self, Self::Error> {
         match value {
             ScalarKind::Void => Ok(()),
-            _ => Err(()),
+            _ => Err(RuntimeError::ConvertFail),
         }
     }
 }
@@ -188,12 +188,6 @@ for_all_branches!(dispatch_deserialize);
 for_all_branches!(dispatch_display);
 
 for_all_branches!(dispatch_reflect);
-
-impl Constant for ScalarKind {
-    fn is_empty(&self) -> bool {
-        false
-    }
-}
 
 // Scalar trait implementation
 pub trait Scalar: Basic {

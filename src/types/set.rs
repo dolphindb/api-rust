@@ -4,8 +4,8 @@ use std::{
 };
 use tokio::io::AsyncBufReadExt;
 
-use super::{constant::Constant, Basic, DataCategory, DataForm, DataType, ScalarKind, VectorKind};
-use crate::{Deserialize, Serialize};
+use super::{Basic, DataCategory, DataForm, DataType, ScalarKind, VectorKind};
+use crate::{error::RuntimeError, Deserialize, Serialize};
 
 // ! all elements in Set must have the same type
 #[derive(Debug, Clone)]
@@ -23,12 +23,6 @@ impl Set {
     }
 }
 
-impl Constant for Set {
-    fn is_empty(&self) -> bool {
-        self.data.is_empty()
-    }
-}
-
 impl From<VectorKind> for Set {
     fn from(value: VectorKind) -> Self {
         let data_type = value.data_type();
@@ -40,7 +34,7 @@ impl From<VectorKind> for Set {
     }
 }
 
-pub(crate) fn set_keys(set: &Set) -> Result<VectorKind, ()> {
+pub(crate) fn set_keys(set: &Set) -> Result<VectorKind, RuntimeError> {
     let keys = set.data.iter().cloned().collect::<Vec<_>>();
     keys.try_into()
 }
@@ -50,7 +44,7 @@ impl Serialize for Set {
     where
         B: bytes::BufMut,
     {
-        let keys = set_keys(self)?;
+        let keys = set_keys(self).map_err(|_| ())?;
 
         (keys.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
@@ -63,7 +57,7 @@ impl Serialize for Set {
     where
         B: bytes::BufMut,
     {
-        let keys = set_keys(self)?;
+        let keys = set_keys(self).map_err(|_| ())?;
 
         (keys.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
 
