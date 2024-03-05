@@ -2,7 +2,6 @@ use super::{
     Bool, Char, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long, Minute, Month,
     NanoTime, NanoTimeStamp, ScalarKind, Second, Short, Time, TimeStamp,
 };
-use crate::error::RuntimeError;
 
 // data type enum implementation
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
@@ -166,11 +165,6 @@ pub trait Basic: Send + Sync + Clone {
         DataForm::Scalar
     }
 
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        // the default implementation of the types other than Scalar, ScalarKind and ConstantKind
-        Err(RuntimeError::NotSupportInterface)
-    }
-
     fn size(&self) -> usize {
         // the default implementation of all Scalar and ScalarKind
         1
@@ -178,32 +172,6 @@ pub trait Basic: Send + Sync + Clone {
 
     fn is_empty(&self) -> bool {
         self.size() == 0
-    }
-
-    // default implementation of Basic getters
-    fn get_bool(&self) -> Result<bool, RuntimeError> {
-        Err(RuntimeError::NotBoolScalar)
-    }
-    fn get_char(&self) -> Result<u8, RuntimeError> {
-        Err(RuntimeError::NotCharScalar)
-    }
-    fn get_short(&self) -> Result<i16, RuntimeError> {
-        Err(RuntimeError::NotShortScalar)
-    }
-    fn get_int(&self) -> Result<i32, RuntimeError> {
-        Err(RuntimeError::NotIntScalar)
-    }
-    fn get_long(&self) -> Result<i64, RuntimeError> {
-        Err(RuntimeError::NotLongScalar)
-    }
-    fn get_float(&self) -> Result<f32, RuntimeError> {
-        Err(RuntimeError::NotFloatScalar)
-    }
-    fn get_double(&self) -> Result<f64, RuntimeError> {
-        Err(RuntimeError::NotDoubleScalar)
-    }
-    fn get_string(&self) -> Result<&str, RuntimeError> {
-        Err(RuntimeError::NotStringScalar)
     }
 }
 
@@ -256,80 +224,6 @@ impl Basic for ScalarKind {
             ScalarKind::DateHour(obj) => obj.data_category(),
         }
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        match self {
-            ScalarKind::Void => Ok(true),
-            ScalarKind::Bool(obj) => obj.is_null(),
-            ScalarKind::Char(obj) => obj.is_null(),
-            ScalarKind::Short(obj) => obj.is_null(),
-            ScalarKind::Int(obj) => obj.is_null(),
-            ScalarKind::Long(obj) => obj.is_null(),
-            ScalarKind::Date(obj) => obj.is_null(),
-            ScalarKind::Month(obj) => obj.is_null(),
-            ScalarKind::Time(obj) => obj.is_null(),
-            ScalarKind::Minute(obj) => obj.is_null(),
-            ScalarKind::Second(obj) => obj.is_null(),
-            ScalarKind::DateTime(obj) => obj.is_null(),
-            ScalarKind::TimeStamp(obj) => obj.is_null(),
-            ScalarKind::NanoTime(obj) => obj.is_null(),
-            ScalarKind::NanoTimeStamp(obj) => obj.is_null(),
-            ScalarKind::Float(obj) => obj.is_null(),
-            ScalarKind::Double(obj) => obj.is_null(),
-            ScalarKind::String(obj) => obj.is_null(),
-            ScalarKind::DateHour(obj) => obj.is_null(),
-        }
-    }
-
-    // implementation of Basic getters
-    fn get_bool(&self) -> Result<bool, RuntimeError> {
-        match self {
-            ScalarKind::Bool(obj) => obj.get_bool(),
-            _ => Err(RuntimeError::NotBoolScalar),
-        }
-    }
-    fn get_char(&self) -> Result<u8, RuntimeError> {
-        match self {
-            ScalarKind::Char(obj) => obj.get_char(),
-            _ => Err(RuntimeError::NotCharScalar),
-        }
-    }
-    fn get_short(&self) -> Result<i16, RuntimeError> {
-        match self {
-            ScalarKind::Short(obj) => obj.get_short(),
-            _ => Err(RuntimeError::NotShortScalar),
-        }
-    }
-    fn get_int(&self) -> Result<i32, RuntimeError> {
-        match self {
-            ScalarKind::Int(obj) => obj.get_int(),
-            _ => Err(RuntimeError::NotIntScalar),
-        }
-    }
-    fn get_long(&self) -> Result<i64, RuntimeError> {
-        match self {
-            ScalarKind::Long(obj) => obj.get_long(),
-            _ => Err(RuntimeError::NotLongScalar),
-        }
-    }
-    fn get_float(&self) -> Result<f32, RuntimeError> {
-        match self {
-            ScalarKind::Float(obj) => obj.get_float(),
-            _ => Err(RuntimeError::NotFloatScalar),
-        }
-    }
-    fn get_double(&self) -> Result<f64, RuntimeError> {
-        match self {
-            ScalarKind::Double(obj) => obj.get_double(),
-            _ => Err(RuntimeError::NotDoubleScalar),
-        }
-    }
-    fn get_string(&self) -> Result<&str, RuntimeError> {
-        match self {
-            ScalarKind::String(obj) => obj.get_string(),
-            _ => Err(RuntimeError::NotStringScalar),
-        }
-    }
 }
 
 // implement Basic trait for scalar types
@@ -341,10 +235,6 @@ impl Basic for () {
     fn data_category(&self) -> DataCategory {
         DataCategory::Nothing
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(true)
-    }
 }
 
 impl Basic for Bool {
@@ -354,15 +244,6 @@ impl Basic for Bool {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Logical
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
-
-    fn get_bool(&self) -> Result<bool, RuntimeError> {
-        // TODO bool 的 null 值是什么？？
-        self.0.map_or(Ok(false), Ok) // todo: bug
     }
 }
 
@@ -374,10 +255,6 @@ impl Basic for Date {
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
 }
 
 impl Basic for Month {
@@ -387,10 +264,6 @@ impl Basic for Month {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
     }
 }
 
@@ -402,10 +275,6 @@ impl Basic for Time {
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
 }
 
 impl Basic for Minute {
@@ -415,10 +284,6 @@ impl Basic for Minute {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
     }
 }
 
@@ -430,10 +295,6 @@ impl Basic for Second {
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
 }
 
 impl Basic for DateTime {
@@ -443,10 +304,6 @@ impl Basic for DateTime {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
     }
 }
 
@@ -458,10 +315,6 @@ impl Basic for TimeStamp {
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
 }
 
 impl Basic for NanoTime {
@@ -471,10 +324,6 @@ impl Basic for NanoTime {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
     }
 }
 
@@ -486,10 +335,6 @@ impl Basic for NanoTimeStamp {
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
 }
 
 impl Basic for DolphinString {
@@ -499,14 +344,6 @@ impl Basic for DolphinString {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Literal
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
-
-    fn get_string(&self) -> Result<&str, RuntimeError> {
-        Ok(self.0.as_deref().unwrap_or(""))
     }
 }
 
@@ -518,10 +355,6 @@ impl Basic for DateHour {
     fn data_category(&self) -> DataCategory {
         DataCategory::Temporal
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
 }
 
 impl Basic for Char {
@@ -531,14 +364,6 @@ impl Basic for Char {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Integral
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
-
-    fn get_char(&self) -> Result<u8, RuntimeError> {
-        self.0.map_or(Ok(u8::MIN), Ok)
     }
 }
 
@@ -550,14 +375,6 @@ impl Basic for Short {
     fn data_category(&self) -> DataCategory {
         DataCategory::Integral
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
-
-    fn get_short(&self) -> Result<i16, RuntimeError> {
-        self.0.map_or(Ok(i16::MIN), Ok)
-    }
 }
 
 impl Basic for Int {
@@ -567,14 +384,6 @@ impl Basic for Int {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Integral
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
-
-    fn get_int(&self) -> Result<i32, RuntimeError> {
-        self.0.map_or(Ok(i32::MIN), Ok)
     }
 }
 
@@ -586,14 +395,6 @@ impl Basic for Long {
     fn data_category(&self) -> DataCategory {
         DataCategory::Integral
     }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
-
-    fn get_long(&self) -> Result<i64, RuntimeError> {
-        self.0.map_or(Ok(i64::MIN), Ok)
-    }
 }
 
 impl Basic for Float {
@@ -601,18 +402,8 @@ impl Basic for Float {
         DataType::Float
     }
 
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
-
     fn data_category(&self) -> DataCategory {
         DataCategory::Floating
-    }
-
-    fn get_float(&self) -> Result<f32, RuntimeError> {
-        Ok(self
-            .0
-            .map_or(f32::MIN, |ordered_float| ordered_float.into_inner()))
     }
 }
 
@@ -623,15 +414,5 @@ impl Basic for Double {
 
     fn data_category(&self) -> DataCategory {
         DataCategory::Floating
-    }
-
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        Ok(self.0.is_some())
-    }
-
-    fn get_double(&self) -> Result<f64, RuntimeError> {
-        Ok(self
-            .0
-            .map_or(f64::MIN, |ordered_float| ordered_float.into_inner()))
     }
 }

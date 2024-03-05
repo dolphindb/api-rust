@@ -12,6 +12,6 @@ async fn main() {
     let script = String::from("a = 1.1;a;");
     let res = client.run_script(script).await.unwrap();
 
-    let c = res.first().unwrap();
-    println!("{}, {}", c.data_type().to_u8(), c.get_double().unwrap());
+    // let c = res.first().unwrap();
+    // println!("{}, {}", c.data_type().to_u8(), c.get_double().unwrap());
 }

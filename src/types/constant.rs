@@ -235,13 +235,6 @@ impl Basic for ConstantKind {
         }
     }
 
-    fn is_null(&self) -> Result<bool, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.is_null(),
-            _ => Err(RuntimeError::NotSupportInterface),
-        }
-    }
-
     fn data_form(&self) -> DataForm {
         match self {
             ConstantKind::Scalar(obj) => obj.data_form(),
@@ -261,54 +254,40 @@ impl Basic for ConstantKind {
             ConstantKind::Dictionary(obj) => obj.size(),
         }
     }
+}
 
-    // implementation of Basic getters
-    fn get_bool(&self) -> Result<bool, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.get_bool(),
-            _ => Err(RuntimeError::NotBoolScalar),
-        }
+// implement Constant trait for ConstantKind
+pub trait Constant {
+    fn is_scalar(&self) -> bool;
+    fn is_vector(&self) -> bool;
+    fn is_pair(&self) -> bool;
+    fn is_set(&self) -> bool;
+    fn is_dictionary(&self) -> bool;
+    fn is_table(&self) -> bool;
+}
+
+impl Constant for ConstantKind {
+    fn is_scalar(&self) -> bool {
+        matches!(self, ConstantKind::Scalar(_))
     }
-    fn get_char(&self) -> Result<u8, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.get_char(),
-            _ => Err(RuntimeError::NotCharScalar),
-        }
+
+    fn is_vector(&self) -> bool {
+        matches!(self, ConstantKind::Vector(_))
     }
-    fn get_short(&self) -> Result<i16, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.get_short(),
-            _ => Err(RuntimeError::NotShortScalar),
-        }
+
+    fn is_pair(&self) -> bool {
+        matches!(self, ConstantKind::Pair(_))
     }
-    fn get_int(&self) -> Result<i32, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.get_int(),
-            _ => Err(RuntimeError::NotIntScalar),
-        }
+
+    fn is_set(&self) -> bool {
+        matches!(self, ConstantKind::Set(_))
     }
-    fn get_long(&self) -> Result<i64, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.get_long(),
-            _ => Err(RuntimeError::NotLongScalar),
-        }
+
+    fn is_dictionary(&self) -> bool {
+        matches!(self, ConstantKind::Dictionary(_))
     }
-    fn get_float(&self) -> Result<f32, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.get_float(),
-            _ => Err(RuntimeError::NotFloatScalar),
-        }
-    }
-    fn get_double(&self) -> Result<f64, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.get_double(),
-            _ => Err(RuntimeError::NotDoubleScalar),
-        }
-    }
-    fn get_string(&self) -> Result<&str, RuntimeError> {
-        match self {
-            ConstantKind::Scalar(obj) => obj.get_string(),
-            _ => Err(RuntimeError::NotStringScalar),
-        }
+
+    fn is_table(&self) -> bool {
+        todo!()
     }
 }

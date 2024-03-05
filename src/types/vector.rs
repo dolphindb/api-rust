@@ -4,10 +4,10 @@ use std::slice::SliceIndex;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::{
-    scalar::{for_all_branches, Scalar},
+    scalar::for_all_branches,
     Basic, Bool, Char, DataCategory, DataForm, DataType, Date, DateHour, DateTime, DolphinString,
     Double, Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind,
-    Second, Short, Time, TimeStamp,
+    Second, Short, Time, TimeStamp, ConcreteScalar
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
@@ -169,7 +169,7 @@ impl<S: Clone> Vector<S> {
     }
 }
 
-impl<S: Scalar> Vector<S> {
+impl<S: ConcreteScalar> Vector<S> {
     // impl<S: Scalar> From<S::RefType> for Vector<S> would conflict with std blanket implementations.
     // Implement it as function instead.
     /// Constructs a new [`Vector`] by cloning raw data arrays.
@@ -191,7 +191,7 @@ impl<S: Scalar> Vector<S> {
 
 impl<S> Serialize for Vector<S>
 where
-    S: Scalar + Serialize + NotDecimal,
+    S: ConcreteScalar + Serialize + NotDecimal,
 {
     fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
     where
@@ -216,7 +216,7 @@ where
 
 impl<S> Deserialize for Vector<S>
 where
-    S: Scalar + Deserialize,
+    S: ConcreteScalar + Deserialize,
 {
     async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
     where
@@ -551,9 +551,9 @@ macro_rules! dispatch_data_type {
 for_all_branches!(dispatch_data_type);
 
 // implement Basic for Vector<S>
-impl<S: Scalar> Basic for Vector<S> {
+impl<S: ConcreteScalar> Basic for Vector<S> {
     fn data_type(&self) -> DataType {
-        <S as Scalar>::data_type()
+        <S as ConcreteScalar>::data_type()
     }
 
     fn data_category(&self) -> DataCategory {

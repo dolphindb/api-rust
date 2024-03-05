@@ -137,6 +137,56 @@ macro_rules! trivial_impl {
 }
 for_all_scalars!(trivial_impl);
 
+//  implement getter functions
+
+impl Bool {
+    pub fn get_bool(&self) -> Option<bool> {
+        self.0
+    }
+}
+
+impl Char {
+    pub fn get_char(&self) -> Option<u8> {
+        self.0
+    }
+}
+
+impl Short {
+    pub fn get_short(&self) -> Option<i16> {
+        self.0
+    }
+}
+
+impl Int {
+    pub fn get_int(&self) -> Option<i32> {
+        self.0
+    }
+}
+
+impl Long {
+    pub fn get_long(&self) -> Option<i64> {
+        self.0
+    }
+}
+
+impl Float {
+    pub fn get_float(&self) -> Option<f32> {
+        self.0.map(|ordered_float| ordered_float.0)
+    }
+}
+
+impl Double {
+    pub fn get_double(&self) -> Option<f64> {
+        self.0.map(|ordered_double| ordered_double.0)
+    }
+}
+
+impl DolphinString {
+    pub fn get_string(&self) -> Option<&str> {
+        self.0.as_deref()
+    }
+}
+
 // implement Display trait for scalar types
 macro_rules! from_impl {
     ($raw_type:tt, $struct_name:ident) => {
@@ -238,10 +288,36 @@ macro_rules! non_decimal_marker {
 }
 for_all_scalars!(non_decimal_marker);
 
-// implement Scalar trait for scalar types
-macro_rules! scalar_trait_impl {
+// implement ConcreteScalar trait for every scalar types
+pub trait ConcreteScalar: Basic {
+    type RawType: Send + Sync + Clone;
+    type RefType<'a>: Send + Copy;
+
+    fn new(raw: Self::RawType) -> Self;
+    fn to_owned(ref_data: Self::RefType<'_>) -> Self::RawType;
+    fn data_type() -> DataType;
+    fn is_null(&self) -> bool;
+}
+
+impl ConcreteScalar for () {
+    type RawType = ();
+    type RefType<'a> = ();
+
+    fn new(_: Self::RawType) -> Self {}
+    fn to_owned(_: Self::RefType<'_>) -> Self::RawType {}
+
+    fn data_type() -> DataType {
+        DataType::Void
+    }
+
+    fn is_null(&self) -> bool {
+        true
+    }
+}
+
+macro_rules! concrete_scalar_trait_impl {
     (String, DolphinString) => {
-        impl Scalar for DolphinString {
+        impl ConcreteScalar for DolphinString {
             type RawType = String;
             type RefType<'a> = &'a str;
 
@@ -256,11 +332,15 @@ macro_rules! scalar_trait_impl {
             fn data_type() -> DataType {
                 DataType::DolphinString
             }
+
+            fn is_null(&self) -> bool {
+                self.0.is_some()
+            }
         }
     };
 
     ($raw_type:tt, $struct_name:ident) => {
-        impl Scalar for $struct_name {
+        impl ConcreteScalar for $struct_name {
             type RawType = $raw_type;
             type RefType<'a> = $raw_type;
 
@@ -275,13 +355,17 @@ macro_rules! scalar_trait_impl {
             fn data_type() -> DataType {
                 DataType::$struct_name
             }
+
+            fn is_null(&self) -> bool {
+                self.0.is_some()
+            }
         }
     };
 
     ($(($raw_type:tt, $struct_name:ident)), *) => {
         $(
-            scalar_trait_impl!($raw_type, $struct_name);
+            concrete_scalar_trait_impl!($raw_type, $struct_name);
         )*
     };
 }
-for_all_scalars!(scalar_trait_impl);
+for_all_scalars!(concrete_scalar_trait_impl);

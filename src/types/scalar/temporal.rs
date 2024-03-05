@@ -6,7 +6,7 @@ use chrono::{
 };
 
 use super::{
-    Basic, Date, DateHour, DateTime, Minute, Month, NanoTime, NanoTimeStamp, Second, Time,
+    ConcreteScalar, Date, DateHour, DateTime, Minute, Month, NanoTime, NanoTimeStamp, Second, Time,
     TimeStamp,
 };
 
@@ -123,7 +123,7 @@ impl Second {
 impl DateTime {
     /// Makes a new [`DateTime`] from [`Date`] and [`Second`].
     pub fn from_date_second(date: Date, second: Second) -> Self {
-        if date.is_null().unwrap() || second.is_null().unwrap() {
+        if date.is_null() || second.is_null() {
             Self(None)
         } else {
             Self::new(Some(NaiveDateTime::new(
@@ -148,7 +148,7 @@ impl DateTime {
 impl TimeStamp {
     /// Makes a new [`TimeStamp`] from [`Date`] and [`Time`].
     pub fn from_date_time(date: Date, time: Time) -> Self {
-        if date.is_null().unwrap() || time.is_null().unwrap() {
+        if date.is_null() || time.is_null() {
             Self(None)
         } else {
             Self::new(Some(NaiveDateTime::new(
@@ -198,7 +198,7 @@ impl NanoTime {
 impl NanoTimeStamp {
     /// Makes a new [`NanoTimeStamp`] from [`Date`] and [`NanoTime`]
     pub fn from_date_nanotime(date: Date, nanotime: NanoTime) -> Self {
-        if date.is_null().unwrap() || nanotime.is_null().unwrap() {
+        if date.is_null() || nanotime.is_null() {
             Self(None)
         } else {
             Self::new(Some(NaiveDateTime::new(

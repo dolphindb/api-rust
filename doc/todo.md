@@ -1,5 +1,5 @@
-1. Null 在 DDB 是类型最小值，这个不一致导致的序列化问题，不能用 Option(raw_type) 当标量类型的内部结构，不然 () 和 raw_type::min_value 都是 null 有问题
-<!-- $raw_type = bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time,nano_time_stamp -->
+1. Null 在 DDB 是类型最小值，这个不一致导致的序列化问题，不能用 Option(rawtype) 当标量类型的内部结构，不然 () 和 rawtype::min_value 都是 null 有问题
+<!-- $rawtype = (bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time/nano_time_stamp) -->
 1. Basic
    1. [x] data_type
    2. [x] data_form
@@ -7,40 +7,37 @@
    4. [x] size
    5. [x] is_empty
 2. Constant:
-   1. isScalar
-   2. isVector
-   3. isTuple
-   4. isPair
-   5. isTable
-   6. isSet
-   7. isDictionary
-3. Scalar: Constant
-   1. is_null
-   2. get
-   3. set
-   4. get_$raw_type
-   5. set_$raw_type
-4. Vector: Constant
+   1. [x] isScalar
+   2. [x] isVector
+   3. [x] isPair
+   4. isTable
+   5. [x] isSet
+   6. [x] isDictionary
+3. Scalar:
+   1. [x] is_null
+   2. [/] get_$rawtype (具体的标量类型也实现同名的 get_\$rawtype，不过参数返回不同)
+   3. [ ] set_$rawtype (具体的标量类型也实现同名的 set_\$rawtype，不过参数返回不同)
+4. Vector:
    1. clear
    2. hasNull
-   3. get
-   4. set
+   3. get -> ScalarKind
+   4. set(ScalarKind)
    5. append
-   6. append_$raw_type
-   7. get_$raw_type_by_index
-   8. set_$raw_type_by_index
+   6. append_$rawtype
+   7. get_$rawtype
+   8. set_$rawtype
    9.  get_data, get_data_mut 拿到底层数据的借用/可变借用
-5. Set: Constant
+5. Set:
    1. clear
    2. contain
    3. append?
-6. Dictionary: Constant
+6. Dictionary:
    1. set
    2. get_member
    3. get_key_type
    4. keys, keys_mut 拿到底层数据的借用/可变借用
    5. values, values_mut 拿到底层数据的借用/可变借用
-7. Table: Constant
+7. Table:
    1. get_table_type
    2. num_column
    3. num_row
@@ -55,4 +52,4 @@
 12. bool char 类型的范围错了，参考文档和序列化
 13. 删掉 len，因为有了 size
 14. run 返回 Vec<ConstantKind>,什么时候size不为1
-15. new, from_data_type 每个类型??
+15. new, from_data_type 每个类型?? 修改

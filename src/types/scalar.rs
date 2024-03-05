@@ -3,8 +3,8 @@ mod serialize;
 mod temporal;
 
 use super::{
-    Basic, Bool, Char, DataType, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
-    Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
+    Basic, Bool, Char, ConcreteScalar, DataType, Date, DateHour, DateTime, DolphinString, Double,
+    Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 use std::{
@@ -190,23 +190,95 @@ for_all_branches!(dispatch_display);
 for_all_branches!(dispatch_reflect);
 
 // Scalar trait implementation
-pub trait Scalar: Basic {
-    type RawType: Send + Sync + Clone;
-    type RefType<'a>: Send + Copy;
+pub trait Scalar {
+    fn is_null(&self) -> bool;
 
-    fn new(raw: Self::RawType) -> Self;
-    fn to_owned(ref_data: Self::RefType<'_>) -> Self::RawType;
-    fn data_type() -> DataType;
+    fn get_bool(&self) -> Result<Option<bool>, RuntimeError>;
+    fn get_char(&self) -> Result<Option<u8>, RuntimeError>;
+    fn get_short(&self) -> Result<Option<i16>, RuntimeError>;
+    fn get_int(&self) -> Result<Option<i32>, RuntimeError>;
+    fn get_long(&self) -> Result<Option<i64>, RuntimeError>;
+    fn get_float(&self) -> Result<Option<f32>, RuntimeError>;
+    fn get_double(&self) -> Result<Option<f64>, RuntimeError>;
+    fn get_string(&self) -> Result<Option<&str>, RuntimeError>;
+
+    // 3. set
+    // 4. get_$rawtype
+    // 5. set_$rawtype
 }
 
-impl Scalar for () {
-    type RawType = ();
-    type RefType<'a> = ();
+impl Scalar for ScalarKind {
+    fn is_null(&self) -> bool {
+        match self {
+            ScalarKind::Void => true,
+            ScalarKind::Bool(obj) => obj.is_null(),
+            ScalarKind::Char(obj) => obj.is_null(),
+            ScalarKind::Short(obj) => obj.is_null(),
+            ScalarKind::Int(obj) => obj.is_null(),
+            ScalarKind::Long(obj) => obj.is_null(),
+            ScalarKind::Date(obj) => obj.is_null(),
+            ScalarKind::Month(obj) => obj.is_null(),
+            ScalarKind::Time(obj) => obj.is_null(),
+            ScalarKind::Minute(obj) => obj.is_null(),
+            ScalarKind::Second(obj) => obj.is_null(),
+            ScalarKind::DateTime(obj) => obj.is_null(),
+            ScalarKind::TimeStamp(obj) => obj.is_null(),
+            ScalarKind::NanoTime(obj) => obj.is_null(),
+            ScalarKind::NanoTimeStamp(obj) => obj.is_null(),
+            ScalarKind::Float(obj) => obj.is_null(),
+            ScalarKind::Double(obj) => obj.is_null(),
+            ScalarKind::String(obj) => obj.is_null(),
+            ScalarKind::DateHour(obj) => obj.is_null(),
+        }
+    }
 
-    fn new(_: Self::RawType) -> Self {}
-    fn to_owned(_: Self::RefType<'_>) -> Self::RawType {}
-
-    fn data_type() -> DataType {
-        DataType::Void
+    // todo implement getter methods
+    fn get_bool(&self) -> Result<Option<bool>, RuntimeError> {
+        match self {
+            ScalarKind::Bool(obj) => Ok(obj.get_bool()),
+            _ => Err(RuntimeError::NotBoolScalar),
+        }
+    }
+    fn get_char(&self) -> Result<Option<u8>, RuntimeError> {
+        match self {
+            ScalarKind::Char(obj) => Ok(obj.get_char()),
+            _ => Err(RuntimeError::NotCharScalar),
+        }
+    }
+    fn get_short(&self) -> Result<Option<i16>, RuntimeError> {
+        match self {
+            ScalarKind::Short(obj) => Ok(obj.get_short()),
+            _ => Err(RuntimeError::NotShortScalar),
+        }
+    }
+    fn get_int(&self) -> Result<Option<i32>, RuntimeError> {
+        match self {
+            ScalarKind::Int(obj) => Ok(obj.get_int()),
+            _ => Err(RuntimeError::NotIntScalar),
+        }
+    }
+    fn get_long(&self) -> Result<Option<i64>, RuntimeError> {
+        match self {
+            ScalarKind::Long(obj) => Ok(obj.get_long()),
+            _ => Err(RuntimeError::NotLongScalar),
+        }
+    }
+    fn get_float(&self) -> Result<Option<f32>, RuntimeError> {
+        match self {
+            ScalarKind::Float(obj) => Ok(obj.get_float()),
+            _ => Err(RuntimeError::NotFloatScalar),
+        }
+    }
+    fn get_double(&self) -> Result<Option<f64>, RuntimeError> {
+        match self {
+            ScalarKind::Double(obj) => Ok(obj.get_double()),
+            _ => Err(RuntimeError::NotDoubleScalar),
+        }
+    }
+    fn get_string(&self) -> Result<Option<&str>, RuntimeError> {
+        match self {
+            ScalarKind::String(obj) => Ok(obj.get_string()),
+            _ => Err(RuntimeError::NotStringScalar),
+        }
     }
 }
