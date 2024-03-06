@@ -264,6 +264,20 @@ pub trait Constant {
     fn is_set(&self) -> bool;
     fn is_dictionary(&self) -> bool;
     fn is_table(&self) -> bool;
+
+    // convert ConstantKind reference
+    fn as_scalar(&self) -> Result<&ScalarKind, RuntimeError>;
+    fn as_vector(&self) -> Result<&VectorKind, RuntimeError>;
+    fn as_pair(&self) -> Result<&Pair, RuntimeError>;
+    fn as_set(&self) -> Result<&Set, RuntimeError>;
+    fn as_dictionary(&self) -> Result<&Dictionary, RuntimeError>;
+
+    // convert ConstantKind mutable reference
+    fn as_scalar_mut(&mut self) -> Result<&mut ScalarKind, RuntimeError>;
+    fn as_vector_mut(&mut self) -> Result<&mut VectorKind, RuntimeError>;
+    fn as_pair_mut(&mut self) -> Result<&mut Pair, RuntimeError>;
+    fn as_set_mut(&mut self) -> Result<&mut Set, RuntimeError>;
+    fn as_dictionary_mut(&mut self) -> Result<&mut Dictionary, RuntimeError>;
 }
 
 impl Constant for ConstantKind {
@@ -289,5 +303,69 @@ impl Constant for ConstantKind {
 
     fn is_table(&self) -> bool {
         todo!()
+    }
+
+    // convert ConstantKind reference
+    fn as_scalar(&self) -> Result<&ScalarKind, RuntimeError> {
+        match self {
+            Self::Scalar(sk) => Ok(sk),
+            _ => Err(RuntimeError::NotScalarKind),
+        }
+    }
+    fn as_vector(&self) -> Result<&VectorKind, RuntimeError> {
+        match self {
+            Self::Vector(vk) => Ok(vk),
+            _ => Err(RuntimeError::NotVectorKind),
+        }
+    }
+    fn as_pair(&self) -> Result<&Pair, RuntimeError> {
+        match self {
+            Self::Pair(p) => Ok(p),
+            _ => Err(RuntimeError::NotPair),
+        }
+    }
+    fn as_set(&self) -> Result<&Set, RuntimeError> {
+        match self {
+            Self::Set(s) => Ok(s),
+            _ => Err(RuntimeError::NotSet),
+        }
+    }
+    fn as_dictionary(&self) -> Result<&Dictionary, RuntimeError> {
+        match self {
+            Self::Dictionary(d) => Ok(d),
+            _ => Err(RuntimeError::NotDictionary),
+        }
+    }
+
+    // convert ConstantKind mutable reference
+    fn as_scalar_mut(&mut self) -> Result<&mut ScalarKind, RuntimeError> {
+        match self {
+            Self::Scalar(sk) => Ok(sk),
+            _ => Err(RuntimeError::NotScalarKind),
+        }
+    }
+    fn as_vector_mut(&mut self) -> Result<&mut VectorKind, RuntimeError> {
+        match self {
+            Self::Vector(vk) => Ok(vk),
+            _ => Err(RuntimeError::NotVectorKind),
+        }
+    }
+    fn as_pair_mut(&mut self) -> Result<&mut Pair, RuntimeError> {
+        match self {
+            Self::Pair(p) => Ok(p),
+            _ => Err(RuntimeError::NotPair),
+        }
+    }
+    fn as_set_mut(&mut self) -> Result<&mut Set, RuntimeError> {
+        match self {
+            Self::Set(s) => Ok(s),
+            _ => Err(RuntimeError::NotSet),
+        }
+    }
+    fn as_dictionary_mut(&mut self) -> Result<&mut Dictionary, RuntimeError> {
+        match self {
+            Self::Dictionary(d) => Ok(d),
+            _ => Err(RuntimeError::NotDictionary),
+        }
     }
 }

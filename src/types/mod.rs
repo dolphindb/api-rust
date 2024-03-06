@@ -7,7 +7,7 @@ mod set;
 mod vector;
 
 pub use basic::{Basic, DataCategory, DataForm, DataType};
-pub use constant::ConstantKind;
+pub use constant::{Constant, ConstantKind};
 pub use dictionary::Dictionary;
 pub use pair::Pair;
 pub use scalar::{Scalar, ScalarKind};
@@ -143,11 +143,19 @@ impl Bool {
     pub fn get_bool(&self) -> Option<bool> {
         self.0
     }
+
+    pub fn set_bool(&mut self, val: Option<bool>) {
+        self.0 = val;
+    }
 }
 
 impl Char {
     pub fn get_char(&self) -> Option<u8> {
         self.0
+    }
+
+    pub fn set_char(&mut self, val: Option<u8>) {
+        self.0 = val;
     }
 }
 
@@ -155,11 +163,19 @@ impl Short {
     pub fn get_short(&self) -> Option<i16> {
         self.0
     }
+
+    pub fn set_short(&mut self, val: Option<i16>) {
+        self.0 = val;
+    }
 }
 
 impl Int {
     pub fn get_int(&self) -> Option<i32> {
         self.0
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        self.0 = val;
     }
 }
 
@@ -167,11 +183,20 @@ impl Long {
     pub fn get_long(&self) -> Option<i64> {
         self.0
     }
+
+    pub fn set_long(&mut self, val: Option<i64>) {
+        self.0 = val;
+    }
 }
 
 impl Float {
     pub fn get_float(&self) -> Option<f32> {
         self.0.map(|ordered_float| ordered_float.0)
+    }
+
+    pub fn set_float(&mut self, val: Option<f32>) {
+        let val = val.map(OrderedFloat);
+        self.0 = val;
     }
 }
 
@@ -179,11 +204,20 @@ impl Double {
     pub fn get_double(&self) -> Option<f64> {
         self.0.map(|ordered_double| ordered_double.0)
     }
+
+    pub fn set_double(&mut self, val: Option<f64>) {
+        let val = val.map(OrderedFloat);
+        self.0 = val;
+    }
 }
 
 impl DolphinString {
     pub fn get_string(&self) -> Option<&str> {
         self.0.as_deref()
+    }
+
+    pub fn set_string(&mut self, val: Option<String>) {
+        self.0 = val;
     }
 }
 

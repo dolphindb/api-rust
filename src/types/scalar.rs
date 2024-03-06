@@ -205,6 +205,26 @@ pub trait Scalar {
     // 3. set
     // 4. get_$rawtype
     // 5. set_$rawtype
+
+    // convert ScalarKind reference
+    fn as_bool(&self) -> Result<&Bool, RuntimeError>;
+    fn as_char(&self) -> Result<&Char, RuntimeError>;
+    fn as_short(&self) -> Result<&Short, RuntimeError>;
+    fn as_int(&self) -> Result<&Int, RuntimeError>;
+    fn as_long(&self) -> Result<&Long, RuntimeError>;
+    fn as_float(&self) -> Result<&Float, RuntimeError>;
+    fn as_double(&self) -> Result<&Double, RuntimeError>;
+    fn as_string(&self) -> Result<&DolphinString, RuntimeError>;
+
+    // convert ScalarKind mutable reference
+    fn as_bool_mut(&mut self) -> Result<&mut Bool, RuntimeError>;
+    fn as_char_mut(&mut self) -> Result<&mut Char, RuntimeError>;
+    fn as_short_mut(&mut self) -> Result<&mut Short, RuntimeError>;
+    fn as_int_mut(&mut self) -> Result<&mut Int, RuntimeError>;
+    fn as_long_mut(&mut self) -> Result<&mut Long, RuntimeError>;
+    fn as_float_mut(&mut self) -> Result<&mut Float, RuntimeError>;
+    fn as_double_mut(&mut self) -> Result<&mut Double, RuntimeError>;
+    fn as_string_mut(&mut self) -> Result<&mut DolphinString, RuntimeError>;
 }
 
 impl Scalar for ScalarKind {
@@ -278,6 +298,106 @@ impl Scalar for ScalarKind {
     fn get_string(&self) -> Result<Option<&str>, RuntimeError> {
         match self {
             ScalarKind::String(obj) => Ok(obj.get_string()),
+            _ => Err(RuntimeError::NotStringScalar),
+        }
+    }
+
+    // convert ScalarKind reference
+    fn as_bool(&self) -> Result<&Bool, RuntimeError> {
+        match self {
+            Self::Bool(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotBoolScalar),
+        }
+    }
+    fn as_char(&self) -> Result<&Char, RuntimeError> {
+        match self {
+            Self::Char(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotCharScalar),
+        }
+    }
+    fn as_short(&self) -> Result<&Short, RuntimeError> {
+        match self {
+            Self::Short(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotShortScalar),
+        }
+    }
+    fn as_int(&self) -> Result<&Int, RuntimeError> {
+        match self {
+            Self::Int(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotIntScalar),
+        }
+    }
+    fn as_long(&self) -> Result<&Long, RuntimeError> {
+        match self {
+            Self::Long(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotLongScalar),
+        }
+    }
+    fn as_float(&self) -> Result<&Float, RuntimeError> {
+        match self {
+            Self::Float(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotFloatScalar),
+        }
+    }
+    fn as_double(&self) -> Result<&Double, RuntimeError> {
+        match self {
+            Self::Double(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotDoubleScalar),
+        }
+    }
+    fn as_string(&self) -> Result<&DolphinString, RuntimeError> {
+        match self {
+            Self::String(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotStringScalar),
+        }
+    }
+
+    // convert ScalarKind mutable reference
+    fn as_bool_mut(&mut self) -> Result<&mut Bool, RuntimeError> {
+        match self {
+            Self::Bool(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotBoolScalar),
+        }
+    }
+    fn as_char_mut(&mut self) -> Result<&mut Char, RuntimeError> {
+        match self {
+            Self::Char(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotCharScalar),
+        }
+    }
+    fn as_short_mut(&mut self) -> Result<&mut Short, RuntimeError> {
+        match self {
+            Self::Short(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotShortScalar),
+        }
+    }
+    fn as_int_mut(&mut self) -> Result<&mut Int, RuntimeError> {
+        match self {
+            Self::Int(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotIntScalar),
+        }
+    }
+    fn as_long_mut(&mut self) -> Result<&mut Long, RuntimeError> {
+        match self {
+            Self::Long(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotLongScalar),
+        }
+    }
+    fn as_float_mut(&mut self) -> Result<&mut Float, RuntimeError> {
+        match self {
+            Self::Float(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotFloatScalar),
+        }
+    }
+    fn as_double_mut(&mut self) -> Result<&mut Double, RuntimeError> {
+        match self {
+            Self::Double(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotDoubleScalar),
+        }
+    }
+    fn as_string_mut(&mut self) -> Result<&mut DolphinString, RuntimeError> {
+        match self {
+            Self::String(obj) => Ok(obj),
             _ => Err(RuntimeError::NotStringScalar),
         }
     }

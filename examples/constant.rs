@@ -1,4 +1,8 @@
-use rust_api::{client::ClientBuilder, types::Basic};
+use ordered_float::OrderedFloat;
+use rust_api::{
+    client::ClientBuilder,
+    types::{Basic, Constant, Scalar},
+};
 
 #[tokio::main]
 async fn main() {
@@ -10,8 +14,11 @@ async fn main() {
     println!("connect successfully");
 
     let script = String::from("a = 1.1;a;");
-    let res = client.run_script(script).await.unwrap();
+    let mut res = client.run_script(script).await.unwrap();
 
-    // let c = res.first().unwrap();
-    // println!("{}, {}", c.data_type().to_u8(), c.get_double().unwrap());
+    let c = res.first_mut().unwrap();
+    let d = c.as_scalar_mut().unwrap().as_double_mut().unwrap();
+
+    d.set(Some(OrderedFloat::<f64>::from(2.2)));
+    println!("{}, {:?}", d.data_type().to_u8(), d.get_double());
 }

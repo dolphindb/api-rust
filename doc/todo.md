@@ -53,3 +53,22 @@
 13. 删掉 len，因为有了 size
 14. run 返回 Vec<ConstantKind>,什么时候size不为1
 15. new, from_data_type 每个类型?? 修改
+
+类型转换
+1. 引用
+   1. Constant
+      1. ConstantKind -> ScalarKind
+      2. ConstantKind -> VectorKind
+      3. ConstantKind -> SetKind
+      4. ConstantKind -> DictionaryKind
+      5. ConstantKind -> TableKind
+   2. Scalar
+      1. ScalarKind -> Bool
+      2. ScalarKind -> Char
+      3. ScalarKind -> Short
+      4. ScalarKind -> Int
+      5. ScalarKind -> Float
+      6. ScalarKind -> String
+      7. ..
+2. 所有权
+
