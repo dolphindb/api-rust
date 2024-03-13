@@ -33,6 +33,6 @@ pub enum RuntimeError {
     #[error("The object doesn't support this interface.")]
     NotSupportInterface,
 
-    #[error("The object can't convert to VectorKind.")]
+    #[error("The object can't convert to target type.")]
     ConvertFail,
 }

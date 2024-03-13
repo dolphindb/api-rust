@@ -22,14 +22,7 @@ impl Deserialize for Bool {
     where
         R: AsyncBufReadExt + Unpin,
     {
-        let val = reader.read_i8().await?;
-
-        match val {
-            0 => self.set(Some(false)),
-            i8::MIN => self.set(None),
-            _ => self.set(Some(true)),
-        }
-
+        self.set(reader.read_i8().await?);
         Ok(())
     }
 }
@@ -39,14 +32,7 @@ impl Deserialize for Char {
     where
         R: AsyncBufReadExt + Unpin,
     {
-        let val = reader.read_i8().await?;
-
-        if val == i8::MIN {
-            self.set(None);
-        } else {
-            self.set(Some(val as u8));
-        }
-
+        self.set(reader.read_i8().await?);
         Ok(())
     }
 }
@@ -67,15 +53,15 @@ impl Deserialize for DolphinString {
         if *buf.last().unwrap() != b'\0' {
             return Err(Error::from(ErrorKind::UnexpectedEof));
         }
-
         buf.pop();
 
         if buf.is_empty() {
-            self.set(None);
+            self.set_null();
         } else {
-            self.set(Some(String::from_utf8(buf).map_err(|e| {
-                Error::new(ErrorKind::InvalidData, e.to_string())
-            })?));
+            self.set(
+                String::from_utf8(buf)
+                    .map_err(|e| Error::new(ErrorKind::InvalidData, e.to_string()))?,
+            );
         }
 
         Ok(())
@@ -88,14 +74,7 @@ macro_rules! deserialize_primitive {
         where
             R: AsyncBufReadExt + Unpin,
         {
-            let val = reader.$read_func().await?;
-
-            if val == $raw_type::MIN {
-                self.set(None);
-            } else {
-                self.set(Some(val.into()));
-            }
-
+            self.set(reader.$read_func().await?);
             Ok(())
         }
     };
@@ -119,20 +98,24 @@ deserialize_primitive!(
 );
 
 macro_rules! deserialize_i32_temporal {
+    ($func_name:ident, i32) => {
+        async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
+        where
+            R: AsyncBufReadExt + Unpin,
+        {
+            self.set(reader.read_i32().await?);
+            Ok(())
+        }
+    };
+
     ($func_name:ident, $elapsed_type:tt) => {
         async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
         where
             R: AsyncBufReadExt + Unpin,
         {
-            let mut int = Int::default();
-            int.$func_name(reader).await?;
-
-            if let Some(elapsed) = int.as_ref().map(|v| $elapsed_type::try_from(*v).ok()).flatten() {
-                *self = Self::from_raw(elapsed);
-            } else {
-                self.set(None);
-            }
-
+            let mut temporal_i32 = Int::default();
+            temporal_i32.$func_name(reader).await?;
+            *self = Self::from_raw($elapsed_type::try_from(temporal_i32.get()).unwrap());
             Ok(())
         }
     };
@@ -147,21 +130,25 @@ macro_rules! deserialize_i32_temporal {
     };
 }
 
+deserialize_i32_temporal!(
+    (Date, i64),
+    (Month, i32),
+    (Time, u32),
+    (Minute, u32),
+    (Second, u32),
+    (DateTime, i64),
+    (DateHour, i64)
+);
+
 macro_rules! deserialize_i64_temporal {
     ($func_name:ident, $elapsed_type:tt) => {
         async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
         where
             R: AsyncBufReadExt + Unpin,
         {
-            let mut long = Long::default();
-            long.$func_name(reader).await?;
-
-            if let Some(elapsed) = long.as_ref().map(|v| $elapsed_type::try_from(*v).ok()).flatten() {
-                *self = Self::from_raw(elapsed);
-            } else {
-                self.set(None);
-            }
-
+            let mut temporal_i64 = Long::default();
+            temporal_i64.$func_name(reader).await?;
+            *self = Self::from_raw($elapsed_type::try_from(temporal_i64.get()).unwrap());
             Ok(())
         }
     };
@@ -175,15 +162,5 @@ macro_rules! deserialize_i64_temporal {
         )*
     };
 }
-
-deserialize_i32_temporal!(
-    (Date, i64),
-    (Month, i32),
-    (Time, u32),
-    (Minute, u32),
-    (Second, u32),
-    (DateTime, i64),
-    (DateHour, i64)
-);
 
 deserialize_i64_temporal!((TimeStamp, i64), (NanoTime, u64), (NanoTimeStamp, i64));

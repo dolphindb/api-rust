@@ -1,8 +1,6 @@
-//! Temporal type interface compatible to [`chrono`]
-
 use chrono::{
     naive::{NaiveDate, NaiveDateTime, NaiveTime},
-    Datelike, Days, Months,
+    Days,
 };
 
 use super::{
@@ -34,29 +32,8 @@ impl Date {
 
 impl Month {
     /// Makes a new [`Month`] from the calendar month (year, month).
-    pub fn from_ym(year: i32, month: u32) -> Self {
-        Self::new(NaiveDate::from_ymd_opt(year, month, 1))
-    }
-
-    /// Makes a new [`Month`] from elapsed month since January 1970.
-    pub fn from_raw(elapsed: i32) -> Self {
-        if elapsed >= 0 {
-            Self::new(NaiveDate::default().checked_add_months(Months::new(elapsed as u32)))
-        } else {
-            Self::new(NaiveDate::default().checked_sub_months(Months::new(elapsed.unsigned_abs())))
-        }
-    }
-
-    /// Counts of month since January 1970.
-    pub fn elapsed(&self) -> Option<i32> {
-        self.as_ref().map(|d| {
-            let start = NaiveDate::default();
-
-            let month = d.month() as i32 - start.month() as i32;
-            let year = d.year() - start.year();
-
-            year * 12 + month
-        })
+    pub fn from_ym(year: i32, month: u8) -> Self {
+        Self::new(year * 12 + month as i32)
     }
 }
 

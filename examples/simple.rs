@@ -27,13 +27,13 @@ fn main() {
     let mut variables = HashMap::new();
     variables.insert(
         "a".to_string(),
-        ConstantKind::Scalar(ScalarKind::Bool(Bool::new(Some(true)))),
+        ConstantKind::Scalar(ScalarKind::Bool(Bool::new(1))),
     );
 
     let mut dict = Dictionary::new(DataType::Bool);
     dict.insert(
         ScalarKind::DateHour(DateHour::from_ymd_h(1970, 1, 1, 1)),
-        ConstantKind::Scalar(ScalarKind::Bool(Bool::new(None))),
+        ConstantKind::Scalar(ScalarKind::Bool(Bool::new(0))),
     );
     variables.insert("b".to_string(), ConstantKind::Dictionary(dict));
     let res = rt

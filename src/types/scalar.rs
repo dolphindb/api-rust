@@ -254,52 +254,32 @@ impl Scalar for ScalarKind {
 
     // todo implement getter methods
     fn get_bool(&self) -> Result<Option<bool>, RuntimeError> {
-        match self {
-            ScalarKind::Bool(obj) => Ok(obj.get_bool()),
-            _ => Err(RuntimeError::NotBoolScalar),
-        }
+        todo!()
     }
     fn get_char(&self) -> Result<Option<u8>, RuntimeError> {
-        match self {
-            ScalarKind::Char(obj) => Ok(obj.get_char()),
-            _ => Err(RuntimeError::NotCharScalar),
-        }
+        todo!()
     }
     fn get_short(&self) -> Result<Option<i16>, RuntimeError> {
-        match self {
-            ScalarKind::Short(obj) => Ok(obj.get_short()),
-            _ => Err(RuntimeError::NotShortScalar),
-        }
+        todo!()
     }
     fn get_int(&self) -> Result<Option<i32>, RuntimeError> {
-        match self {
-            ScalarKind::Int(obj) => Ok(obj.get_int()),
-            _ => Err(RuntimeError::NotIntScalar),
-        }
+        todo!()
     }
     fn get_long(&self) -> Result<Option<i64>, RuntimeError> {
-        match self {
-            ScalarKind::Long(obj) => Ok(obj.get_long()),
-            _ => Err(RuntimeError::NotLongScalar),
-        }
+        todo!()
     }
     fn get_float(&self) -> Result<Option<f32>, RuntimeError> {
-        match self {
-            ScalarKind::Float(obj) => Ok(obj.get_float()),
-            _ => Err(RuntimeError::NotFloatScalar),
-        }
+        todo!()
     }
     fn get_double(&self) -> Result<Option<f64>, RuntimeError> {
-        match self {
-            ScalarKind::Double(obj) => Ok(obj.get_double()),
-            _ => Err(RuntimeError::NotDoubleScalar),
-        }
+        todo!()
     }
     fn get_string(&self) -> Result<Option<&str>, RuntimeError> {
-        match self {
-            ScalarKind::String(obj) => Ok(obj.get_string()),
-            _ => Err(RuntimeError::NotStringScalar),
-        }
+        todo!()
+        // match self {
+        //     ScalarKind::String(obj) => Ok(obj.get_string()),
+        //     _ => Err(RuntimeError::NotStringScalar),
+        // }
     }
 
     // convert ScalarKind reference

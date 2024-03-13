@@ -23,7 +23,7 @@ impl Serialize for Bool {
     where
         B: bytes::BufMut,
     {
-        buffer.put_i8(self.as_ref().map(|b| *b as i8).unwrap_or(i8::MIN));
+        buffer.put_i8(self.0);
         Ok(0)
     }
 }
@@ -33,7 +33,7 @@ impl Serialize for Char {
     where
         B: bytes::BufMut,
     {
-        buffer.put_i8(self.as_ref().map(|c| *c as i8).unwrap_or(i8::MIN));
+        buffer.put_i8(self.0);
         Ok(0)
     }
 }
@@ -43,7 +43,7 @@ impl Serialize for DolphinString {
     where
         B: BufMut,
     {
-        buffer.put(self.as_ref().map(|s| s.as_str()).unwrap_or("").as_bytes());
+        buffer.put(self.0.as_bytes());
         buffer.put_u8(b'\0');
         Ok(0)
     }
@@ -57,7 +57,7 @@ macro_rules! serialize_primitive {
         {
             let mut writer = buffer.writer();
             writer
-                .$write_func::<$endian>(self.into_inner().unwrap_or($raw_type::MIN.into()).into())
+                .$write_func::<$endian>(self.0)
                 .unwrap();
             Ok(0)
         }
@@ -76,30 +76,65 @@ macro_rules! serialize_primitive {
 serialize_primitive!(
     (i16, Short, write_i16),
     (i32, Int, write_i32),
-    (i64, Long, write_i64),
-    (f32, Float, write_f32),
-    (f64, Double, write_f64)
+    (i64, Long, write_i64)
 );
 
+macro_rules! serialize_primitive2 {
+    ($raw_type:tt, $write_func:ident, $func_name:ident, $endian:tt) => {
+        fn $func_name<B>(&self, buffer: &mut B) -> Result<usize, ()>
+        where
+            B: bytes::BufMut,
+        {
+            let mut writer = buffer.writer();
+            writer
+                .$write_func::<$endian>(self.0.0)
+                .unwrap();
+            Ok(0)
+        }
+    };
+
+    ($(($raw_type:tt, $struct_name:ident, $write_func:ident)), *) => {
+        $(
+            impl Serialize for $struct_name {
+                serialize_primitive2!($raw_type, $write_func, serialize, BE);
+                serialize_primitive2!($raw_type, $write_func, serialize_le, LE);
+            }
+        )*
+    };
+}
+
+serialize_primitive2!((f32, Float, write_f32), (f64, Double, write_f64));
+
 macro_rules! serialize_i32_temporal {
-    ($func_name:ident) => {
+    ($func_name:ident, Month) => {
         fn $func_name<B>(&self, buffer: &mut B) -> Result<usize, ()>
         where
             B: BufMut,
         {
-            Int::new(self.elapsed().map(|i| i as i32)).$func_name(buffer)
+            Int::new(self.0).$func_name(buffer)
+        }
+    };
+
+    ($func_name:ident, $struct_name:ident) => {
+        fn $func_name<B>(&self, buffer: &mut B) -> Result<usize, ()>
+        where
+            B: BufMut,
+        {
+            Int::new(self.elapsed().map(|i| i as i32).unwrap()).$func_name(buffer)
         }
     };
 
     ($($struct_name:ident), *) => {
         $(
             impl Serialize for $struct_name {
-                serialize_i32_temporal!(serialize);
-                serialize_i32_temporal!(serialize_le);
+                serialize_i32_temporal!(serialize, $struct_name);
+                serialize_i32_temporal!(serialize_le, $struct_name);
             }
         )*
     }
 }
+
+serialize_i32_temporal!(Date, Month, Time, Minute, Second, DateTime, DateHour);
 
 macro_rules! serialize_i64_temporal {
     ($func_name:ident) => {
@@ -107,7 +142,7 @@ macro_rules! serialize_i64_temporal {
         where
             B: BufMut,
         {
-            Long::new(self.elapsed().map(|i| i as i64)).$func_name(buffer)
+            Long::new(self.elapsed().map(|i| i as i64).unwrap()).$func_name(buffer)
         }
     };
 
@@ -121,5 +156,4 @@ macro_rules! serialize_i64_temporal {
     }
 }
 
-serialize_i32_temporal!(Date, Month, Time, Minute, Second, DateTime, DateHour);
 serialize_i64_temporal!(TimeStamp, NanoTime, NanoTimeStamp);

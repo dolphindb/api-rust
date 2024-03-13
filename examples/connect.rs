@@ -16,7 +16,7 @@ async fn main() {
     let res = client.run_script(script).await.unwrap();
     let value = match res.first() {
         Some(ConstantKind::Scalar(ScalarKind::Int(i))) => *i,
-        _ => Int::new(None),
+        _ => Int::new(0),
     };
-    println!("a: {}", value.get().unwrap());
+    println!("a: {}", value.get());
 }

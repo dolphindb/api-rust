@@ -1,3 +1,4 @@
+## TODO
 1. Null 在 DDB 是类型最小值，这个不一致导致的序列化问题，不能用 Option(rawtype) 当标量类型的内部结构，不然 () 和 rawtype::min_value 都是 null 有问题
 <!-- $rawtype = (bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time/nano_time_stamp) -->
 1. Basic
@@ -30,7 +31,8 @@
 5. Set:
    1. clear
    2. contain
-   3. append?
+   3. append
+   4. insert
 6. Dictionary:
    1. set
    2. get_member
@@ -46,14 +48,10 @@
    6. get_column, get_column_mut
    7. get_row 返回字典
 8.  to_string -> 全部实现 Display
-9.  decimal 类型
-10. any vector
-11. 类型转换，更容易地从 ConstantKind 转换为 下层的类型
-12. bool char 类型的范围错了，参考文档和序列化
-13. 删掉 len，因为有了 size
-14. run 返回 Vec<ConstantKind>,什么时候size不为1
-15. new, from_data_type 每个类型?? 修改
+9.  run 返回 ConstantKind，size > 1 时返回 VectorKind
+10. new, from_data_type 每个类型?? 修改
 
+## Type conversion
 类型转换
 1. 引用
    1. Constant
@@ -70,5 +68,30 @@
       5. ScalarKind -> Float
       6. ScalarKind -> String
       7. ..
-2. 所有权
+2. 所有权：实现 From 和 TryFrom 特征，支持的转换类型和引用类似(除了不是引用)
+3. string 序列化 null 是什么？？
 
+## Future
+1. any vector
+
+| DolphinDB 类型 | Rust 类型         | 类型值 |
+| -------------- | ----------------- | ------ |
+| Void           | -                 | 0      |
+| Bool           | u8                | 1      |
+| Char           | u8                | 2      |
+| Short          | i16               | 3      |
+| Int            | i32               | 4      |
+| Long           | i64               | 5      |
+| Date           | i32               | 6      |
+| Month          | i32               | 7      |
+| Time           | i32               | 8      |
+| Minute         | i32               | 9      |
+| Second         | i32               | 10     |
+| DateTime       | i32               | 11     |
+| TimeStamp      | i64               | 12     |
+| NanoTime       | i64               | 13     |
+| NanoTimeStamp  | i64               | 14     |
+| Float          | OrderedFloat<f32> | 15     |
+| Double         | OrderedFloat<f64> | 16     |
+| DolphinString  | String            | 18     |
+| DateHour       | i32               | 28     |
