@@ -32,7 +32,7 @@ fn main() {
 
     let mut dict = Dictionary::new(DataType::Bool);
     dict.insert(
-        ScalarKind::DateHour(DateHour::from_ymd_h(1970, 1, 1, 1)),
+        ScalarKind::DateHour(DateHour::from_datehour(1970, 1, 1, 1).unwrap()),
         ConstantKind::Scalar(ScalarKind::Bool(Bool::new(0))),
     );
     variables.insert("b".to_string(), ConstantKind::Dictionary(dict));

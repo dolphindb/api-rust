@@ -7,6 +7,7 @@ use super::{
     NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
 };
 
+// implement deserialize for some scalar types no need to consider endianness
 impl Deserialize for () {
     async fn deserialize<R>(&mut self, reader: &mut R) -> Result<()>
     where
@@ -68,6 +69,7 @@ impl Deserialize for DolphinString {
     }
 }
 
+// implement deserialize for integeral scalar types
 macro_rules! deserialize_primitive {
     ($raw_type:tt, $read_func:ident, $func_name:ident) => {
         async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
@@ -97,8 +99,9 @@ deserialize_primitive!(
     (f64, Double, read_f64, read_f64_le)
 );
 
+// implement deserialize for 32 bit temporal saclar types
 macro_rules! deserialize_i32_temporal {
-    ($func_name:ident, i32) => {
+    ($func_name:ident) => {
         async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
         where
             R: AsyncBufReadExt + Unpin,
@@ -108,38 +111,27 @@ macro_rules! deserialize_i32_temporal {
         }
     };
 
-    ($func_name:ident, $elapsed_type:tt) => {
-        async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
-        where
-            R: AsyncBufReadExt + Unpin,
-        {
-            let mut temporal_i32 = Int::default();
-            temporal_i32.$func_name(reader).await?;
-            *self = Self::from_raw($elapsed_type::try_from(temporal_i32.get()).unwrap());
-            Ok(())
-        }
-    };
-
-    ($(($struct_name:ident, $elapsed_type:tt)), *) => {
+    ($(($struct_name:ident)), *) => {
         $(
             impl Deserialize for $struct_name {
-                deserialize_i32_temporal!(deserialize, $elapsed_type);
-                deserialize_i32_temporal!(deserialize_le, $elapsed_type);
+                deserialize_i32_temporal!(deserialize);
+                deserialize_i32_temporal!(deserialize_le);
             }
         )*
     };
 }
 
 deserialize_i32_temporal!(
-    (Date, i64),
-    (Month, i32),
-    (Time, u32),
-    (Minute, u32),
-    (Second, u32),
-    (DateTime, i64),
-    (DateHour, i64)
+    (Date),
+    (Month),
+    (Time),
+    (Minute),
+    (Second),
+    (DateTime),
+    (DateHour)
 );
 
+// implement deserialize for 64 bit temporal saclar types
 macro_rules! deserialize_i64_temporal {
     ($func_name:ident, $elapsed_type:tt) => {
         async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>

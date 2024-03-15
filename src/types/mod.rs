@@ -14,7 +14,7 @@ pub use scalar::{Scalar, ScalarKind};
 pub use set::Set;
 pub use vector::VectorKind;
 
-use chrono::naive::{NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::naive::{NaiveDateTime, NaiveTime};
 use ordered_float::OrderedFloat;
 use std::fmt::{self, Debug, Display};
 
@@ -24,15 +24,9 @@ use crate::error::RuntimeError;
 macro_rules! for_all_scalars {
     ($macro:tt) => {
         $macro!(
-            (NaiveDate, Date),
-            (NaiveTime, Time),
-            (NaiveTime, Minute),
-            (NaiveTime, Second),
-            (NaiveDateTime, DateTime),
             (NaiveDateTime, TimeStamp),
             (NaiveTime, NanoTime),
-            (NaiveDateTime, NanoTimeStamp),
-            (NaiveDateTime, DateHour)
+            (NaiveDateTime, NanoTimeStamp)
         );
     };
 }
@@ -257,7 +251,13 @@ macro_rules! for_all_scalars2 {
             (f32, Float),
             (f64, Double),
             (String, DolphinString),
-            (i32, Month)
+            (i32, Date),
+            (i32, Month),
+            (i32, Time),
+            (i32, Minute),
+            (i32, Second),
+            (i32, DateTime),
+            (i32, DateHour)
         );
     };
 }
@@ -483,7 +483,91 @@ impl DolphinString {
     }
 }
 
+impl Date {
+    pub fn new_null() -> Self {
+        Self(i32::MIN)
+    }
+
+    pub fn set_null(&mut self) {
+        self.0 = i32::MIN;
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.0 == i32::MIN
+    }
+}
+
 impl Month {
+    pub fn new_null() -> Self {
+        Self(i32::MIN)
+    }
+
+    pub fn set_null(&mut self) {
+        self.0 = i32::MIN;
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.0 == i32::MIN
+    }
+}
+
+impl Time {
+    pub fn new_null() -> Self {
+        Self(i32::MIN)
+    }
+
+    pub fn set_null(&mut self) {
+        self.0 = i32::MIN;
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.0 == i32::MIN
+    }
+}
+
+impl Minute {
+    pub fn new_null() -> Self {
+        Self(i32::MIN)
+    }
+
+    pub fn set_null(&mut self) {
+        self.0 = i32::MIN;
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.0 == i32::MIN
+    }
+}
+
+impl Second {
+    pub fn new_null() -> Self {
+        Self(i32::MIN)
+    }
+
+    pub fn set_null(&mut self) {
+        self.0 = i32::MIN;
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.0 == i32::MIN
+    }
+}
+
+impl DateTime {
+    pub fn new_null() -> Self {
+        Self(i32::MIN)
+    }
+
+    pub fn set_null(&mut self) {
+        self.0 = i32::MIN;
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.0 == i32::MIN
+    }
+}
+
+impl DateHour {
     pub fn new_null() -> Self {
         Self(i32::MIN)
     }
@@ -499,37 +583,6 @@ impl Month {
 
 // implement From ant TryFrom trarits
 macro_rules! from_impl3 {
-    (i32, Month) => {
-        impl From<i32> for Month {
-            fn from(value: i32) -> Self {
-                Self::new(value)
-            }
-        }
-
-        impl From<Month> for i32 {
-            fn from(value: Month) -> Self {
-                value.0
-            }
-        }
-
-        impl From<Month> for ScalarKind {
-            fn from(value: Month) -> Self {
-                Self::Month(value)
-            }
-        }
-
-        impl TryFrom<ScalarKind> for Month {
-            type Error = RuntimeError;
-
-            fn try_from(value: ScalarKind) -> Result<Self, Self::Error> {
-                match value {
-                    ScalarKind::Month(value) => Ok(value),
-                    _ => Err(RuntimeError::ConvertFail),
-                }
-            }
-        }
-    };
-
     (f32, Float) => {
         impl From<f32> for Float {
             fn from(value: f32) -> Self {
@@ -664,10 +717,80 @@ for_all_scalars2!(from_impl3);
 
 // implement Display trait
 macro_rules! display_impl2 {
+    (i32, Date) => {
+        impl Display for Date {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                // TODO
+                todo!()
+                // write!(f, "{:04}.{:02}M",)
+            }
+        }
+    };
+
     (i32, Month) => {
         impl Display for Month {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                write!(f, "{:04}.{:02}M", self.0 / 12, (self.0 % 12) + 1)
+                write!(f, "{:04}.{:02}M", self.0 / 12, self.0 % 12 + 1)
+            }
+        }
+    };
+
+    (i32, Time) => {
+        impl Display for Time {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                // TODO
+                todo!()
+                // write!(f, "{:04}.{:02}M", )
+            }
+        }
+    };
+
+    (i32, Minute) => {
+        impl Display for Minute {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                // TODO
+                todo!()
+                // write!(f, "{:04}.{:02}M", )
+            }
+        }
+    };
+
+    (i32, Minute) => {
+        impl Display for Minute {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                // TODO
+                todo!()
+                // write!(f, "{:04}.{:02}M", )
+            }
+        }
+    };
+
+    (i32, Second) => {
+        impl Display for Minute {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                // TODO
+                todo!()
+                // write!(f, "{:04}.{:02}M", )
+            }
+        }
+    };
+
+    (i32, DateTime) => {
+        impl Display for Minute {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                // TODO
+                todo!()
+                // write!(f, "{:04}.{:02}M", )
+            }
+        }
+    };
+
+    (i32, DateHour) => {
+        impl Display for Minute {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                // TODO
+                todo!()
+                // write!(f, "{:04}.{:02}M", )
             }
         }
     };
@@ -722,8 +845,7 @@ macro_rules! concrete_scalar_trait_impl2 {
                 Self::new(raw)
             }
 
-            // TODO ??
-            fn to_owned(ref_data: Self::RefType<'_>) -> Self::RawType {
+            fn to_owned(ref_data: Self::RefType<'_>) -> Self::RawType { // TODO ??
                 ref_data
             }
 

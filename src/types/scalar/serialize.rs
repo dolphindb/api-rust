@@ -106,21 +106,12 @@ macro_rules! serialize_primitive2 {
 serialize_primitive2!((f32, Float, write_f32), (f64, Double, write_f64));
 
 macro_rules! serialize_i32_temporal {
-    ($func_name:ident, Month) => {
-        fn $func_name<B>(&self, buffer: &mut B) -> Result<usize, ()>
-        where
-            B: BufMut,
-        {
-            Int::new(self.0).$func_name(buffer)
-        }
-    };
-
     ($func_name:ident, $struct_name:ident) => {
         fn $func_name<B>(&self, buffer: &mut B) -> Result<usize, ()>
         where
             B: BufMut,
         {
-            Int::new(self.elapsed().map(|i| i as i32).unwrap()).$func_name(buffer)
+            Int::new(self.0).$func_name(buffer)
         }
     };
 
@@ -133,7 +124,6 @@ macro_rules! serialize_i32_temporal {
         )*
     }
 }
-
 serialize_i32_temporal!(Date, Month, Time, Minute, Second, DateTime, DateHour);
 
 macro_rules! serialize_i64_temporal {
@@ -155,5 +145,4 @@ macro_rules! serialize_i64_temporal {
         )*
     }
 }
-
 serialize_i64_temporal!(TimeStamp, NanoTime, NanoTimeStamp);
