@@ -1,6 +1,6 @@
 use chrono::{
     naive::{NaiveDate, NaiveDateTime, NaiveTime},
-    Datelike, Duration, LocalResult, TimeZone, Utc,
+    Datelike, Duration,
 };
 
 use super::{
@@ -60,7 +60,7 @@ impl Time {
             Err(RuntimeError::InvalidData)
         } else {
             Ok(Self::new(
-                (hour * 60 * 60 * 1000 + min * 60 * 1000 + sec * 1000 + milli) as i32,
+                (hour * 3600000 + min * 60000 + sec * 1000 + milli) as i32,
             ))
         }
     }
@@ -83,7 +83,7 @@ impl Second {
         if hour > 23 || min > 59 || sec > 59 {
             Err(RuntimeError::InvalidData)
         } else {
-            Ok(Self::new((hour * 60 * 60 + min * 60 + sec) as i32))
+            Ok(Self::new((hour * 3600 + min * 60 + sec) as i32))
         }
     }
 }
@@ -101,59 +101,75 @@ impl DateTime {
         let base_date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
         Ok(Self::new(
             date.signed_duration_since(base_date).num_days() as i32
-                + (hour * 60 * 60 + min * 60 + sec) as i32,
+                + (hour * 3600 + min * 60 + sec) as i32,
         ))
     }
 }
 
 impl TimeStamp {
-    /// Makes a new [`TimeStamp`] from elapsed milliseconds since 1st of January 1970 at 00:00:00.
-    pub fn from_raw(elapsed: i64) -> Self {
-        Self::new(NaiveDateTime::from_timestamp_millis(elapsed))
-    }
-
-    /// Counts of milliseconds since 1st of January 1970 at 00:00:00.
-    pub fn elapsed(&self) -> Option<i64> {
-        self.as_ref()
-            .map(|t| (*t - NaiveDateTime::default()).num_milliseconds())
+    pub fn from_timestamp(
+        year: i32,
+        month: u32,
+        day: u32,
+        hour: u32,
+        min: u32,
+        sec: u32,
+        milli: u32,
+    ) -> Result<Self, RuntimeError> {
+        if hour > 23 || min > 59 || sec > 59 || milli > 999 {
+            Err(RuntimeError::InvalidData)
+        } else {
+            let date =
+                NaiveDate::from_ymd_opt(year, month, day).ok_or(RuntimeError::InvalidData)?;
+            let base_date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
+            Ok(Self::new(
+                date.signed_duration_since(base_date).num_days() * 86400000
+                    + (hour * 3600000 + min * 60000 + sec * 1000 + milli) as i64,
+            ))
+        }
     }
 }
 
 impl NanoTime {
     /// Makes a new [`NanoTime`] from hour, minute, second and nanosecond.
-    pub fn from_hms_nano(hour: u32, min: u32, sec: u32, nano: u32) -> Self {
-        Self::new(NaiveTime::from_hms_nano_opt(hour, min, sec, nano))
-    }
-
-    /// Makes a new [`NanoTime`] from elapsed nanoseconds since 00:00:00.
-    pub fn from_raw(elapsed: u64) -> Self {
-        let carry = 1_000_000_000;
-        Self::new(NaiveTime::from_num_seconds_from_midnight_opt(
-            (elapsed / carry) as u32,
-            (elapsed % carry) as u32,
-        ))
-    }
-
-    /// Counts of nanoseconds since 00:00:00.
-    pub fn elapsed(&self) -> Option<u64> {
-        self.as_ref().and_then(|t| {
-            (*t - NaiveTime::default())
-                .num_nanoseconds()
-                .map(|nsecs| nsecs as u64)
-        })
+    pub fn from_hms_nano(hour: u32, min: u32, sec: u32, nano: u32) -> Result<Self, RuntimeError> {
+        if hour > 23 || min > 59 || sec > 59 || nano > 999999999 {
+            Err(RuntimeError::InvalidData)
+        } else {
+            Ok(Self::new(
+                hour as i64 * 3600000000000
+                    + min as i64 * 60000000000
+                    + sec as i64 * 1000000000
+                    + nano as i64,
+            ))
+        }
     }
 }
 
 impl NanoTimeStamp {
-    /// Makes a new [`NanoTime`] from elapsed nanoseconds since 1st of January 1970 at 00:00:00.
-    pub fn from_raw(elapsed: i64) -> Self {
-        Self::new(NaiveDateTime::from_timestamp_nanos(elapsed))
-    }
-
-    /// Counts of nanoseconds since 1st of January 1970 at 00:00:00.
-    pub fn elapsed(&self) -> Option<i64> {
-        self.as_ref()
-            .and_then(|t| (*t - NaiveDateTime::default()).num_nanoseconds())
+    pub fn from_nano_timestamp(
+        year: i32,
+        month: u32,
+        day: u32,
+        hour: u32,
+        min: u32,
+        sec: u32,
+        nano: u32,
+    ) -> Result<Self, RuntimeError> {
+        if hour > 23 || min > 59 || sec > 59 || nano > 999999999 {
+            Err(RuntimeError::InvalidData)
+        } else {
+            let date =
+                NaiveDate::from_ymd_opt(year, month, day).ok_or(RuntimeError::InvalidData)?;
+            let base_date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
+            Ok(Self::new(
+                date.signed_duration_since(base_date).num_days() * 86400000000000
+                    + hour as i64 * 3600000000000
+                    + min as i64 * 60000000000
+                    + sec as i64 * 1000000000
+                    + nano as i64,
+            ))
+        }
     }
 }
 

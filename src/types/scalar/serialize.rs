@@ -127,20 +127,20 @@ macro_rules! serialize_i32_temporal {
 serialize_i32_temporal!(Date, Month, Time, Minute, Second, DateTime, DateHour);
 
 macro_rules! serialize_i64_temporal {
-    ($func_name:ident) => {
+   ($func_name:ident, $struct_name:ident) => {
         fn $func_name<B>(&self, buffer: &mut B) -> Result<usize, ()>
         where
             B: BufMut,
         {
-            Long::new(self.elapsed().map(|i| i as i64).unwrap()).$func_name(buffer)
+            Long::new(self.0).$func_name(buffer)
         }
     };
 
     ($($struct_name:ident), *) => {
         $(
             impl Serialize for $struct_name {
-                serialize_i64_temporal!(serialize);
-                serialize_i64_temporal!(serialize_le);
+                serialize_i64_temporal!(serialize,$struct_name);
+                serialize_i64_temporal!(serialize_le,$struct_name);
             }
         )*
     }

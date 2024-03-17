@@ -106,7 +106,9 @@ macro_rules! deserialize_i32_temporal {
         where
             R: AsyncBufReadExt + Unpin,
         {
-            self.set(reader.read_i32().await?);
+            let mut temporal_i32 = Int::new(0);
+            temporal_i32.$func_name(reader).await?;
+            self.set(temporal_i32.get());
             Ok(())
         }
     };
@@ -133,14 +135,14 @@ deserialize_i32_temporal!(
 
 // implement deserialize for 64 bit temporal saclar types
 macro_rules! deserialize_i64_temporal {
-    ($func_name:ident, $elapsed_type:tt) => {
+    ($func_name:ident, $elapsed_type:tt,$struct_name:ident) => {
         async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
         where
             R: AsyncBufReadExt + Unpin,
         {
-            let mut temporal_i64 = Long::default();
+            let mut temporal_i64 = Long::new(0);
             temporal_i64.$func_name(reader).await?;
-            *self = Self::from_raw($elapsed_type::try_from(temporal_i64.get()).unwrap());
+            self.set(temporal_i64.get());
             Ok(())
         }
     };
@@ -148,8 +150,8 @@ macro_rules! deserialize_i64_temporal {
     ($(($struct_name:ident, $elapsed_type:tt)), *) => {
         $(
             impl Deserialize for $struct_name {
-                deserialize_i64_temporal!(deserialize, $elapsed_type);
-                deserialize_i64_temporal!(deserialize_le, $elapsed_type);
+                deserialize_i64_temporal!(deserialize, $elapsed_type, $struct_name);
+                deserialize_i64_temporal!(deserialize_le, $elapsed_type,$struct_name);
             }
         )*
     };
