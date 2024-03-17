@@ -107,12 +107,22 @@ impl<S> Vector<S> {
         self.data.remove(index)
     }
 
-    // get underly data
+    /// Get borrow of element with index
+    pub fn get(&self, index: usize) -> Option<&S> {
+        self.data.get(index)
+    }
+
+    /// Get mutable borrow of element with index
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut S> {
+        self.data.get_mut(index)
+    }
+
+    /// Get underly data
     pub fn get_data(&self) -> &Vec<S> {
         &self.data
     }
 
-    // get mutable underly data
+    /// Get mutable underly data
     pub fn get_data_mut(&mut self) -> &mut Vec<S> {
         &mut self.data
     }
@@ -228,6 +238,7 @@ impl TryFrom<Vec<ScalarKind>> for Vector<()> {
     }
 }
 
+// implement Serialize and Deserialize traits
 macro_rules! dispatch_serialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
         impl VectorKind {

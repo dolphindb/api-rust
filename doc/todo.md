@@ -1,8 +1,7 @@
 ## TODO
 1. Vector:
    1. hasNull
-   2. get -> ScalarKind
-   3.  get_data, get_data_mut 拿到底层数据的借用/可变借用
+   2.  get_data, get_data_mut 拿到底层数据的借用/可变借用
 2. Set:
    1. clear
    2. contain
@@ -17,10 +16,8 @@
 
 ## Type conversion
 类型转换
-1. 引用
-   1. VectorKind -> 具体的 Vector 类型
-2. 所有权：实现 From 和 TryFrom 特征
-   1. VectorKind -> 具体的 Vector 类型
+1. VectorKind -> 具体的 Vector 类型
+2. VectorKind -> 具体的 Vector 类型实现 From 和 TryFrom 特征
 
 ## Future
 1. any vector
@@ -33,4 +30,6 @@
    6. get_column, get_column_mut
    7. get_row 返回字典
 3. run 返回 ConstantKind，size > 1 时返回 VectorKind
+4. Vector: get 和 has_null (不实现 VectorKind)
+5. 用 rust doc 生成文档，然后根据生成的文档改
 
