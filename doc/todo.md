@@ -14,8 +14,10 @@
    6. [x] isDictionary
 3. Scalar:
    1. [x] is_null
-   2. [x] get_$rawtype (具体的标量类型也实现同名的 get_\$rawtype，不过参数返回不同)
-   3. [ ] set_$rawtype (具体的标量类型也实现同名的 set_\$rawtype，不过参数返回不同)
+   2. [x] get_$rawtype
+   3. [x] set_$rawtype
+   4. [ ] temporal get_xx
+   5. [ ] temporal set_xx
 4. Vector:
    1. clear
    2. hasNull

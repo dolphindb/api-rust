@@ -203,7 +203,15 @@ pub trait Scalar {
     fn get_double(&self) -> Result<Option<f64>, RuntimeError>;
     fn get_string(&self) -> Result<Option<&str>, RuntimeError>;
 
-    // 5. set_$rawtype
+    // setter methods
+    fn set_bool(&mut self, val: Option<bool>) -> Result<(), RuntimeError>;
+    fn set_char(&mut self, val: Option<i8>) -> Result<(), RuntimeError>;
+    fn set_short(&mut self, val: Option<i16>) -> Result<(), RuntimeError>;
+    fn set_int(&mut self, val: Option<i32>) -> Result<(), RuntimeError>;
+    fn set_long(&mut self, val: Option<i64>) -> Result<(), RuntimeError>;
+    fn set_float(&mut self, val: Option<f32>) -> Result<(), RuntimeError>;
+    fn set_double(&mut self, val: Option<f64>) -> Result<(), RuntimeError>;
+    fn set_string(&mut self, val: Option<String>) -> Result<(), RuntimeError>;
 
     // convert ScalarKind reference
     fn as_bool(&self) -> Result<&Bool, RuntimeError>;
@@ -292,7 +300,7 @@ impl Scalar for ScalarKind {
             ScalarKind::TimeStamp(obj) => Ok(obj.get_long()),
             ScalarKind::NanoTime(obj) => Ok(obj.get_long()),
             ScalarKind::NanoTimeStamp(obj) => Ok(obj.get_long()),
-            _ => Err(RuntimeError::NotIntNorTemporal64Scalar),
+            _ => Err(RuntimeError::NotLongNorTemporal64Scalar),
         }
     }
     fn get_float(&self) -> Result<Option<f32>, RuntimeError> {
@@ -312,6 +320,114 @@ impl Scalar for ScalarKind {
     fn get_string(&self) -> Result<Option<&str>, RuntimeError> {
         if let ScalarKind::String(obj) = self {
             Ok(obj.get_string())
+        } else {
+            Err(RuntimeError::NotStringScalar)
+        }
+    }
+
+    // implement setter methods
+    fn set_bool(&mut self, val: Option<bool>) -> Result<(), RuntimeError> {
+        if let ScalarKind::Bool(obj) = self {
+            obj.set_bool(val);
+            Ok(())
+        } else {
+            Err(RuntimeError::NotBoolScalar)
+        }
+    }
+    fn set_char(&mut self, val: Option<i8>) -> Result<(), RuntimeError> {
+        if let ScalarKind::Char(obj) = self {
+            obj.set_char(val);
+            Ok(())
+        } else {
+            Err(RuntimeError::NotCharScalar)
+        }
+    }
+    fn set_short(&mut self, val: Option<i16>) -> Result<(), RuntimeError> {
+        if let ScalarKind::Short(obj) = self {
+            obj.set_short(val);
+            Ok(())
+        } else {
+            Err(RuntimeError::NotShortScalar)
+        }
+    }
+    fn set_int(&mut self, val: Option<i32>) -> Result<(), RuntimeError> {
+        match self {
+            ScalarKind::Int(obj) => {
+                obj.set_int(val);
+                Ok(())
+            }
+            ScalarKind::Date(obj) => {
+                obj.set_int(val);
+                Ok(())
+            }
+            ScalarKind::Month(obj) => {
+                obj.set_int(val);
+                Ok(())
+            }
+            ScalarKind::Time(obj) => {
+                obj.set_int(val);
+                Ok(())
+            }
+            ScalarKind::Minute(obj) => {
+                obj.set_int(val);
+                Ok(())
+            }
+            ScalarKind::Second(obj) => {
+                obj.set_int(val);
+                Ok(())
+            }
+            ScalarKind::DateTime(obj) => {
+                obj.set_int(val);
+                Ok(())
+            }
+            ScalarKind::DateHour(obj) => {
+                obj.set_int(val);
+                Ok(())
+            }
+            _ => Err(RuntimeError::NotIntNorTemporal32Scalar),
+        }
+    }
+    fn set_long(&mut self, val: Option<i64>) -> Result<(), RuntimeError> {
+        match self {
+            ScalarKind::Long(obj) => {
+                obj.set_long(val);
+                Ok(())
+            }
+            ScalarKind::TimeStamp(obj) => {
+                obj.set_long(val);
+                Ok(())
+            }
+            ScalarKind::NanoTime(obj) => {
+                obj.set_long(val);
+                Ok(())
+            }
+            ScalarKind::NanoTimeStamp(obj) => {
+                obj.set_long(val);
+                Ok(())
+            }
+            _ => Err(RuntimeError::NotLongNorTemporal64Scalar),
+        }
+    }
+    fn set_float(&mut self, val: Option<f32>) -> Result<(), RuntimeError> {
+        if let ScalarKind::Float(obj) = self {
+            obj.set_float(val);
+            Ok(())
+        } else {
+            Err(RuntimeError::NotFloatScalar)
+        }
+    }
+    fn set_double(&mut self, val: Option<f64>) -> Result<(), RuntimeError> {
+        if let ScalarKind::Double(obj) = self {
+            obj.set_double(val);
+            Ok(())
+        } else {
+            Err(RuntimeError::NotDoubleScalar)
+        }
+    }
+    fn set_string(&mut self, val: Option<String>) -> Result<(), RuntimeError> {
+        if let ScalarKind::String(obj) = self {
+            obj.set_string(val);
+            Ok(())
         } else {
             Err(RuntimeError::NotStringScalar)
         }

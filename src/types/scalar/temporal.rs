@@ -61,6 +61,8 @@ impl Time {
             ))
         }
     }
+
+    // TODO: implement get_hour, get_minute, get_second, get_millisecond
 }
 
 impl Minute {
@@ -72,6 +74,7 @@ impl Minute {
             Ok(Self::new((hour * 60 + min) as i32))
         }
     }
+    // TODO: implement get_hour, get_minute
 }
 
 impl Second {
@@ -83,6 +86,7 @@ impl Second {
             Ok(Self::new((hour * 3600 + min * 60 + sec) as i32))
         }
     }
+    // TODO: implement get_hour, get_minute, get_second
 }
 
 impl DateTime {
@@ -101,6 +105,7 @@ impl DateTime {
                 + (hour * 3600 + min * 60 + sec) as i32,
         ))
     }
+    // TODO: implement get_year, get_month, get_day, get_hour, get_minute, get_second
 }
 
 impl TimeStamp {
@@ -125,6 +130,7 @@ impl TimeStamp {
             ))
         }
     }
+    // TODO: implement get_year, get_month, get_day, get_hour, get_minute, get_second, get_millisecond
 }
 
 impl NanoTime {
@@ -141,6 +147,7 @@ impl NanoTime {
             ))
         }
     }
+    // TODO: implement get_hour, get_minute, get_second, get_nanosecond
 }
 
 impl NanoTimeStamp {
@@ -168,6 +175,7 @@ impl NanoTimeStamp {
             ))
         }
     }
+    // TODO: implement get_year, get_month, get_day, get_hour, get_minute, get_second, get_nanosecond
 }
 
 impl DateHour {
@@ -184,4 +192,5 @@ impl DateHour {
             ))
         }
     }
+    // TODO: implement get_year, get_month, get_day, get_hour
 }
