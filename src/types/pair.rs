@@ -74,7 +74,7 @@ impl TryFrom<VectorKind> for Pair {
     type Error = RuntimeError;
 
     fn try_from(value: VectorKind) -> Result<Self, Self::Error> {
-        if value.len() != 2 {
+        if value.size() != 2 {
             return Err(RuntimeError::ConvertFail);
         }
 

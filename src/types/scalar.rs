@@ -8,12 +8,37 @@ use std::{
 };
 use tokio::io::AsyncBufReadExt;
 
-use super::{
-    Basic, Bool, Char, DataType, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
-    Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
-};
+use super::*;
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
+// helper macro fo iterating scalar types
+macro_rules! for_all_branches {
+    ($macro:tt) => {
+        $macro!(
+            (Bool, Bool),
+            (Date, Date),
+            (Month, Month),
+            (Time, Time),
+            (Minute, Minute),
+            (Second, Second),
+            (DateTime, DateTime),
+            (TimeStamp, TimeStamp),
+            (NanoTime, NanoTime),
+            (NanoTimeStamp, NanoTimeStamp),
+            (String, DolphinString),
+            (DateHour, DateHour),
+            (Char, Char),
+            (Short, Short),
+            (Int, Int),
+            (Long, Long),
+            (Float, Float),
+            (Double, Double)
+        );
+    };
+}
+pub(crate) use for_all_branches;
+
+// implement ScalarKind
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Hash)]
 pub enum ScalarKind {
     Void,
@@ -37,29 +62,7 @@ pub enum ScalarKind {
     DateHour(DateHour),
 }
 
-impl Default for ScalarKind {
-    fn default() -> Self {
-        Self::Void
-    }
-}
-
-impl From<()> for ScalarKind {
-    fn from(_: ()) -> Self {
-        Self::Void
-    }
-}
-
-impl TryFrom<ScalarKind> for () {
-    type Error = RuntimeError;
-
-    fn try_from(value: ScalarKind) -> Result<Self, Self::Error> {
-        match value {
-            ScalarKind::Void => Ok(()),
-            _ => Err(RuntimeError::ConvertFail),
-        }
-    }
-}
-
+// implement Serialize and Deserialize traits
 macro_rules! dispatch_serialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
         impl Serialize for ScalarKind {
@@ -93,6 +96,7 @@ macro_rules! dispatch_serialize {
         }
     };
 }
+for_all_branches!(dispatch_serialize);
 
 macro_rules! dispatch_deserialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
@@ -123,8 +127,10 @@ macro_rules! dispatch_deserialize {
         }
     };
 }
+for_all_branches!(dispatch_deserialize);
 
-macro_rules! dispatch_reflect {
+// create a scalar from data type
+macro_rules! dispatch_from_type {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
         impl ScalarKind {
             pub(crate) fn from_type(data_type: DataType) -> Option<Self> {
@@ -139,41 +145,9 @@ macro_rules! dispatch_reflect {
         }
     };
 }
+for_all_branches!(dispatch_from_type);
 
-macro_rules! for_all_branches {
-    ($macro:tt) => {
-        $macro!(
-            (Bool, Bool),
-            (Date, Date),
-            (Month, Month),
-            (Time, Time),
-            (Minute, Minute),
-            (Second, Second),
-            (DateTime, DateTime),
-            (TimeStamp, TimeStamp),
-            (NanoTime, NanoTime),
-            (NanoTimeStamp, NanoTimeStamp),
-            (String, DolphinString),
-            (DateHour, DateHour),
-            (Char, Char),
-            (Short, Short),
-            (Int, Int),
-            (Long, Long),
-            (Float, Float),
-            (Double, Double)
-        );
-    };
-}
-
-pub(crate) use for_all_branches;
-
-for_all_branches!(dispatch_serialize);
-
-for_all_branches!(dispatch_deserialize);
-
-for_all_branches!(dispatch_reflect);
-
-// Scalar trait implementation
+// implement Scalar trait
 pub trait Scalar {
     fn is_null(&self) -> bool;
 
@@ -206,6 +180,16 @@ pub trait Scalar {
     fn as_float(&self) -> Result<&Float, RuntimeError>;
     fn as_double(&self) -> Result<&Double, RuntimeError>;
     fn as_string(&self) -> Result<&DolphinString, RuntimeError>;
+    fn as_date(&self) -> Result<&Date, RuntimeError>;
+    fn as_month(&self) -> Result<&Month, RuntimeError>;
+    fn as_time(&self) -> Result<&Time, RuntimeError>;
+    fn as_minute(&self) -> Result<&Minute, RuntimeError>;
+    fn as_second(&self) -> Result<&Second, RuntimeError>;
+    fn as_date_time(&self) -> Result<&DateTime, RuntimeError>;
+    fn as_time_stamp(&self) -> Result<&TimeStamp, RuntimeError>;
+    fn as_nano_time(&self) -> Result<&NanoTime, RuntimeError>;
+    fn as_nano_time_stamp(&self) -> Result<&NanoTimeStamp, RuntimeError>;
+    fn as_date_hour(&self) -> Result<&DateHour, RuntimeError>;
 
     // convert ScalarKind mutable reference
     fn as_bool_mut(&mut self) -> Result<&mut Bool, RuntimeError>;
@@ -216,6 +200,16 @@ pub trait Scalar {
     fn as_float_mut(&mut self) -> Result<&mut Float, RuntimeError>;
     fn as_double_mut(&mut self) -> Result<&mut Double, RuntimeError>;
     fn as_string_mut(&mut self) -> Result<&mut DolphinString, RuntimeError>;
+    fn as_date_mut(&mut self) -> Result<&mut Date, RuntimeError>;
+    fn as_month_mut(&mut self) -> Result<&mut Month, RuntimeError>;
+    fn as_time_mut(&mut self) -> Result<&mut Time, RuntimeError>;
+    fn as_minute_mut(&mut self) -> Result<&mut Minute, RuntimeError>;
+    fn as_second_mut(&mut self) -> Result<&mut Second, RuntimeError>;
+    fn as_date_time_mut(&mut self) -> Result<&mut DateTime, RuntimeError>;
+    fn as_time_stamp_mut(&mut self) -> Result<&mut TimeStamp, RuntimeError>;
+    fn as_nano_time_mut(&mut self) -> Result<&mut NanoTime, RuntimeError>;
+    fn as_nano_time_stamp_mut(&mut self) -> Result<&mut NanoTimeStamp, RuntimeError>;
+    fn as_date_hour_mut(&mut self) -> Result<&mut DateHour, RuntimeError>;
 }
 
 impl Scalar for ScalarKind {
@@ -466,6 +460,66 @@ impl Scalar for ScalarKind {
             _ => Err(RuntimeError::NotStringScalar),
         }
     }
+    fn as_date(&self) -> Result<&Date, RuntimeError> {
+        match self {
+            Self::Date(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotDateScalar),
+        }
+    }
+    fn as_month(&self) -> Result<&Month, RuntimeError> {
+        match self {
+            Self::Month(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotMonthScalar),
+        }
+    }
+    fn as_time(&self) -> Result<&Time, RuntimeError> {
+        match self {
+            Self::Time(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotTimeScalar),
+        }
+    }
+    fn as_minute(&self) -> Result<&Minute, RuntimeError> {
+        match self {
+            Self::Minute(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotMinuteScalar),
+        }
+    }
+    fn as_second(&self) -> Result<&Second, RuntimeError> {
+        match self {
+            Self::Second(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotSecondScalar),
+        }
+    }
+    fn as_date_time(&self) -> Result<&DateTime, RuntimeError> {
+        match self {
+            Self::DateTime(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotDateTimeScalar),
+        }
+    }
+    fn as_time_stamp(&self) -> Result<&TimeStamp, RuntimeError> {
+        match self {
+            Self::TimeStamp(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotTimeStampScalar),
+        }
+    }
+    fn as_nano_time(&self) -> Result<&NanoTime, RuntimeError> {
+        match self {
+            Self::NanoTime(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotNanoTimeScalar),
+        }
+    }
+    fn as_nano_time_stamp(&self) -> Result<&NanoTimeStamp, RuntimeError> {
+        match self {
+            Self::NanoTimeStamp(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotNanoTimeStampScalar),
+        }
+    }
+    fn as_date_hour(&self) -> Result<&DateHour, RuntimeError> {
+        match self {
+            Self::DateHour(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotDateHourScalar),
+        }
+    }
 
     // convert ScalarKind mutable reference
     fn as_bool_mut(&mut self) -> Result<&mut Bool, RuntimeError> {
@@ -514,6 +568,66 @@ impl Scalar for ScalarKind {
         match self {
             Self::String(obj) => Ok(obj),
             _ => Err(RuntimeError::NotStringScalar),
+        }
+    }
+    fn as_date_mut(&mut self) -> Result<&mut Date, RuntimeError> {
+        match self {
+            Self::Date(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotDateScalar),
+        }
+    }
+    fn as_month_mut(&mut self) -> Result<&mut Month, RuntimeError> {
+        match self {
+            Self::Month(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotMonthScalar),
+        }
+    }
+    fn as_time_mut(&mut self) -> Result<&mut Time, RuntimeError> {
+        match self {
+            Self::Time(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotTimeScalar),
+        }
+    }
+    fn as_minute_mut(&mut self) -> Result<&mut Minute, RuntimeError> {
+        match self {
+            Self::Minute(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotMinuteScalar),
+        }
+    }
+    fn as_second_mut(&mut self) -> Result<&mut Second, RuntimeError> {
+        match self {
+            Self::Second(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotSecondScalar),
+        }
+    }
+    fn as_date_time_mut(&mut self) -> Result<&mut DateTime, RuntimeError> {
+        match self {
+            Self::DateTime(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotDateTimeScalar),
+        }
+    }
+    fn as_time_stamp_mut(&mut self) -> Result<&mut TimeStamp, RuntimeError> {
+        match self {
+            Self::TimeStamp(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotTimeStampScalar),
+        }
+    }
+    fn as_nano_time_mut(&mut self) -> Result<&mut NanoTime, RuntimeError> {
+        match self {
+            Self::NanoTime(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotNanoTimeScalar),
+        }
+    }
+    fn as_nano_time_stamp_mut(&mut self) -> Result<&mut NanoTimeStamp, RuntimeError> {
+        match self {
+            Self::NanoTimeStamp(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotNanoTimeStampScalar),
+        }
+    }
+    fn as_date_hour_mut(&mut self) -> Result<&mut DateHour, RuntimeError> {
+        match self {
+            Self::DateHour(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotDateHourScalar),
         }
     }
 }

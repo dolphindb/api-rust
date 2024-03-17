@@ -1,14 +1,8 @@
 ## TODO
 1. Vector:
-   1. clear
-   2. hasNull
-   3. get -> ScalarKind
-   4. set(ScalarKind)
-   5. append
-   6. append_$rawtype
-   7. get_$rawtype
-   8. set_$rawtype
-   9.  get_data, get_data_mut 拿到底层数据的借用/可变借用
+   1. hasNull
+   2. get -> ScalarKind
+   3.  get_data, get_data_mut 拿到底层数据的借用/可变借用
 2. Set:
    1. clear
    2. contain
@@ -20,15 +14,13 @@
    3. get_key_type
    4. keys, keys_mut 拿到底层数据的借用/可变借用
    5. values, values_mut 拿到底层数据的借用/可变借用 
-4.  new, from_data_type 每个类型?? 修改
 
 ## Type conversion
 类型转换
 1. 引用
-   1. ConstantKind -> 具体的引用数据形式
-   2. ScalarKind -> 具体的标量类型
-   3. VectorKind -> 具体的 Vector 类型
-2. 所有权：实现 From 和 TryFrom 特征，支持的转换类型和引用类似
+   1. VectorKind -> 具体的 Vector 类型
+2. 所有权：实现 From 和 TryFrom 特征
+   1. VectorKind -> 具体的 Vector 类型
 
 ## Future
 1. any vector

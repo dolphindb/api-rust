@@ -1,4 +1,4 @@
-use rust_api::{client::ClientBuilder, types::VectorKind};
+use rust_api::{client::ClientBuilder, types::Constant, types::Double, types::VectorKind};
 
 #[tokio::main]
 async fn main() {
@@ -9,9 +9,17 @@ async fn main() {
         .unwrap();
     println!("connect successfully");
 
-    let script = String::from("a = [1.1, 2.2, 3.3];a;");
-    let mut res = client.run_script(script).await.unwrap();
-    let c = res.pop().unwrap();
-    let v = VectorKind::try_from(c).unwrap();
-    println!("{:?}", v)
+    let mut res = client
+        .run_script(String::from("a = [1.1, 2.2, 3.3];a;"))
+        .await
+        .unwrap();
+    let mut c = res.pop().unwrap();
+
+    let v = c.as_vector_mut().unwrap();
+    if let VectorKind::Double(vd) = v {
+        vd.push(Double::new(1.1));
+    }
+
+    // let vd = Vector::<Double>::from(v);
+    println!("{}", v)
 }

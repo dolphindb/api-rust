@@ -23,6 +23,29 @@ pub enum RuntimeError {
     #[error("The object is not a long nor 64-bit temporal scalar.")]
     NotLongNorTemporal64Scalar,
 
+    #[error("The object is not a date scalar.")]
+    NotDateScalar,
+    #[error("The object is not a month scalar.")]
+    NotMonthScalar,
+    #[error("The object is not a time scalar.")]
+    NotTimeScalar,
+    #[error("The object is not a minute scalar.")]
+    NotMinuteScalar,
+    #[error("The object is not a second scalar.")]
+    NotSecondScalar,
+    #[error("The object is not a date time scalar.")]
+    NotDateTimeScalar,
+    #[error("The object is not a date hour scalar.")]
+    NotDateHourScalar,
+    #[error("The object is not a time stamp scalar.")]
+    NotTimeStampScalar,
+    #[error("The object is not a nano time scalar.")]
+    NotNanoTimeScalar,
+    #[error("The object is not a nano time stamp scalar.")]
+    NotNanoTimeStampScalar,
+    #[error("The object is not a uuid scalar.")]
+    NotUuidScalar,
+
     #[error("The object is not a scalar.")]
     NotScalarKind,
     #[error("The object is not a vector.")]

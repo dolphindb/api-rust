@@ -1,73 +1,9 @@
 use std::fmt::{self, Display};
-use std::io::{Error, ErrorKind};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
-use std::slice::SliceIndex;
-use tokio::io::{AsyncBufReadExt, AsyncReadExt};
+use tokio::io::AsyncBufReadExt;
 
-use super::{
-    scalar::for_all_branches, Basic, Bool, Char, ConcreteScalar, DataCategory, DataForm, DataType,
-    Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long, Minute, Month, NanoTime,
-    NanoTimeStamp, NotDecimal, ScalarKind, Second, Short, Time, TimeStamp,
-};
+use super::{scalar::for_all_branches, *};
 use crate::{error::RuntimeError, Deserialize, Serialize};
-
-// implement VectorKind
-#[derive(Debug, Clone)]
-pub enum VectorKind {
-    Void(Vector<()>),
-    Bool(Vector<Bool>),
-    Char(Vector<Char>),
-    Short(Vector<Short>),
-    Int(Vector<Int>),
-    Long(Vector<Long>),
-    Date(Vector<Date>),
-    Month(Vector<Month>),
-    Time(Vector<Time>),
-    Minute(Vector<Minute>),
-    Second(Vector<Second>),
-    DateTime(Vector<DateTime>),
-    TimeStamp(Vector<TimeStamp>),
-    NanoTime(Vector<NanoTime>),
-    NanoTimeStamp(Vector<NanoTimeStamp>),
-    Float(Vector<Float>),
-    Double(Vector<Double>),
-    String(Vector<DolphinString>),
-    DateHour(Vector<DateHour>),
-}
-// todo any is Vector<ConstantKind> ??
-
-impl VectorKind {
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-}
-
-// implement Display trait for VectorKind
-impl Display for VectorKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            VectorKind::Void(_) => write!(f, "()"),
-            VectorKind::Bool(s) => write!(f, "{}", s),
-            VectorKind::Char(s) => write!(f, "{}", s),
-            VectorKind::Short(s) => write!(f, "{}", s),
-            VectorKind::Int(s) => write!(f, "{}", s),
-            VectorKind::Long(s) => write!(f, "{}", s),
-            VectorKind::Date(s) => write!(f, "{}", s),
-            VectorKind::Month(s) => write!(f, "{}", s),
-            VectorKind::Time(s) => write!(f, "{}", s),
-            VectorKind::Minute(s) => write!(f, "{}", s),
-            VectorKind::Second(s) => write!(f, "{}", s),
-            VectorKind::DateTime(s) => write!(f, "{}", s),
-            VectorKind::TimeStamp(s) => write!(f, "{}", s),
-            VectorKind::NanoTime(s) => write!(f, "{}", s),
-            VectorKind::NanoTimeStamp(s) => write!(f, "{}", s),
-            VectorKind::Float(s) => write!(f, "{}", s),
-            VectorKind::Double(s) => write!(f, "{}", s),
-            VectorKind::String(s) => write!(f, "{}", s),
-            VectorKind::DateHour(s) => write!(f, "{}", s),
-        }
-    }
-}
 
 // implement Vector<S>
 #[derive(Default, Debug, Clone)]
@@ -75,6 +11,7 @@ pub struct Vector<S> {
     data: Vec<S>,
 }
 
+// implement Deref and DerefMut traits
 impl<S> Deref for Vector<S> {
     type Target = [S];
 
@@ -90,28 +27,23 @@ impl<S> DerefMut for Vector<S> {
     }
 }
 
-impl<S, I> Index<I> for Vector<S>
-where
-    I: SliceIndex<[S]>,
-{
-    type Output = I::Output;
+// implement Index and IndexMut traits
+impl<S> Index<usize> for Vector<S> {
+    type Output = S;
 
     #[inline]
-    fn index(&self, index: I) -> &Self::Output {
+    fn index(&self, index: usize) -> &Self::Output {
         Index::index(&**self, index)
     }
 }
 
-impl<S, I> IndexMut<I> for Vector<S>
-where
-    I: SliceIndex<[S]>,
-{
-    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+impl<S> IndexMut<usize> for Vector<S> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         IndexMut::index_mut(&mut **self, index)
     }
 }
 
-// blanket Vector implementations for all Scalar instances
+// implement primitive methods of Vector
 impl<S> Vector<S> {
     /// Constructs a new, empty [`Vector`].
     pub fn new() -> Self {
@@ -170,34 +102,31 @@ impl<S> Vector<S> {
         self.data.pop()
     }
 
-    /// Moves all the elements of other into self, leaving other empty.
-    pub fn append(&mut self, other: &mut Self) {
-        self.data.append(&mut other.data)
-    }
-
     /// Removes and returns the element at position index within the vector, shifting all elements after it to the left.
     pub fn remove(&mut self, index: usize) -> S {
         self.data.remove(index)
     }
 
-    /// Removes an element from the vector and returns it.
-    pub fn swap_remove(&mut self, index: usize) -> S {
-        self.data.swap_remove(index)
+    // get underly data
+    pub fn get_data(&self) -> &Vec<S> {
+        &self.data
     }
 
-    /// Shortens the vector, keeping the first `len` elements and dropping the rest.
-    pub fn truncate(&mut self, len: usize) {
-        self.data.truncate(len)
+    // get mutable underly data
+    pub fn get_data_mut(&mut self) -> &mut Vec<S> {
+        &mut self.data
     }
 }
 
 impl<S: Clone> Vector<S> {
-    ///Resizes the vector in-place so that `len` is equal to `new_len`.
-    pub fn resize(&mut self, new_len: usize, value: S) {
+    // Resizes the vector in-place so that `len` is equal to `new_len`.
+    pub(crate) fn resize(&mut self, new_len: usize, value: S) {
         self.data.resize(new_len, value);
     }
 }
 
+// TODO
+// implement from_raw and push_raw
 impl<S: ConcreteScalar> Vector<S> {
     // impl<S: Scalar> From<S::RefType> for Vector<S> would conflict with std blanket implementations.
     // Implement it as function instead.
@@ -218,6 +147,7 @@ impl<S: ConcreteScalar> Vector<S> {
     }
 }
 
+// implement Serialize and Deserialize traits
 impl<S> Serialize for Vector<S>
 where
     S: ConcreteScalar + Serialize + NotDecimal,
@@ -268,6 +198,7 @@ where
     }
 }
 
+// implement From and TryFrom traits
 impl From<Vector<()>> for VectorKind {
     fn from(value: Vector<()>) -> Self {
         Self::Void(value)
@@ -295,36 +226,6 @@ impl TryFrom<Vec<ScalarKind>> for Vector<()> {
 
         Ok(res)
     }
-}
-
-macro_rules! dispatch_len {
-    ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorKind {
-            pub fn len(&self) -> usize {
-                match self {
-                    VectorKind::Void(s) => s.len(),
-                    $(
-                        VectorKind::$enum_name(s) => s.len(),
-                    )*
-                }
-            }
-        }
-    };
-}
-
-macro_rules! dispatch_resize {
-    ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorKind {
-            pub fn resize(&mut self, new_len: usize) {
-                match self {
-                    VectorKind::Void(s) => s.resize(new_len, ()),
-                    $(
-                        VectorKind::$enum_name(s) => s.resize(new_len, $struct_name::default()),
-                    )*
-                }
-            }
-        }
-    };
 }
 
 macro_rules! dispatch_serialize {
@@ -356,6 +257,7 @@ macro_rules! dispatch_serialize {
         }
     };
 }
+for_all_branches!(dispatch_serialize);
 
 macro_rules! dispatch_deserialize {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
@@ -386,93 +288,42 @@ macro_rules! dispatch_deserialize {
         }
     };
 }
-
-macro_rules! dispatch_reflect {
-    ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl VectorKind {
-            pub(crate) fn from_type(data_type: DataType) -> Option<Self> {
-                match data_type {
-                    DataType::Void => Some(Self::Void(Vector::new())),
-                    $(
-                        DataType::$struct_name => Some(Self::$enum_name(Vector::new())),
-                    )*
-                    _ => None,
-                }
-            }
-        }
-    };
-}
-
-for_all_branches!(dispatch_len);
-
-for_all_branches!(dispatch_resize);
-
-for_all_branches!(dispatch_serialize);
-
 for_all_branches!(dispatch_deserialize);
 
-for_all_branches!(dispatch_reflect);
-
-impl Serialize for VectorKind {
-    fn serialize<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: bytes::BufMut,
-    {
-        (self.data_type().to_u8(), self.data_form().to_u8()).serialize(buffer)?;
-
-        buffer.put_i32(self.len() as i32);
-        buffer.put_i32(1);
-
-        self.serialize_data(buffer)?;
-
-        Ok(0)
+// implement Basic for Vector<S>
+impl<S: ConcreteScalar> Basic for Vector<S> {
+    fn data_type(&self) -> DataType {
+        <S as ConcreteScalar>::data_type()
     }
 
-    fn serialize_le<B>(&self, buffer: &mut B) -> Result<usize, ()>
-    where
-        B: bytes::BufMut,
-    {
-        (self.data_type().to_u8(), self.data_form().to_u8()).serialize_le(buffer)?;
+    fn data_category(&self) -> DataCategory {
+        DataCategory::from_data_type(&self.data_type())
+    }
 
-        buffer.put_i32_le(self.len() as i32);
-        buffer.put_i32(1);
+    fn data_form(&self) -> DataForm {
+        DataForm::Vector
+    }
 
-        self.serialize_data_le(buffer)
+    fn size(&self) -> usize {
+        self.len()
     }
 }
 
-impl Deserialize for VectorKind {
-    async fn deserialize<R>(&mut self, reader: &mut R) -> std::io::Result<()>
-    where
-        R: AsyncBufReadExt + Unpin,
-    {
-        let len = usize::try_from(reader.read_i32().await?)
-            .map_err(|e| Error::new(ErrorKind::InvalidData, e.to_string()))?;
-
-        let _cols = reader.read_i32().await?;
-
-        self.resize(len);
-
-        self.deserialize_data(reader).await
-    }
-
-    async fn deserialize_le<R>(&mut self, reader: &mut R) -> std::io::Result<()>
-    where
-        R: AsyncBufReadExt + Unpin,
-    {
-        let len = usize::try_from(reader.read_i32_le().await?)
-            .map_err(|e| Error::new(ErrorKind::InvalidData, e.to_string()))?;
-
-        let _cols = reader.read_i32_le().await?;
-
-        self.resize(len);
-
-        self.deserialize_data_le(reader).await
+// implement Display trait for Vector<S>
+impl<S: Display> Display for Vector<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (idx, e) in self.data.iter().enumerate() {
+            if idx == 0 {
+                write!(f, "[{}", e)?;
+            } else {
+                write!(f, ", {}", e)?;
+            }
+        }
+        write!(f, "]")
     }
 }
 
-// todo
-
+// implement From ant TryFrom trait for any vector
 macro_rules! dispatch_try_from {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
         impl From<VectorKind> for Vec<ScalarKind> {
@@ -506,6 +357,7 @@ macro_rules! dispatch_try_from {
 }
 for_all_branches!(dispatch_try_from);
 
+// implement From an TryFrom traits for Vector<S>
 macro_rules! try_from_impl {
     (DolphinString, DolphinString) => {
         try_from_impl!(DolphinString, String);
@@ -549,65 +401,3 @@ macro_rules! try_from_impl {
     };
 }
 for_all_branches!(try_from_impl);
-
-// implement Basic for VectorKind
-macro_rules! dispatch_data_type {
-    ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl Basic for VectorKind {
-            fn data_type(&self) -> DataType {
-                match self {
-                    VectorKind::Void(_) => DataType::Void,
-                    $(
-                        VectorKind::$enum_name(s) => s.data_type(),
-                    )*
-                }
-            }
-
-            fn data_category(&self) -> DataCategory {
-                DataCategory::from_data_type(&self.data_type())
-            }
-
-            fn data_form(&self) -> DataForm {
-                DataForm::Vector
-            }
-
-            fn size(&self) -> usize {
-                self.len()
-            }
-        }
-    };
-}
-for_all_branches!(dispatch_data_type);
-
-// implement Basic for Vector<S>
-impl<S: ConcreteScalar> Basic for Vector<S> {
-    fn data_type(&self) -> DataType {
-        <S as ConcreteScalar>::data_type()
-    }
-
-    fn data_category(&self) -> DataCategory {
-        DataCategory::from_data_type(&self.data_type())
-    }
-
-    fn data_form(&self) -> DataForm {
-        DataForm::Vector
-    }
-
-    fn size(&self) -> usize {
-        self.len()
-    }
-}
-
-// implement Display trait for Vector<S>
-impl<S: Display> Display for Vector<S> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (idx, e) in self.data.iter().enumerate() {
-            if idx == 0 {
-                write!(f, "[{}", e)?;
-            } else {
-                write!(f, ", {}", e)?;
-            }
-        }
-        write!(f, "]")
-    }
-}

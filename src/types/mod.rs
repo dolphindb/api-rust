@@ -5,6 +5,7 @@ mod pair;
 mod scalar;
 mod set;
 mod vector;
+mod vector_kind;
 
 pub use basic::{Basic, DataCategory, DataForm, DataType};
 pub use constant::{Constant, ConstantKind};
@@ -12,7 +13,8 @@ pub use dictionary::Dictionary;
 pub use pair::Pair;
 pub use scalar::{Scalar, ScalarKind};
 pub use set::Set;
-pub use vector::VectorKind;
+pub use vector::Vector;
+pub use vector_kind::VectorKind;
 
 use chrono::{Datelike, Duration, NaiveDate};
 use ordered_float::OrderedFloat;
@@ -716,6 +718,23 @@ impl NanoTimeStamp {
 }
 
 // implement From ant TryFrom trarits
+impl From<()> for ScalarKind {
+    fn from(_: ()) -> Self {
+        Self::Void
+    }
+}
+
+impl TryFrom<ScalarKind> for () {
+    type Error = RuntimeError;
+
+    fn try_from(value: ScalarKind) -> Result<Self, Self::Error> {
+        match value {
+            ScalarKind::Void => Ok(()),
+            _ => Err(RuntimeError::ConvertFail),
+        }
+    }
+}
+
 macro_rules! from_impl {
     (f32, Float) => {
         impl From<f32> for Float {
