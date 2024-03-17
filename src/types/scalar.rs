@@ -3,8 +3,8 @@ mod serialize;
 mod temporal;
 
 use super::{
-    Basic, Bool, Char, ConcreteScalar, DataType, Date, DateHour, DateTime, DolphinString, Double,
-    Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
+    Basic, Bool, Char, DataType, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
+    Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 use std::{

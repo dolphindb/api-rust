@@ -544,16 +544,17 @@ for_all_scalars!(from_impl);
 // implement Display trait
 macro_rules! display_impl {
     (i32, Date) => {
+        // e.g. 2013.06.13
         impl Display for Date {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M",)
+                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0);
+                write!(f, "{:04}.{:02}.{02}", date.year(), date.month(), date.day());
             }
         }
     };
 
     (i32, Month) => {
+        // e.g. 2012.06M
         impl Display for Month {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{:04}.{:02}M", self.0 / 12, self.0 % 12 + 1)
@@ -562,91 +563,82 @@ macro_rules! display_impl {
     };
 
     (i32, Time) => {
+        // e.g. 13:30:10.008
         impl Display for Time {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
+                write!(f, "{:02}:{:02}:{:02}.{:03}", self.0 / 3600000, self.0 / 1000 % 60, self.0 % 1000)
             }
         }
     };
 
     (i32, Minute) => {
+        // e.g. 13:30m
         impl Display for Minute {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
-            }
-        }
-    };
-
-    (i32, Minute) => {
-        impl Display for Minute {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
+                write!(f, "{:02}:{:02}m", self.0 / 60, self.0 % 60)
             }
         }
     };
 
     (i32, Second) => {
-        impl Display for Minute {
+        // e.g. 13:30:10
+        impl Display for Second {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
+                write!(f, "{:02}:{:02}:{:02}", self.0 / 3600, self.0 / 60 % 60, self.0 % 60)
             }
         }
     };
 
     (i32, DateTime) => {
-        impl Display for Minute {
+        // e.g. 2012.06.13 13:30:10
+        impl Display for DateTime {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
+                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400);
+                write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}", date.year(), date.month(), date.day(),
+                       self.0 / 3600 % 24, self.0 / 60 % 60, self.0 % 60)
             }
         }
     };
 
     (i32, DateHour) => {
-        impl Display for Minute {
+        // e.g. 2012.06.13T13
+        impl Display for DateHour {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
+                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 24);
+                write!(f, "{:04}.{:02}.{02}T{:02}", date.year(), date.month(), date.day(), self.0 % 24)
             }
         }
     };
 
     (i64, TimeStamp) => {
+        // e.g. 2012.06.13 13:30:10.008
         impl Display for TimeStamp {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
+                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400000);
+                write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}:{:03}", date.year(), date.month(), date.day(),
+                       self.0 / 3600000 % 24, self.0 / 60000 % 60, self.0 / 1000 % 60, self.0 % 1000)
             }
         }
     };
 
     (i64, NanoTime) => {
-        impl Display for TimeStamp {
+        // e.g. 13:30:10.008007006
+        impl Display for NanoTime {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
+                write!(f, "{:02}:{:02}:{:02}.{:09}", self.0 / 3600000000000, self.0 / 60000000000 % 60,
+                       self.0 / 1000000000 % 60, self.0 % 1000000000)
             }
         }
     };
 
     (i64, NanoTimeStamp) => {
-        impl Display for TimeStamp {
+        // e.g. 2012.06.13 13:30:10.008007006
+        impl Display for NanoTimeStamp {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                // TODO
-                todo!()
-                // write!(f, "{:04}.{:02}M", )
+                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400000000000);
+                write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}:{:09}", date.year(), date.month(), date.day(),
+                       self.0 / 3600000000000 % 24, self.0 / 60000000000 % 60, self.0 / 1000000000 % 60,
+                       self.0 % 1000000000)
             }
         }
     };

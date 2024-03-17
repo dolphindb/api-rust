@@ -9,7 +9,7 @@ async fn main() {
         .with_auth(("admin", "123456"))
         .connect()
         .await
-        .unwrap();  
+        .unwrap();
     println!("connect successfully");
 
     let script = String::from("a = 1.1;a;");
@@ -20,6 +20,4 @@ async fn main() {
 
     d.set(2.2);
     println!("{}, {:?}", d.data_type().to_u8(), d.get());
-
-    let a = 1.1;
 }

@@ -1,7 +1,4 @@
-use chrono::{
-    naive::{NaiveDate, NaiveDateTime, NaiveTime},
-    Datelike, Duration,
-};
+use chrono::{naive::NaiveDate, Datelike, Duration};
 
 use super::{
     Date, DateHour, DateTime, Minute, Month, NanoTime, NanoTimeStamp, Second, Time, TimeStamp,
@@ -100,7 +97,7 @@ impl DateTime {
         let date = NaiveDate::from_ymd_opt(year, month, day).ok_or(RuntimeError::InvalidData)?;
         let base_date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
         Ok(Self::new(
-            date.signed_duration_since(base_date).num_days() as i32
+            date.signed_duration_since(base_date).num_days() as i32 * 86400
                 + (hour * 3600 + min * 60 + sec) as i32,
         ))
     }
