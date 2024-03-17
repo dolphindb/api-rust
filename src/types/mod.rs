@@ -873,7 +873,8 @@ macro_rules! display_impl {
         // e.g. 13:30:10.008
         impl Display for Time {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                write!(f, "{:02}:{:02}:{:02}.{:03}", self.0 / 3600000, self.0 / 1000 % 60, self.0 % 1000)
+                write!(f, "{:02}:{:02}:{:02}.{:03}", self.0 / 3600000, self.0 % 3600000 / 60000, self.0 % 60000 / 1000,
+                       self.0 % 1000)
             }
         }
     };
@@ -891,7 +892,7 @@ macro_rules! display_impl {
         // e.g. 13:30:10
         impl Display for Second {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                write!(f, "{:02}:{:02}:{:02}", self.0 / 3600, self.0 / 60 % 60, self.0 % 60)
+                write!(f, "{:02}:{:02}:{:02}", self.0 / 3600, self.0 % 3600 / 60, self.0 % 60)
             }
         }
     };
@@ -902,7 +903,7 @@ macro_rules! display_impl {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400);
                 write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}", date.year(), date.month(), date.day(),
-                       self.0 / 3600 % 24, self.0 / 60 % 60, self.0 % 60)
+                       self.0 % 86400 / 3600, self.0 % 3600 / 60, self.0 % 60)
             }
         }
     };
@@ -923,7 +924,7 @@ macro_rules! display_impl {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400000);
                 write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}:{:03}", date.year(), date.month(), date.day(),
-                       self.0 / 3600000 % 24, self.0 / 60000 % 60, self.0 / 1000 % 60, self.0 % 1000)
+                       self.0 % 86400000 / 3600000, self.0 % 3600000 / 60000, self.0 % 60000 / 1000, self.0 % 1000)
             }
         }
     };
@@ -932,8 +933,8 @@ macro_rules! display_impl {
         // e.g. 13:30:10.008007006
         impl Display for NanoTime {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                write!(f, "{:02}:{:02}:{:02}.{:09}", self.0 / 3600000000000, self.0 / 60000000000 % 60,
-                       self.0 / 1000000000 % 60, self.0 % 1000000000)
+                write!(f, "{:02}:{:02}:{:02}.{:09}", self.0 / 3600000000000, self.0 % 3600000000000 / 60000000000,
+                       self.0 % 60000000000 / 1000000000, self.0 % 1000000000)
             }
         }
     };
@@ -944,8 +945,8 @@ macro_rules! display_impl {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400000000000);
                 write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}:{:09}", date.year(), date.month(), date.day(),
-                       self.0 / 3600000000000 % 24, self.0 / 60000000000 % 60, self.0 / 1000000000 % 60,
-                       self.0 % 1000000000)
+                       self.0 % 86400000000000 / 3600000000000, self.0 % 3600000000000 / 60000000000,
+                       self.0 % 60000000000 / 1000000000, self.0 % 1000000000)
             }
         }
     };
