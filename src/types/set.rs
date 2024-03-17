@@ -139,6 +139,13 @@ impl Basic for Set {
 // implement Display trait for Set
 impl Display for Set {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self) // TODO
+        for (idx, e) in self.data.iter().enumerate() {
+            if idx == 0 {
+                write!(f, "[{}", e)?;
+            } else {
+                write!(f, ", {}", e)?;
+            }
+        }
+        write!(f, "]")
     }
 }

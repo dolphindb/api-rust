@@ -32,8 +32,8 @@ fn main() {
 
     let mut dict = Dictionary::new(DataType::Bool);
     dict.insert(
-        ScalarKind::DateHour(DateHour::from_ymd_hour(1970, 1, 1, 1).unwrap()),
-        ConstantKind::Scalar(ScalarKind::Bool(Bool::new(0))),
+        ScalarKind::DateHour(DateHour::from_ymd_hour(2024, 3, 17, 15).unwrap()),
+        ConstantKind::Scalar(ScalarKind::Bool(Bool::new_null())),
     );
     variables.insert("b".to_string(), ConstantKind::Dictionary(dict));
     let res = rt

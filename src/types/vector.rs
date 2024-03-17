@@ -11,6 +11,7 @@ use super::{
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
+// implement VectorKind
 #[derive(Debug, Clone)]
 pub enum VectorKind {
     Void(Vector<()>),
@@ -41,6 +42,34 @@ impl VectorKind {
     }
 }
 
+// implement Display trait for VectorKind
+impl Display for VectorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VectorKind::Void(_) => write!(f, "()"),
+            VectorKind::Bool(s) => write!(f, "{}", s),
+            VectorKind::Char(s) => write!(f, "{}", s),
+            VectorKind::Short(s) => write!(f, "{}", s),
+            VectorKind::Int(s) => write!(f, "{}", s),
+            VectorKind::Long(s) => write!(f, "{}", s),
+            VectorKind::Date(s) => write!(f, "{}", s),
+            VectorKind::Month(s) => write!(f, "{}", s),
+            VectorKind::Time(s) => write!(f, "{}", s),
+            VectorKind::Minute(s) => write!(f, "{}", s),
+            VectorKind::Second(s) => write!(f, "{}", s),
+            VectorKind::DateTime(s) => write!(f, "{}", s),
+            VectorKind::TimeStamp(s) => write!(f, "{}", s),
+            VectorKind::NanoTime(s) => write!(f, "{}", s),
+            VectorKind::NanoTimeStamp(s) => write!(f, "{}", s),
+            VectorKind::Float(s) => write!(f, "{}", s),
+            VectorKind::Double(s) => write!(f, "{}", s),
+            VectorKind::String(s) => write!(f, "{}", s),
+            VectorKind::DateHour(s) => write!(f, "{}", s),
+        }
+    }
+}
+
+// implement Vector<S>
 #[derive(Default, Debug, Clone)]
 pub struct Vector<S> {
     data: Vec<S>,
@@ -569,9 +598,16 @@ impl<S: ConcreteScalar> Basic for Vector<S> {
     }
 }
 
-// implement Display trait for VectorKind
-impl Display for VectorKind {
+// implement Display trait for Vector<S>
+impl<S: Display> Display for Vector<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self) // TODO
+        for (idx, e) in self.data.iter().enumerate() {
+            if idx == 0 {
+                write!(f, "[{}", e)?;
+            } else {
+                write!(f, ", {}", e)?;
+            }
+        }
+        write!(f, "]")
     }
 }

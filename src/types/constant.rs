@@ -375,11 +375,11 @@ impl Constant for ConstantKind {
 impl Display for ConstantKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ConstantKind::Scalar(obj) => <ScalarKind as Display>::fmt(obj, f),
-            ConstantKind::Vector(obj) => <VectorKind as Display>::fmt(obj, f),
-            ConstantKind::Pair(obj) => <Pair as Display>::fmt(obj, f),
-            ConstantKind::Set(obj) => <Set as Display>::fmt(obj, f),
-            ConstantKind::Dictionary(obj) => <Dictionary as Display>::fmt(obj, f),
+            ConstantKind::Scalar(obj) => write!(f, "{}", obj),
+            ConstantKind::Vector(obj) => write!(f, "{}", obj),
+            ConstantKind::Pair(obj) => write!(f, "{}", obj),
+            ConstantKind::Set(obj) => write!(f, "{}", obj),
+            ConstantKind::Dictionary(obj) => write!(f, "{}", obj),
         }
     }
 }

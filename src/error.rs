@@ -34,6 +34,11 @@ pub enum RuntimeError {
     #[error("The object is not a dictionary.")]
     NotDictionary,
 
+    #[error("The objects from one pair should have the same scalar type.")]
+    PairDataTypeMismatch,
+    #[error("The objects from one set should have the same scalar type.")]
+    SetDataTypeMismatch,
+
     #[error("The object can't convert to target type.")]
     ConvertFail,
     #[error("Invalid data.")]

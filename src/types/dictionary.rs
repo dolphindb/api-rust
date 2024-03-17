@@ -202,6 +202,9 @@ impl Basic for Dictionary {
 // implement Display trait for Dictionary
 impl Display for Dictionary {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self) // TODO
+        for (key, value) in self.data.iter() {
+            writeln!(f, "{}->{}", key, value)?;
+        }
+        Ok(())
     }
 }

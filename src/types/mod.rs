@@ -14,6 +14,7 @@ pub use scalar::{Scalar, ScalarKind};
 pub use set::Set;
 pub use vector::VectorKind;
 
+use chrono::{Datelike, Duration, NaiveDate};
 use ordered_float::OrderedFloat;
 use std::fmt::{self, Debug, Display};
 
@@ -850,12 +851,28 @@ for_all_scalars!(from_impl);
 
 // implement Display trait
 macro_rules! display_impl {
+    (i8, bool) => {
+        impl Display for Bool {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if Some(v) = self.get_bool() {
+                    write!(f, "{}", v)
+                } else {
+                    write!(f, "NULL")
+                }
+            }
+        }
+    };
+
     (i32, Date) => {
         // e.g. 2013.06.13
         impl Display for Date {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0);
-                write!(f, "{:04}.{:02}.{02}", date.year(), date.month(), date.day());
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
+                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 as i64);
+                write!(f, "{:04}.{:02}.{02}", date.year(), date.month(), date.day())
             }
         }
     };
@@ -864,6 +881,10 @@ macro_rules! display_impl {
         // e.g. 2012.06M
         impl Display for Month {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
                 write!(f, "{:04}.{:02}M", self.0 / 12, self.0 % 12 + 1)
             }
         }
@@ -873,6 +894,10 @@ macro_rules! display_impl {
         // e.g. 13:30:10.008
         impl Display for Time {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
                 write!(f, "{:02}:{:02}:{:02}.{:03}", self.0 / 3600000, self.0 % 3600000 / 60000, self.0 % 60000 / 1000,
                        self.0 % 1000)
             }
@@ -883,6 +908,10 @@ macro_rules! display_impl {
         // e.g. 13:30m
         impl Display for Minute {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
                 write!(f, "{:02}:{:02}m", self.0 / 60, self.0 % 60)
             }
         }
@@ -892,6 +921,10 @@ macro_rules! display_impl {
         // e.g. 13:30:10
         impl Display for Second {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
                 write!(f, "{:02}:{:02}:{:02}", self.0 / 3600, self.0 % 3600 / 60, self.0 % 60)
             }
         }
@@ -901,8 +934,12 @@ macro_rules! display_impl {
         // e.g. 2012.06.13 13:30:10
         impl Display for DateTime {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400);
-                write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}", date.year(), date.month(), date.day(),
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
+                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 as i64 / 86400);
+                write!(f, "{:04}.{:02}.{:02} {:02}:{:02}:{:02}", date.year(), date.month(), date.day(),
                        self.0 % 86400 / 3600, self.0 % 3600 / 60, self.0 % 60)
             }
         }
@@ -912,8 +949,12 @@ macro_rules! display_impl {
         // e.g. 2012.06.13T13
         impl Display for DateHour {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 24);
-                write!(f, "{:04}.{:02}.{02}T{:02}", date.year(), date.month(), date.day(), self.0 % 24)
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
+                let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0  as i64 / 24);
+                write!(f, "{:04}.{:02}.{:02}T{:02}", date.year(), date.month(), date.day(), self.0 % 24)
             }
         }
     };
@@ -922,8 +963,12 @@ macro_rules! display_impl {
         // e.g. 2012.06.13 13:30:10.008
         impl Display for TimeStamp {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
                 let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400000);
-                write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}:{:03}", date.year(), date.month(), date.day(),
+                write!(f, "{:04}.{:02}.{:02} {:02}:{:02}:{:02}:{:03}", date.year(), date.month(), date.day(),
                        self.0 % 86400000 / 3600000, self.0 % 3600000 / 60000, self.0 % 60000 / 1000, self.0 % 1000)
             }
         }
@@ -933,6 +978,10 @@ macro_rules! display_impl {
         // e.g. 13:30:10.008007006
         impl Display for NanoTime {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
                 write!(f, "{:02}:{:02}:{:02}.{:09}", self.0 / 3600000000000, self.0 % 3600000000000 / 60000000000,
                        self.0 % 60000000000 / 1000000000, self.0 % 1000000000)
             }
@@ -943,25 +992,33 @@ macro_rules! display_impl {
         // e.g. 2012.06.13 13:30:10.008007006
         impl Display for NanoTimeStamp {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if self.is_null() {
+                    write!(f, "NULL")?;
+                }
+
                 let date = NaiveDate::from_ymd_opt(1970, 1, 1).unwrap() + Duration::days(self.0 / 86400000000000);
-                write!(f, "{:04}.{:02}.{02} {:02}:{:02}:{:02}:{:09}", date.year(), date.month(), date.day(),
+                write!(f, "{:04}.{:02}.{:02} {:02}:{:02}:{:02}:{:09}", date.year(), date.month(), date.day(),
                        self.0 % 86400000000000 / 3600000000000, self.0 % 3600000000000 / 60000000000,
                        self.0 % 60000000000 / 1000000000, self.0 % 1000000000)
             }
         }
     };
 
-    ($struct_name:ident) => {
+    ($raw_type:tt, $struct_name:ident) => {
         impl Display for $struct_name {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                write!(f, "{}", self.0)
+                if self.is_null() {
+                    write!(f, "NULL")
+                } else {
+                    write!(f, "{}", self.0)
+                }
             }
         }
     };
 
     ($(($raw_type:tt, $struct_name:ident)), *) => {
         $(
-            display_impl!($struct_name);
+            display_impl!($raw_type, $struct_name);
         )*
     };
 }

@@ -13,12 +13,16 @@ pub struct Pair {
 }
 
 impl Pair {
-    pub fn new(pair: (ScalarKind, ScalarKind)) -> Self {
+    pub fn new(pair: (ScalarKind, ScalarKind)) -> Result<Self, RuntimeError> {
         let data_type = pair.0.data_type();
-        Self {
-            first: pair.0,
-            second: pair.1,
-            data_type,
+        if data_type != pair.1.data_type() {
+            Err(RuntimeError::PairDataTypeMismatch)
+        } else {
+            Ok(Self {
+                first: pair.0,
+                second: pair.1,
+                data_type,
+            })
         }
     }
 
@@ -168,6 +172,6 @@ impl Basic for Pair {
 // implement Display trait for Pair
 impl Display for Pair {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self) // TODO
+        write!(f, "[{}, {}]", self.first, self.second)
     }
 }

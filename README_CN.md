@@ -435,29 +435,24 @@ pub fn second_mut(&mut self) -> &mut ScalarKind
 | DolphinDB 类型 | Rust 类型         | 类型值 |
 | -------------- | ----------------- | ------ |
 | Void           | ()                | 0      |
-| Bool           | bool              | 1      |
+| Bool           | u8                | 1      |
 | Char           | u8                | 2      |
 | Short          | i16               | 3      |
 | Int            | i32               | 4      |
 | Long           | i64               | 5      |
-| Date           | NaiveDate         | 6      |
-| Month          | NaiveDate         | 7      |
-| Time           | NaiveTime         | 8      |
-| Minute         | NaiveTime         | 9      |
-| Second         | NaiveTime         | 10     |
-| DateTime       | NaiveDateTime     | 11     |
-| TimeStamp      | NaiveDateTime     | 12     |
-| NanoTime       | NaiveTime         | 13     |
-| NanoTimeStamp  | NaiveDateTime     | 14     |
+| Date           | i32               | 6      |
+| Month          | i32               | 7      |
+| Time           | i32               | 8      |
+| Minute         | i32               | 9      |
+| Second         | i32               | 10     |
+| DateTime       | i32               | 11     |
+| TimeStamp      | i64               | 12     |
+| NanoTime       | i64               | 13     |
+| NanoTimeStamp  | i64               | 14     |
 | Float          | OrderedFloat<f32> | 15     |
 | Double         | OrderedFloat<f64> | 16     |
 | DolphinString  | String            | 18     |
-| DateHour       | NaiveDateTime     | 28     |
-
-<!--  TODO decimal
-| Decimal32      | Decimal           | 37      |
-| Decimal64      | Decimal           | 38      |
-| Decimal128     | Decimal           | 39      | -->
+| DateHour       | i32               | 28     |
 
 #### 除 `Void` 外所有标量类型均实现了的方法：<!-- todo Void 类型 -->
 
