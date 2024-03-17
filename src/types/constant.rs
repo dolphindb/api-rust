@@ -1,3 +1,4 @@
+use std::fmt::{self, Display};
 use std::io::{Error, ErrorKind};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
@@ -308,31 +309,31 @@ impl Constant for ConstantKind {
     // convert ConstantKind reference
     fn as_scalar(&self) -> Result<&ScalarKind, RuntimeError> {
         match self {
-            Self::Scalar(sk) => Ok(sk),
+            Self::Scalar(obj) => Ok(obj),
             _ => Err(RuntimeError::NotScalarKind),
         }
     }
     fn as_vector(&self) -> Result<&VectorKind, RuntimeError> {
         match self {
-            Self::Vector(vk) => Ok(vk),
+            Self::Vector(obj) => Ok(obj),
             _ => Err(RuntimeError::NotVectorKind),
         }
     }
     fn as_pair(&self) -> Result<&Pair, RuntimeError> {
         match self {
-            Self::Pair(p) => Ok(p),
+            Self::Pair(obj) => Ok(obj),
             _ => Err(RuntimeError::NotPair),
         }
     }
     fn as_set(&self) -> Result<&Set, RuntimeError> {
         match self {
-            Self::Set(s) => Ok(s),
+            Self::Set(obj) => Ok(obj),
             _ => Err(RuntimeError::NotSet),
         }
     }
     fn as_dictionary(&self) -> Result<&Dictionary, RuntimeError> {
         match self {
-            Self::Dictionary(d) => Ok(d),
+            Self::Dictionary(obj) => Ok(obj),
             _ => Err(RuntimeError::NotDictionary),
         }
     }
@@ -340,32 +341,45 @@ impl Constant for ConstantKind {
     // convert ConstantKind mutable reference
     fn as_scalar_mut(&mut self) -> Result<&mut ScalarKind, RuntimeError> {
         match self {
-            Self::Scalar(sk) => Ok(sk),
+            Self::Scalar(obj) => Ok(obj),
             _ => Err(RuntimeError::NotScalarKind),
         }
     }
     fn as_vector_mut(&mut self) -> Result<&mut VectorKind, RuntimeError> {
         match self {
-            Self::Vector(vk) => Ok(vk),
+            Self::Vector(obj) => Ok(obj),
             _ => Err(RuntimeError::NotVectorKind),
         }
     }
     fn as_pair_mut(&mut self) -> Result<&mut Pair, RuntimeError> {
         match self {
-            Self::Pair(p) => Ok(p),
+            Self::Pair(obj) => Ok(obj),
             _ => Err(RuntimeError::NotPair),
         }
     }
     fn as_set_mut(&mut self) -> Result<&mut Set, RuntimeError> {
         match self {
-            Self::Set(s) => Ok(s),
+            Self::Set(obj) => Ok(obj),
             _ => Err(RuntimeError::NotSet),
         }
     }
     fn as_dictionary_mut(&mut self) -> Result<&mut Dictionary, RuntimeError> {
         match self {
-            Self::Dictionary(d) => Ok(d),
+            Self::Dictionary(obj) => Ok(obj),
             _ => Err(RuntimeError::NotDictionary),
+        }
+    }
+}
+
+// implement Deref trait for ConstantKind
+impl Display for ConstantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ConstantKind::Scalar(obj) => <ScalarKind as Display>::fmt(obj, f),
+            ConstantKind::Vector(obj) => <VectorKind as Display>::fmt(obj, f),
+            ConstantKind::Pair(obj) => <Pair as Display>::fmt(obj, f),
+            ConstantKind::Set(obj) => <Set as Display>::fmt(obj, f),
+            ConstantKind::Dictionary(obj) => <Dictionary as Display>::fmt(obj, f),
         }
     }
 }

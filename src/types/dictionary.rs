@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::{self, Display};
 use std::io::{Error, ErrorKind};
 use tokio::io::AsyncBufReadExt;
 
@@ -195,5 +196,12 @@ impl Basic for Dictionary {
 
     fn size(&self) -> usize {
         self.data.len()
+    }
+}
+
+// implement Display trait for Dictionary
+impl Display for Dictionary {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self) // TODO
     }
 }

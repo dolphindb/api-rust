@@ -1,3 +1,4 @@
+use std::fmt::{self, Display};
 use std::{
     collections::HashSet,
     io::{Error, ErrorKind},
@@ -7,7 +8,6 @@ use tokio::io::AsyncBufReadExt;
 use super::{Basic, DataCategory, DataForm, DataType, ScalarKind, VectorKind};
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
-// ! all elements in Set must have the same type
 #[derive(Debug, Clone)]
 pub struct Set {
     data: HashSet<ScalarKind>,
@@ -133,5 +133,12 @@ impl Basic for Set {
 
     fn size(&self) -> usize {
         self.data.len()
+    }
+}
+
+// implement Display trait for Set
+impl Display for Set {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self) // TODO
     }
 }

@@ -21,7 +21,7 @@ fn main() {
         .block_on(async { client.run_script(script).await })
         .unwrap();
     for c in res {
-        println!("{:?}", c);
+        println!("{}", c);
     }
 
     let mut variables = HashMap::new();
@@ -40,7 +40,7 @@ fn main() {
         .block_on(async { client.upload(variables).await })
         .unwrap();
     for c in res {
-        println!("{:?}", c);
+        println!("{}", c);
     }
 
     let script = String::from("b;");
@@ -48,6 +48,6 @@ fn main() {
         .block_on(async { client.run_script(script).await })
         .unwrap();
     for c in res {
-        println!("{:?}", c);
+        println!("{}", c);
     }
 }

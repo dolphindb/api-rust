@@ -1,13 +1,13 @@
+use std::fmt::{self, Display};
 use std::io::{Error, ErrorKind};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 use std::slice::SliceIndex;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::{
-    scalar::for_all_branches,
-    Basic, Bool, Char, DataCategory, DataForm, DataType, Date, DateHour, DateTime, DolphinString,
-    Double, Float, Int, Long, Minute, Month, NanoTime, NanoTimeStamp, NotDecimal, ScalarKind,
-    Second, Short, Time, TimeStamp, ConcreteScalar
+    scalar::for_all_branches, Basic, Bool, Char, ConcreteScalar, DataCategory, DataForm, DataType,
+    Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long, Minute, Month, NanoTime,
+    NanoTimeStamp, NotDecimal, ScalarKind, Second, Short, Time, TimeStamp,
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
@@ -566,5 +566,12 @@ impl<S: ConcreteScalar> Basic for Vector<S> {
 
     fn size(&self) -> usize {
         self.len()
+    }
+}
+
+// implement Display trait for VectorKind
+impl Display for VectorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self) // TODO
     }
 }

@@ -2,16 +2,17 @@ mod deserialize;
 mod serialize;
 mod temporal;
 
-use super::{
-    Basic, Bool, Char, DataType, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
-    Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
-};
-use crate::{error::RuntimeError, Deserialize, Serialize};
 use std::{
     fmt::{self, Debug, Display},
     hash::Hash,
 };
 use tokio::io::AsyncBufReadExt;
+
+use super::{
+    Basic, Bool, Char, DataType, Date, DateHour, DateTime, DolphinString, Double, Float, Int, Long,
+    Minute, Month, NanoTime, NanoTimeStamp, Second, Short, Time, TimeStamp,
+};
+use crate::{error::RuntimeError, Deserialize, Serialize};
 
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Hash)]
 pub enum ScalarKind {
@@ -123,21 +124,6 @@ macro_rules! dispatch_deserialize {
     };
 }
 
-macro_rules! dispatch_display {
-    ($(($enum_name:ident, $struct_name:ident)),*) => {
-        impl Display for ScalarKind {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                match self {
-                    ScalarKind::Void => write!(f, ""),
-                    $(
-                        ScalarKind::$enum_name(s) => write!(f, "{}", s),
-                    )*
-                }
-            }
-        }
-    };
-}
-
 macro_rules! dispatch_reflect {
     ($(($enum_name:ident, $struct_name:ident)),*) => {
         impl ScalarKind {
@@ -184,8 +170,6 @@ pub(crate) use for_all_branches;
 for_all_branches!(dispatch_serialize);
 
 for_all_branches!(dispatch_deserialize);
-
-for_all_branches!(dispatch_display);
 
 for_all_branches!(dispatch_reflect);
 
@@ -530,6 +514,33 @@ impl Scalar for ScalarKind {
         match self {
             Self::String(obj) => Ok(obj),
             _ => Err(RuntimeError::NotStringScalar),
+        }
+    }
+}
+
+// implement Display trait
+impl Display for ScalarKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ScalarKind::Void => write!(f, ""),
+            ScalarKind::Bool(obj) => <Bool as Display>::fmt(obj, f),
+            ScalarKind::Char(obj) => <Char as Display>::fmt(obj, f),
+            ScalarKind::Short(obj) => <Short as Display>::fmt(obj, f),
+            ScalarKind::Int(obj) => <Int as Display>::fmt(obj, f),
+            ScalarKind::Long(obj) => <Long as Display>::fmt(obj, f),
+            ScalarKind::Date(obj) => <Date as Display>::fmt(obj, f),
+            ScalarKind::Month(obj) => <Month as Display>::fmt(obj, f),
+            ScalarKind::Time(obj) => <Time as Display>::fmt(obj, f),
+            ScalarKind::Minute(obj) => <Minute as Display>::fmt(obj, f),
+            ScalarKind::Second(obj) => <Second as Display>::fmt(obj, f),
+            ScalarKind::DateTime(obj) => <DateTime as Display>::fmt(obj, f),
+            ScalarKind::TimeStamp(obj) => <TimeStamp as Display>::fmt(obj, f),
+            ScalarKind::NanoTime(obj) => <NanoTime as Display>::fmt(obj, f),
+            ScalarKind::NanoTimeStamp(obj) => <NanoTimeStamp as Display>::fmt(obj, f),
+            ScalarKind::Float(obj) => <Float as Display>::fmt(obj, f),
+            ScalarKind::Double(obj) => <Double as Display>::fmt(obj, f),
+            ScalarKind::String(obj) => <DolphinString as Display>::fmt(obj, f),
+            ScalarKind::DateHour(obj) => <DateHour as Display>::fmt(obj, f),
         }
     }
 }

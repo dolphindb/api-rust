@@ -1,24 +1,5 @@
 ## TODO
-1. Basic
-   1. [x] data_type
-   2. [x] data_form
-   3. [x] data_category
-   4. [x] size
-   5. [x] is_empty
-2. Constant:
-   1. [x] isScalar
-   2. [x] isVector
-   3. [x] isPair
-   4. isTable
-   5. [x] isSet
-   6. [x] isDictionary
-3. Scalar:
-   1. [x] is_null
-   2. [x] get_$rawtype
-   3. [x] set_$rawtype
-   4. [ ] temporal get_xx
-   5. [ ] temporal set_xx
-4. Vector:
+1. Vector:
    1. clear
    2. hasNull
    3. get -> ScalarKind
@@ -28,18 +9,18 @@
    7. get_$rawtype
    8. set_$rawtype
    9.  get_data, get_data_mut 拿到底层数据的借用/可变借用
-5. Set:
+2. Set:
    1. clear
    2. contain
    3. append
    4. insert
-6. Dictionary:
+3. Dictionary:
    1. set
    2. get_member
    3. get_key_type
    4. keys, keys_mut 拿到底层数据的借用/可变借用
    5. values, values_mut 拿到底层数据的借用/可变借用
-7. Table:
+4. Table:
    1. get_table_type
    2. num_column
    3. num_row
@@ -47,9 +28,9 @@
    5. get_column_name, get_column_name_mut
    6. get_column, get_column_mut
    7. get_row 返回字典
-8.  to_string -> 全部实现 Display
-9.  run 返回 ConstantKind，size > 1 时返回 VectorKind
-10. new, from_data_type 每个类型?? 修改
+5.  to_string -> 全部实现 Display
+6.  run 返回 ConstantKind，size > 1 时返回 VectorKind
+7.  new, from_data_type 每个类型?? 修改
 
 ## Type conversion
 类型转换
