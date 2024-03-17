@@ -18,6 +18,10 @@ pub enum RuntimeError {
     NotDoubleScalar,
     #[error("The object is not a string scalar.")]
     NotStringScalar,
+    #[error("The object is not a int nor 32-bit temporal scalar.")]
+    NotIntNorTemporal32Scalar,
+    #[error("The object is not a long nor 64-bit temporal scalar.")]
+    NotIntNorTemporal64Scalar,
 
     #[error("The object is not a scalar.")]
     NotScalarKind,

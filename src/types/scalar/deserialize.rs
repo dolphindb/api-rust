@@ -23,7 +23,7 @@ impl Deserialize for Bool {
     where
         R: AsyncBufReadExt + Unpin,
     {
-        self.set(reader.read_i8().await?);
+        self.set_raw(reader.read_i8().await?);
         Ok(())
     }
 }
@@ -33,7 +33,7 @@ impl Deserialize for Char {
     where
         R: AsyncBufReadExt + Unpin,
     {
-        self.set(reader.read_i8().await?);
+        self.set_raw(reader.read_i8().await?);
         Ok(())
     }
 }
@@ -59,7 +59,7 @@ impl Deserialize for DolphinString {
         if buf.is_empty() {
             self.set_null();
         } else {
-            self.set(
+            self.set_raw(
                 String::from_utf8(buf)
                     .map_err(|e| Error::new(ErrorKind::InvalidData, e.to_string()))?,
             );
@@ -76,7 +76,7 @@ macro_rules! deserialize_primitive {
         where
             R: AsyncBufReadExt + Unpin,
         {
-            self.set(reader.$read_func().await?);
+            self.set_raw(reader.$read_func().await?);
             Ok(())
         }
     };
@@ -108,7 +108,7 @@ macro_rules! deserialize_i32_temporal {
         {
             let mut temporal_i32 = Int::new(0);
             temporal_i32.$func_name(reader).await?;
-            self.set(temporal_i32.get());
+            self.set_raw(temporal_i32.get_raw());
             Ok(())
         }
     };
@@ -142,7 +142,7 @@ macro_rules! deserialize_i64_temporal {
         {
             let mut temporal_i64 = Long::new(0);
             temporal_i64.$func_name(reader).await?;
-            self.set(temporal_i64.get());
+            self.set_raw(temporal_i64.get_raw());
             Ok(())
         }
     };

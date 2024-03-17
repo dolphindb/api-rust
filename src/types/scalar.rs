@@ -193,8 +193,9 @@ for_all_branches!(dispatch_reflect);
 pub trait Scalar {
     fn is_null(&self) -> bool;
 
+    // getter methods
     fn get_bool(&self) -> Result<Option<bool>, RuntimeError>;
-    fn get_char(&self) -> Result<Option<u8>, RuntimeError>;
+    fn get_char(&self) -> Result<Option<i8>, RuntimeError>;
     fn get_short(&self) -> Result<Option<i16>, RuntimeError>;
     fn get_int(&self) -> Result<Option<i32>, RuntimeError>;
     fn get_long(&self) -> Result<Option<i64>, RuntimeError>;
@@ -202,8 +203,6 @@ pub trait Scalar {
     fn get_double(&self) -> Result<Option<f64>, RuntimeError>;
     fn get_string(&self) -> Result<Option<&str>, RuntimeError>;
 
-    // 3. set
-    // 4. get_$rawtype
     // 5. set_$rawtype
 
     // convert ScalarKind reference
@@ -252,34 +251,70 @@ impl Scalar for ScalarKind {
         }
     }
 
-    // todo implement getter methods
+    // implement getter methods
     fn get_bool(&self) -> Result<Option<bool>, RuntimeError> {
-        todo!()
+        if let ScalarKind::Bool(obj) = self {
+            Ok(obj.get_bool())
+        } else {
+            Err(RuntimeError::NotBoolScalar)
+        }
     }
-    fn get_char(&self) -> Result<Option<u8>, RuntimeError> {
-        todo!()
+    fn get_char(&self) -> Result<Option<i8>, RuntimeError> {
+        if let ScalarKind::Char(obj) = self {
+            Ok(obj.get_char())
+        } else {
+            Err(RuntimeError::NotCharScalar)
+        }
     }
     fn get_short(&self) -> Result<Option<i16>, RuntimeError> {
-        todo!()
+        if let ScalarKind::Short(obj) = self {
+            Ok(obj.get_short())
+        } else {
+            Err(RuntimeError::NotShortScalar)
+        }
     }
     fn get_int(&self) -> Result<Option<i32>, RuntimeError> {
-        todo!()
+        match self {
+            ScalarKind::Int(obj) => Ok(obj.get_int()),
+            ScalarKind::Date(obj) => Ok(obj.get_int()),
+            ScalarKind::Month(obj) => Ok(obj.get_int()),
+            ScalarKind::Time(obj) => Ok(obj.get_int()),
+            ScalarKind::Minute(obj) => Ok(obj.get_int()),
+            ScalarKind::Second(obj) => Ok(obj.get_int()),
+            ScalarKind::DateTime(obj) => Ok(obj.get_int()),
+            ScalarKind::DateHour(obj) => Ok(obj.get_int()),
+            _ => Err(RuntimeError::NotIntNorTemporal32Scalar),
+        }
     }
     fn get_long(&self) -> Result<Option<i64>, RuntimeError> {
-        todo!()
+        match self {
+            ScalarKind::Long(obj) => Ok(obj.get_long()),
+            ScalarKind::TimeStamp(obj) => Ok(obj.get_long()),
+            ScalarKind::NanoTime(obj) => Ok(obj.get_long()),
+            ScalarKind::NanoTimeStamp(obj) => Ok(obj.get_long()),
+            _ => Err(RuntimeError::NotIntNorTemporal64Scalar),
+        }
     }
     fn get_float(&self) -> Result<Option<f32>, RuntimeError> {
-        todo!()
+        if let ScalarKind::Float(obj) = self {
+            Ok(obj.get_float())
+        } else {
+            Err(RuntimeError::NotFloatScalar)
+        }
     }
     fn get_double(&self) -> Result<Option<f64>, RuntimeError> {
-        todo!()
+        if let ScalarKind::Double(obj) = self {
+            Ok(obj.get_double())
+        } else {
+            Err(RuntimeError::NotDoubleScalar)
+        }
     }
     fn get_string(&self) -> Result<Option<&str>, RuntimeError> {
-        todo!()
-        // match self {
-        //     ScalarKind::String(obj) => Ok(obj.get_string()),
-        //     _ => Err(RuntimeError::NotStringScalar),
-        // }
+        if let ScalarKind::String(obj) = self {
+            Ok(obj.get_string())
+        } else {
+            Err(RuntimeError::NotStringScalar)
+        }
     }
 
     // convert ScalarKind reference

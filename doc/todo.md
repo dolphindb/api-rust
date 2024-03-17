@@ -1,6 +1,4 @@
 ## TODO
-1. Null 在 DDB 是类型最小值，这个不一致导致的序列化问题，不能用 Option(rawtype) 当标量类型的内部结构，不然 () 和 rawtype::min_value 都是 null 有问题
-<!-- $rawtype = (bool/char/short/int/long/float/double/string/date/month/time/minute/second/date_time/time_stamp/nano_time/nano_time_stamp) -->
 1. Basic
    1. [x] data_type
    2. [x] data_form
@@ -16,7 +14,7 @@
    6. [x] isDictionary
 3. Scalar:
    1. [x] is_null
-   2. [/] get_$rawtype (具体的标量类型也实现同名的 get_\$rawtype，不过参数返回不同)
+   2. [x] get_$rawtype (具体的标量类型也实现同名的 get_\$rawtype，不过参数返回不同)
    3. [ ] set_$rawtype (具体的标量类型也实现同名的 set_\$rawtype，不过参数返回不同)
 4. Vector:
    1. clear

@@ -18,5 +18,5 @@ async fn main() {
         Some(ConstantKind::Scalar(ScalarKind::Int(i))) => *i,
         _ => Int::new(0),
     };
-    println!("a: {}", value.get());
+    println!("a: {}", value.get_raw());
 }

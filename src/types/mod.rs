@@ -56,7 +56,7 @@ macro_rules! trivial_impl {
                 Self(val)
             }
 
-            pub fn get(&self) -> i8 {
+            pub fn get_raw(&self) -> i8 {
                 if self.0 != 0 && self.0 != i8::MIN {
                     1
                 } else {
@@ -64,7 +64,7 @@ macro_rules! trivial_impl {
                 }
             }
 
-            pub fn set(&mut self, val: i8) {
+            pub fn set_raw(&mut self, val: i8) {
                 self.0 = val;
             }
         }
@@ -79,11 +79,11 @@ macro_rules! trivial_impl {
                 Self(OrderedFloat::<f32>::from(val))
             }
 
-            pub fn get(&self) -> f32 {
+            pub fn get_raw(&self) -> f32 {
                 self.0.0
             }
 
-            pub fn set(&mut self, val: f32) {
+            pub fn set_raw(&mut self, val: f32) {
                 self.0.0 = val;
             }
         }
@@ -98,11 +98,11 @@ macro_rules! trivial_impl {
                 Self(OrderedFloat::<f64>::from(val))
             }
 
-            pub fn get(&self) -> f64 {
+            pub fn get_raw(&self) -> f64 {
                 self.0.0
             }
 
-            pub fn set(&mut self, val: f64) {
+            pub fn set_raw(&mut self, val: f64) {
                 self.0.0 = val;
             }
         }
@@ -117,11 +117,11 @@ macro_rules! trivial_impl {
                 Self(val)
             }
 
-            pub fn get(&self) -> &str {
+            pub fn get_raw(&self) -> &str {
                 &self.0
             }
 
-            pub fn set(&mut self, val: String) {
+            pub fn set_raw(&mut self, val: String) {
                 self.0 = val;
             }
         }
@@ -136,11 +136,11 @@ macro_rules! trivial_impl {
                 Self(val)
             }
 
-            pub fn set(&mut self, val: $raw_type) {
+            pub fn set_raw(&mut self, val: $raw_type) {
                 self.0 = val;
             }
 
-            pub fn get(&self) -> $raw_type {
+            pub fn get_raw(&self) -> $raw_type {
                 self.0
             }
         }
@@ -154,7 +154,7 @@ macro_rules! trivial_impl {
 }
 for_all_scalars!(trivial_impl);
 
-// implement null value for scalar types
+// implement null value and get/set functions
 impl Bool {
     pub fn new_null() -> Self {
         Self(i8::MIN)
@@ -166,6 +166,24 @@ impl Bool {
 
     pub fn is_null(&self) -> bool {
         self.0 == i8::MIN
+    }
+
+    pub fn get_bool(&self) -> Option<bool> {
+        if self.0 == i8::MIN {
+            None
+        } else if self.0 == 0 {
+            Some(false)
+        } else {
+            Some(true)
+        }
+    }
+
+    pub fn set_bool(&mut self, val: Option<bool>) {
+        if let Some(v) = val {
+            self.0 = if v { 1 } else { 0 };
+        } else {
+            self.0 = i8::MIN;
+        }
     }
 }
 
@@ -181,6 +199,23 @@ impl Char {
     pub fn is_null(&self) -> bool {
         self.0 == i8::MIN
     }
+
+    pub fn get_char(&self) -> Option<i8> {
+        let val = self.get_raw();
+        if val == i8::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_char(&mut self, val: Option<i8>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i8::MIN;
+        }
+    }
 }
 
 impl Short {
@@ -194,6 +229,23 @@ impl Short {
 
     pub fn is_null(&self) -> bool {
         self.0 == i16::MIN
+    }
+
+    pub fn get_short(&self) -> Option<i16> {
+        let val = self.get_raw();
+        if val == i16::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_short(&mut self, val: Option<i16>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i16::MIN;
+        }
     }
 }
 
@@ -209,6 +261,23 @@ impl Int {
     pub fn is_null(&self) -> bool {
         self.0 == i32::MIN
     }
+
+    pub fn get_int(&self) -> Option<i32> {
+        let val = self.get_raw();
+        if val == i32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i32::MIN;
+        }
+    }
 }
 
 impl Long {
@@ -222,6 +291,23 @@ impl Long {
 
     pub fn is_null(&self) -> bool {
         self.0 == i64::MIN
+    }
+
+    pub fn get_long(&self) -> Option<i64> {
+        let val = self.get_raw();
+        if val == i64::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_long(&mut self, val: Option<i64>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i64::MIN;
+        }
     }
 }
 
@@ -237,6 +323,23 @@ impl Float {
     pub fn is_null(&self) -> bool {
         self.0 .0 == f32::MIN
     }
+
+    pub fn get_float(&self) -> Option<f32> {
+        let val = self.get_raw();
+        if val == f32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_float(&mut self, val: Option<f32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = OrderedFloat::<f32>::from(f32::MIN);
+        }
+    }
 }
 
 impl Double {
@@ -250,6 +353,23 @@ impl Double {
 
     pub fn is_null(&self) -> bool {
         self.0 .0 == f64::MIN
+    }
+
+    pub fn get_double(&self) -> Option<f64> {
+        let val = self.get_raw();
+        if val == f64::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_double(&mut self, val: Option<f64>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = OrderedFloat::<f64>::from(f64::MIN);
+        }
     }
 }
 
@@ -265,6 +385,23 @@ impl DolphinString {
     pub fn is_null(&self) -> bool {
         self.0.is_empty()
     }
+
+    pub fn get_string(&self) -> Option<&str> {
+        let val = self.get_raw();
+        if val.is_empty() {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_string(&mut self, val: Option<String>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = String::new();
+        }
+    }
 }
 
 impl Date {
@@ -278,6 +415,23 @@ impl Date {
 
     pub fn is_null(&self) -> bool {
         self.0 == i32::MIN
+    }
+
+    pub fn get_int(&self) -> Option<i32> {
+        let val = self.get_raw();
+        if val == i32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i32::MIN;
+        }
     }
 }
 
@@ -293,6 +447,23 @@ impl Month {
     pub fn is_null(&self) -> bool {
         self.0 == i32::MIN
     }
+
+    pub fn get_int(&self) -> Option<i32> {
+        let val = self.get_raw();
+        if val == i32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i32::MIN;
+        }
+    }
 }
 
 impl Time {
@@ -306,6 +477,23 @@ impl Time {
 
     pub fn is_null(&self) -> bool {
         self.0 == i32::MIN
+    }
+
+    pub fn get_int(&self) -> Option<i32> {
+        let val = self.get_raw();
+        if val == i32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i32::MIN;
+        }
     }
 }
 
@@ -321,6 +509,23 @@ impl Minute {
     pub fn is_null(&self) -> bool {
         self.0 == i32::MIN
     }
+
+    pub fn get_int(&self) -> Option<i32> {
+        let val = self.get_raw();
+        if val == i32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i32::MIN;
+        }
+    }
 }
 
 impl Second {
@@ -334,6 +539,23 @@ impl Second {
 
     pub fn is_null(&self) -> bool {
         self.0 == i32::MIN
+    }
+
+    pub fn get_int(&self) -> Option<i32> {
+        let val = self.get_raw();
+        if val == i32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i32::MIN;
+        }
     }
 }
 
@@ -349,6 +571,23 @@ impl DateTime {
     pub fn is_null(&self) -> bool {
         self.0 == i32::MIN
     }
+
+    pub fn get_int(&self) -> Option<i32> {
+        let val = self.get_raw();
+        if val == i32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i32::MIN;
+        }
+    }
 }
 
 impl DateHour {
@@ -362,6 +601,23 @@ impl DateHour {
 
     pub fn is_null(&self) -> bool {
         self.0 == i32::MIN
+    }
+
+    pub fn get_int(&self) -> Option<i32> {
+        let val = self.get_raw();
+        if val == i32::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_int(&mut self, val: Option<i32>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i32::MIN;
+        }
     }
 }
 
@@ -377,6 +633,23 @@ impl TimeStamp {
     pub fn is_null(&self) -> bool {
         self.0 == i64::MIN
     }
+
+    pub fn get_long(&self) -> Option<i64> {
+        let val = self.get_raw();
+        if val == i64::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_long(&mut self, val: Option<i64>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i64::MIN;
+        }
+    }
 }
 
 impl NanoTime {
@@ -391,6 +664,23 @@ impl NanoTime {
     pub fn is_null(&self) -> bool {
         self.0 == i64::MIN
     }
+
+    pub fn get_long(&self) -> Option<i64> {
+        let val = self.get_raw();
+        if val == i64::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_long(&mut self, val: Option<i64>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i64::MIN;
+        }
+    }
 }
 
 impl NanoTimeStamp {
@@ -404,6 +694,23 @@ impl NanoTimeStamp {
 
     pub fn is_null(&self) -> bool {
         self.0 == i64::MIN
+    }
+
+    pub fn get_long(&self) -> Option<i64> {
+        let val = self.get_raw();
+        if val == i64::MIN {
+            None
+        } else {
+            Some(val)
+        }
+    }
+
+    pub fn set_long(&mut self, val: Option<i64>) {
+        if let Some(v) = val {
+            self.set_raw(v);
+        } else {
+            self.0 = i64::MIN;
+        }
     }
 }
 

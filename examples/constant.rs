@@ -18,6 +18,6 @@ async fn main() {
     let c = res.first_mut().unwrap();
     let d = c.as_scalar_mut().unwrap().as_double_mut().unwrap();
 
-    d.set(2.2);
-    println!("{}, {:?}", d.data_type().to_u8(), d.get());
+    d.set_raw(2.2);
+    println!("{}, {:?}", d.data_type().to_u8(), d.get_raw());
 }
