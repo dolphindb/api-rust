@@ -1,4 +1,9 @@
-use rust_api::{client::ClientBuilder, types::Constant, types::Double, types::VectorKind};
+use std::collections::HashMap;
+
+use rust_api::{
+    client::ClientBuilder,
+    types::{Constant, Double, VectorKind},
+};
 
 #[tokio::main]
 async fn main() {
@@ -15,11 +20,24 @@ async fn main() {
         .unwrap();
     let mut c = res.pop().unwrap();
 
-    let v = c.as_vector_mut().unwrap();
-    if let VectorKind::Double(vd) = v {
-        vd.push(Double::new(1.1));
+    let v = match c.as_vector_mut().unwrap() {
+        VectorKind::Double(vd) => Some(vd),
+        _ => None,
     }
+    .unwrap();
+    println!("{}", v);
+    let raw = v.get_data_mut();
+    raw.push(Double::from(4.4));
+    raw.remove(1);
+    raw.remove(1);
+    println!("{}", v);
 
-    // let vd = Vector::<Double>::from(v);
-    println!("{}", v)
+    let mut variables = HashMap::new();
+    variables.insert(String::from("c"), c);
+    client.upload(variables).await.unwrap();
+
+    let res = client.run_script(String::from("c")).await.unwrap();
+    for c in res {
+        println!("{c}")
+    }
 }
