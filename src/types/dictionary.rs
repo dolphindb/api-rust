@@ -6,32 +6,84 @@ use tokio::io::AsyncBufReadExt;
 use super::{
     constant::ConstantKind, scalar::ScalarKind, Basic, DataCategory, DataForm, DataType, VectorKind,
 };
+use crate::error::RuntimeError;
 use crate::{Deserialize, Serialize};
 
+// implement Dictionary
 #[derive(Debug, Clone)]
 pub struct Dictionary {
     data: HashMap<ScalarKind, ConstantKind>,
-    data_type: DataType,
+    key_type: DataType,
+    value_type: DataType,
 }
 
 impl Dictionary {
-    pub fn new(data_type: DataType) -> Self {
+    pub fn new(key_type: DataType, value_type: DataType) -> Self {
         Self {
             data: HashMap::new(),
-            data_type,
+            key_type,
+            value_type,
         }
     }
 
-    pub fn insert(&mut self, key: ScalarKind, value: ConstantKind) {
-        self.data.insert(key, value);
+    pub fn insert(&mut self, key: ScalarKind, value: ConstantKind) -> Result<(), RuntimeError> {
+        if key.data_type() != self.key_type {
+            Err(RuntimeError::InvalidKeyType)
+        } else {
+            self.data.insert(key, value);
+            Ok(())
+        }
     }
 
-    pub(crate) fn from_type(data_type: DataType) -> Option<Self> {
-        Some(Dictionary {
+    // pub fn keys(dict: &Dictionary) ->  {
+    //     // todo: borrow?
+    //     todo!()
+    // }
+
+    // pub fn values(dict: &Dictionary) -> Result<VectorKind, ()> {
+    //     // todo: borrow?
+    //     let values = dict.data.values().cloned().collect::<Vec<_>>();
+    //     values.try_into().map_err(|_| ())
+    // }
+
+    // TODO: optimize
+    pub(crate) fn from_type(value_type: DataType) -> Option<Self> {
+        Some(Self {
             data: HashMap::new(),
-            data_type,
+            key_type: DataType::Void,
+            value_type,
         })
     }
+}
+
+// TODO: optimize
+pub fn from_vectors(keys: VectorKind, values: VectorKind) -> Result<Dictionary, ()> {
+    // the keys of dictionary must have a certain type but the values of dictionary can be an any vector
+
+    // TODO
+    // if keys.data_type() == DataType::Any {
+    // Err
+    // }
+
+    // todo: optimize
+    let key_type = keys.data_type();
+    let value_type = values.data_type();
+    let keys: Vec<ScalarKind> = keys.into();
+    let values: Vec<ScalarKind> = values.into();
+
+    if keys.len() != values.len() {
+        return Err(());
+    }
+
+    let data = keys
+        .into_iter()
+        .zip(values.into_iter().map(ConstantKind::Scalar))
+        .collect::<HashMap<_, _>>();
+    Ok(Dictionary {
+        data,
+        key_type,
+        value_type,
+    })
 }
 
 pub(crate) fn dictionary_keys(dict: &Dictionary) -> Result<VectorKind, ()> {
@@ -44,22 +96,6 @@ pub(crate) fn dictionary_values(dict: &Dictionary) -> Result<VectorKind, ()> {
     // todo: borrow?
     let values = dict.data.values().cloned().collect::<Vec<_>>();
     values.try_into().map_err(|_| ())
-}
-
-pub(crate) fn from_vectors(keys: VectorKind, values: VectorKind) -> Result<Dictionary, ()> {
-    let keys: Vec<ScalarKind> = keys.into();
-    let data_type = values.data_type();
-    let values: Vec<ScalarKind> = values.into();
-
-    if keys.len() != values.len() {
-        return Err(());
-    }
-
-    let data = keys
-        .into_iter()
-        .zip(values.into_iter().map(ConstantKind::Scalar))
-        .collect::<HashMap<_, _>>();
-    Ok(Dictionary { data, data_type })
 }
 
 impl Serialize for Dictionary {
@@ -183,11 +219,11 @@ impl Deserialize for Dictionary {
 // implement Basic trait for Dictionary
 impl Basic for Dictionary {
     fn data_type(&self) -> DataType {
-        self.data_type
+        self.value_type
     }
 
     fn data_category(&self) -> DataCategory {
-        DataCategory::from_data_type(&self.data_type)
+        DataCategory::from_data_type(&self.value_type)
     }
 
     fn data_form(&self) -> DataForm {

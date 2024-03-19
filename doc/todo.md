@@ -5,11 +5,13 @@
    3. append
    4. insert
 2. Dictionary:
-   1. set
-   2. get_member
-   3. get_key_type
-   4. keys, keys_mut 拿到底层数据的借用/可变借用
-   5. values, values_mut 拿到底层数据的借用/可变借用 
+   1. keys
+   2. values
+   3. set
+   4. get_member
+   5. get_key_type
+   6. keys, keys_mut 拿到底层数据的借用/可变借用
+   7. values, values_mut 拿到底层数据的借用/可变借用 
 
 ## Future
 1. any vector

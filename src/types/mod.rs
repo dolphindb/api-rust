@@ -4,6 +4,7 @@ mod dictionary;
 mod pair;
 mod scalar;
 mod set;
+mod table;
 mod vector;
 mod vector_kind;
 
@@ -13,6 +14,7 @@ pub use dictionary::Dictionary;
 pub use pair::Pair;
 pub use scalar::{Scalar, ScalarKind};
 pub use set::Set;
+pub use table::Table;
 pub use vector::Vector;
 pub use vector_kind::VectorKind;
 

@@ -4,7 +4,7 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
 use super::{
     scalar::ScalarKind, vector::Vector, Basic, DataCategory, DataForm, DataType, Dictionary, Pair,
-    Set, Short, VectorKind,
+    Set, Short, Table, VectorKind,
 };
 use crate::{error::RuntimeError, Deserialize, Serialize};
 
@@ -15,6 +15,7 @@ pub enum ConstantKind {
     Pair(Pair),
     Set(Set),
     Dictionary(Dictionary),
+    Table(Table),
 }
 
 impl Default for ConstantKind {
@@ -24,7 +25,8 @@ impl Default for ConstantKind {
 }
 
 impl ConstantKind {
-    fn from_category(data_type: u8, data_form: u8) -> Option<Self> {
+    // TODO: this is ugly, remove it
+    pub(crate) fn create_dummy_obj(data_type: u8, data_form: u8) -> Option<Self> {
         let data_type = DataType::from_u8(data_type)?;
         match data_form {
             0 => ScalarKind::from_type(data_type).map(Self::Scalar),
@@ -32,12 +34,13 @@ impl ConstantKind {
             2 => Pair::from_type(data_type).map(Self::Pair),
             4 => Set::from_type(data_type).map(Self::Set),
             5 => Dictionary::from_type(data_type).map(Self::Dictionary),
+            6 => Table::from_type(data_type).map(Self::Table),
             _ => None,
         }
     }
 }
 
-// TODO:???
+// TODO:?
 impl TryFrom<Vec<ConstantKind>> for VectorKind {
     type Error = RuntimeError;
 
@@ -101,7 +104,8 @@ macro_rules! for_all_constants {
             (Vector, VectorKind),
             (Pair, Pair),
             (Set, Set),
-            (Dictionary, Dictionary)
+            (Dictionary, Dictionary),
+            (Table, Table)
         );
     };
 }
@@ -151,7 +155,7 @@ macro_rules! dispatch_deserialize {
                 #[cfg(feature = "debug_pr")]
                 println!("data type: {}, data form: {}", data_type, data_form);
 
-                *self = Self::from_category(data_type, data_form)
+                *self = Self::create_dummy_obj(data_type, data_form)
                     .ok_or(Error::new(ErrorKind::InvalidData, ""))?;
 
                 match self {
@@ -170,10 +174,9 @@ macro_rules! dispatch_deserialize {
 
                 let (data_type, data_form) = type_form;
 
-                #[cfg(feature = "debug_pr")]
                 println!("data type: {}, data form: {}", data_type, data_form);
 
-                *self = Self::from_category(data_type, data_form)
+                *self = Self::create_dummy_obj(data_type, data_form)
                     .ok_or(Error::new(ErrorKind::InvalidData, ""))?;
 
                 match self {
@@ -224,6 +227,7 @@ impl Basic for ConstantKind {
             ConstantKind::Pair(obj) => obj.data_type(),
             ConstantKind::Set(obj) => obj.data_type(),
             ConstantKind::Dictionary(obj) => obj.data_type(),
+            ConstantKind::Table(obj) => obj.data_type(),
         }
     }
 
@@ -234,6 +238,7 @@ impl Basic for ConstantKind {
             ConstantKind::Pair(obj) => obj.data_category(),
             ConstantKind::Set(obj) => obj.data_category(),
             ConstantKind::Dictionary(obj) => obj.data_category(),
+            ConstantKind::Table(obj) => obj.data_category(),
         }
     }
 
@@ -244,6 +249,7 @@ impl Basic for ConstantKind {
             ConstantKind::Pair(obj) => obj.data_form(),
             ConstantKind::Set(obj) => obj.data_form(),
             ConstantKind::Dictionary(obj) => obj.data_form(),
+            ConstantKind::Table(obj) => obj.data_form(),
         }
     }
 
@@ -254,6 +260,7 @@ impl Basic for ConstantKind {
             ConstantKind::Pair(obj) => obj.size(),
             ConstantKind::Set(obj) => obj.size(),
             ConstantKind::Dictionary(obj) => obj.size(),
+            ConstantKind::Table(obj) => obj.size(),
         }
     }
 }
@@ -273,6 +280,7 @@ pub trait Constant {
     fn as_pair(&self) -> Result<&Pair, RuntimeError>;
     fn as_set(&self) -> Result<&Set, RuntimeError>;
     fn as_dictionary(&self) -> Result<&Dictionary, RuntimeError>;
+    fn as_table(&self) -> Result<&Table, RuntimeError>;
 
     // convert ConstantKind mutable reference
     fn as_scalar_mut(&mut self) -> Result<&mut ScalarKind, RuntimeError>;
@@ -280,6 +288,7 @@ pub trait Constant {
     fn as_pair_mut(&mut self) -> Result<&mut Pair, RuntimeError>;
     fn as_set_mut(&mut self) -> Result<&mut Set, RuntimeError>;
     fn as_dictionary_mut(&mut self) -> Result<&mut Dictionary, RuntimeError>;
+    fn as_table_mut(&mut self) -> Result<&mut Table, RuntimeError>;
 }
 
 impl Constant for ConstantKind {
@@ -338,6 +347,12 @@ impl Constant for ConstantKind {
             _ => Err(RuntimeError::NotDictionary),
         }
     }
+    fn as_table(&self) -> Result<&Table, RuntimeError> {
+        match self {
+            Self::Table(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotTable),
+        }
+    }
 
     // convert ConstantKind mutable reference
     fn as_scalar_mut(&mut self) -> Result<&mut ScalarKind, RuntimeError> {
@@ -370,6 +385,12 @@ impl Constant for ConstantKind {
             _ => Err(RuntimeError::NotDictionary),
         }
     }
+    fn as_table_mut(&mut self) -> Result<&mut Table, RuntimeError> {
+        match self {
+            Self::Table(obj) => Ok(obj),
+            _ => Err(RuntimeError::NotTable),
+        }
+    }
 }
 
 // implement Deref trait for ConstantKind
@@ -381,6 +402,7 @@ impl Display for ConstantKind {
             ConstantKind::Pair(obj) => write!(f, "{}", obj),
             ConstantKind::Set(obj) => write!(f, "{}", obj),
             ConstantKind::Dictionary(obj) => write!(f, "{}", obj),
+            ConstantKind::Table(obj) => write!(f, "{}", obj),
         }
     }
 }

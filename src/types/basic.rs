@@ -83,6 +83,7 @@ impl DataType {
 }
 
 // data form
+#[derive(PartialEq, Eq)]
 pub enum DataForm {
     Scalar,
     Vector,
@@ -94,6 +95,19 @@ pub enum DataForm {
 }
 
 impl DataForm {
+    pub fn from_u8(data_type: u8) -> Option<DataForm> {
+        match data_type {
+            0 => Some(DataForm::Scalar),
+            1 => Some(DataForm::Vector),
+            2 => Some(DataForm::Pair),
+            3 => Some(DataForm::Placeholder),
+            4 => Some(DataForm::Set),
+            5 => Some(DataForm::Dictionary),
+            6 => Some(DataForm::Table),
+            _ => None,
+        }
+    }
+
     pub fn to_u8(&self) -> u8 {
         match self {
             DataForm::Scalar => 0,

@@ -30,11 +30,12 @@ fn main() {
         ConstantKind::Scalar(ScalarKind::Bool(Bool::new(1))),
     );
 
-    let mut dict = Dictionary::new(DataType::Bool);
+    let mut dict = Dictionary::new(DataType::DateHour, DataType::Bool);
     dict.insert(
         ScalarKind::DateHour(DateHour::from_ymd_hour(2024, 3, 17, 15).unwrap()),
         ConstantKind::Scalar(ScalarKind::Bool(Bool::new_null())),
-    );
+    )
+    .unwrap();
     variables.insert("b".to_string(), ConstantKind::Dictionary(dict));
     let res = rt
         .block_on(async { client.upload(variables).await })
