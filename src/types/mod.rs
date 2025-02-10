@@ -1,6 +1,7 @@
 //! Scalar type wrappers to make our lives easier when interact with DolphinDB type system.
 
 mod any;
+mod array_vector;
 mod constant;
 mod decimal;
 mod dictionary;
@@ -18,6 +19,7 @@ use std::fmt::{self, Display};
 
 use crate::error::Error;
 pub use any::*;
+pub use array_vector::*;
 pub use constant::*;
 pub use decimal::*;
 pub use dictionary::*;
@@ -251,6 +253,30 @@ for_all_types!(to_any_impl);
 
 for_all_types!(scalar_trait_impl);
 
-for_all_types!(display_impl);
+macro_rules! for_all_display_types {
+    ($macro:tt) => {
+        $macro!(
+            ((), Void),
+            (bool, Bool),
+            (NaiveTime, Time),
+            (NaiveTime, Minute),
+            (NaiveTime, Second),
+            (String, Symbol),
+            (String, DolphinString),
+            (U8Vec, Blob),
+            (Decimal, Decimal32),
+            (Decimal, Decimal64),
+            (Decimal, Decimal128),
+            (u8, Char),
+            (i16, Short),
+            (i32, Int),
+            (i64, Long),
+            (f32, Float),
+            (f64, Double)
+        );
+    };
+}
+
+for_all_display_types!(display_impl);
 
 for_all_types!(non_decimal_marker);

@@ -1,6 +1,7 @@
 mod setup;
 mod utils;
 
+use core::f32;
 use encoding::{all::GBK, EncoderTrap, Encoding};
 use std::collections::HashMap;
 
@@ -30,8 +31,8 @@ macro_rules! macro_test_upload {
             $(
                 index_expect += 1;
                 // todo:
-                let res_ = client.run_script(format!("test_upload_{}", index_expect).as_str()).await.unwrap().unwrap();
-                println!("{}",res_);
+                let res_ = client.run_script(format!("string(test_upload_{})", index_expect).as_str()).await;
+                println!("{res_:?}");
                 let res_form = client
                     .run_script(format!("form(test_upload_{})==form({})", index_expect, $expect).as_str())
                     .await
@@ -85,6 +86,8 @@ macro_rules! macro_test_upload {
                                         }}
                                     }}
                                     return flag_
+                                }} else if (form(source)==VECTOR && type(source)>=VOID[]) {{
+                                    return eqObj(source,target)
                                 }} else {{
                                     return all(eq(source,target))
                                 }}
@@ -2224,5 +2227,238 @@ mod test_upload_table {
         table_build!(
             String::from("a") => Vector::<Any>::new()
         ) => "table([]$ANY as `a)"
+    );
+    // char array vector
+    macro_test_upload!(
+        test_upload_table_array_vector_char,
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Char(array_vector_build!(
+                i8,
+                vec![0i8,127i8,-127i8,-128i8],
+                vec![0i8,1i8,2i8]
+            )))
+        ) => "table(array(CHAR[]).append!([[0c,127c,-127c,00c],[0c,1c,2c]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Char(
+                ArrayVector::<i8>::new()
+            ))
+        ) => "table(array(CHAR[]) as `a)"
+    );
+    // short array vector
+    macro_test_upload!(
+        test_upload_table_array_vector_short,
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Short(array_vector_build!(
+                i16,
+                vec![0i16,32767i16,-32767i16,-32768i16],
+                vec![0i16,1i16,2i16]
+            )))
+        ) => "table(array(SHORT[]).append!([[0h,32767h,-32767h,00h],[0h,1h,2h]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Short(
+                ArrayVector::<i16>::new()
+            ))
+        ) => "table(array(SHORT[]) as `a)"
+    );
+    // int array vector
+    macro_test_upload!(
+        test_upload_table_array_vector_int,
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Int(array_vector_build!(
+                i32,
+                vec![0i32,2147483647i32,-2147483647i32,-2147483648i32],
+                vec![0i32,1i32,2i32]
+            )))
+        ) => "table(array(INT[]).append!([[0i,2147483647i,-2147483647i,00i],[0i,1i,2i]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Int(
+                ArrayVector::<i32>::new()
+            ))
+        ) => "table(array(INT[]) as `a)"
+    );
+    // long array vector
+    macro_test_upload!(
+        test_upload_table_array_vector_long,
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Long(array_vector_build!(
+                i64,
+                vec![0i64,9223372036854775807i64,-9223372036854775807i64,-9223372036854775808i64],
+                vec![0i64,1i64,2i64]
+            )))
+        ) => "table(array(LONG[]).append!([[0l,9223372036854775807l,-9223372036854775807l,00l],[0l,1l,2l]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Long(
+                ArrayVector::<i64>::new()
+            ))
+        ) => "table(array(LONG[]) as `a)"
+    );
+    // float array vector
+    macro_test_upload!(
+        test_upload_table_array_vector_float,
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Float(array_vector_build!(
+                f32,
+                vec![0.0f32,3.14f32,f32::MIN],
+                vec![3.14f32,3.15f32,3.16f32]
+            )))
+        ) => "table(array(FLOAT[]).append!([[0.0f,3.14f,00f],[3.14f,3.15f,3.16f]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Float(
+                ArrayVector::<f32>::new()
+            ))
+        ) => "table(array(FLOAT[]) as `a)"
+    );
+    // double array vector
+    macro_test_upload!(
+        test_upload_table_array_vector_double,
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Double(array_vector_build!(
+                f64,
+                vec![0.0f64,3.14f64,f64::MIN],
+                vec![3.14f64,3.15f64,3.16f64]
+            )))
+        ) => "table(array(DOUBLE[]).append!([[0.0F,3.14F,00F],[3.14F,3.15F,3.16F]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Double(
+                ArrayVector::<f64>::new()
+            ))
+        ) => "table(array(DOUBLE[]) as `a)"
+    );
+}
+
+mod test_upload_array_vector {
+    use super::*;
+
+    // char
+    macro_test_upload!(
+        test_upload_array_vector_char,
+        // VectorImpl::ArrayVector(ArrayVectorImpl::Char(
+        //     array_vector_build!(
+        //         i8,
+        //         vec![0i8,127i8,-127i8,-128i8],
+        //         Vec::<i8>::new(),
+        //         vec![0i8,1i8,2i8]
+        //     )
+        // )) => "array(CHAR[]).append!([[0c,127c,-127c,00c],[],[0c,1c,2c]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Char(
+            array_vector_build!(
+                i8,
+                vec![0i8,127i8,-127i8,-128i8],
+                vec![0i8,1i8,2i8]
+            )
+        )) => "array(CHAR[]).append!([[0c,127c,-127c,00c],[0c,1c,2c]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Char(
+            ArrayVector::<i8>::new()
+        )) => "array(CHAR[])"
+    );
+    // short
+    macro_test_upload!(
+        test_upload_array_vector_short,
+        // VectorImpl::ArrayVector(ArrayVectorImpl::Short(
+        //     array_vector_build!(
+        //         i16,
+        //         vec![0i16,32767i16,-32767i16,-32768i16],
+        //         Vec::<i16>::new(),
+        //         vec![0i16,1i16,2i16]
+        //     )
+        // )) => "array(SHORT[]).append!([[0h,32767h,-32767h,00h],[00h]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Short(
+            array_vector_build!(
+                i16,
+                vec![0i16,32767i16,-32767i16,-32768i16],
+                vec![0i16,1i16,2i16]
+            )
+        )) => "array(SHORT[]).append!([[0h,32767h,-32767h,00h],[0h,1h,2h]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Short(
+            ArrayVector::<i16>::new()
+        )) => "array(SHORT[])"
+    );
+    // int
+    macro_test_upload!(
+        test_upload_array_vector_int,
+        // VectorImpl::ArrayVector(ArrayVectorImpl::Int(
+        //     array_vector_build!(
+        //         i32,
+        //         vec![0i32,2147483647i32,-2147483647i32,-2147483648i32],
+        //         Vec::<i32>::new(),
+        //         vec![0i32,1i32,2i32]
+        //     )
+        // )) => "array(INT[]).append!([[0i,2147483647i,-2147483647i,00i],[00i]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Int(
+            array_vector_build!(
+                i32,
+                vec![0i32,2147483647i32,-2147483647i32,-2147483648i32],
+                vec![0i32,1i32,2i32]
+            )
+        )) => "array(INT[]).append!([[0i,2147483647i,-2147483647i,00i],[0i,1i,2i]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Int(
+            ArrayVector::<i32>::new()
+        )) => "array(INT[])"
+    );
+    // long
+    macro_test_upload!(
+        test_upload_array_vector_long,
+        // VectorImpl::ArrayVector(ArrayVectorImpl::Long(
+        //     array_vector_build!(
+        //         i64,
+        //         vec![0i64,9223372036854775807i64,-9223372036854775807i64,-9223372036854775808i64],
+        //         Vec::<i64>::new(),
+        //         vec![0i64,1i64,2i64]
+        //     )
+        // )) => "array(LONG[]).append!([[0l,9223372036854775807i64,-9223372036854775807i64,00l],[00l]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Long(
+            array_vector_build!(
+                i64,
+                vec![0i64,9223372036854775807i64,-9223372036854775807i64,-9223372036854775808i64],
+                vec![0i64,1i64,2i64]
+            )
+        )) => "array(LONG[]).append!([[0l,9223372036854775807l,-9223372036854775807l,00l],[0l,1l,2l]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Long(
+            ArrayVector::<i64>::new()
+        )) => "array(LONG[])"
+    );
+    // float
+    macro_test_upload!(
+        test_upload_array_vector_float,
+        // VectorImpl::ArrayVector(ArrayVectorImpl::Float(
+        //     array_vector_build!(
+        //         f32,
+        //         vec![0.0f32,3.14f32,f32::MIN],
+        //         Vec::<f32>::new(),
+        //         vec![3.14f32,3.15f32,3.16f32]
+        //     )
+        // )) => "array(FLOAT[]).append!([[0.0f,3.14f,00f],[3.14f,3.15f,3.16f]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Float(
+            array_vector_build!(
+                f32,
+                vec![0.0f32,3.14f32,f32::MIN],
+                vec![3.14f32,3.15f32,3.16f32]
+            )
+        )) => "array(FLOAT[]).append!([[0.0f,3.14f,00f],[3.14f,3.15f,3.16f]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Float(
+            ArrayVector::<f32>::new()
+        )) => "array(FLOAT[])"
+    );
+    // double
+    macro_test_upload!(
+        test_upload_array_vector_double,
+        // VectorImpl::ArrayVector(ArrayVectorImpl::Double(
+        //     array_vector_build!(
+        //         f64,
+        //         vec![0.0f64,3.14f64,f64::MIN],
+        //         Vec::<f64>::new(),
+        //         vec![3.14f64,3.15f64,3.16f64]
+        //     )
+        // )) => "array(DOUBLE[]).append!([[0.0F,3.14F,00F],[3.14F,3.15F,3.16F]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Double(
+            array_vector_build!(
+                f64,
+                vec![0.0f64,3.14f64,f64::MIN],
+                vec![3.14f64,3.15f64,3.16f64]
+            )
+        )) => "array(DOUBLE[]).append!([[0.0F,3.14F,00F],[3.14F,3.15F,3.16F]])",
+        VectorImpl::ArrayVector(ArrayVectorImpl::Double(
+            ArrayVector::<f64>::new()
+        )) => "array(DOUBLE[])"
     );
 }

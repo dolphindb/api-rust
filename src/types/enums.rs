@@ -35,6 +35,13 @@ pub enum DataType {
     Decimal32 = 37,
     Decimal64 = 38,
     Decimal128 = 39,
+
+    CharArray = 66,
+    ShortArray = 67,
+    IntArray = 68,
+    LongArray = 69,
+    FloatArray = 79,
+    DoubleArray = 80,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -111,7 +118,13 @@ macro_rules! for_all_types {
             (Blob, 32),
             (Decimal32, 37),
             (Decimal64, 38),
-            (Decimal128, 39)
+            (Decimal128, 39),
+            (CharArray, 66),
+            (ShortArray, 67),
+            (IntArray, 68),
+            (LongArray, 69),
+            (FloatArray, 79),
+            (DoubleArray, 80)
         );
     };
 }

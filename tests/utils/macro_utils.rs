@@ -57,3 +57,14 @@ macro_rules! table_build {
         result.build().unwrap()
     }};
 }
+
+#[macro_export]
+macro_rules! array_vector_build {
+    ($type:ty, $($value:expr),*) => {{
+        let mut result = ArrayVector::<$type>::new();
+        $(
+            result.push($value);
+        )*
+        result
+    }};
+}

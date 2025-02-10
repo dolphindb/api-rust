@@ -220,6 +220,7 @@ macro_rules! dispatch_break_up {
                         }
                     )*
                     VectorImpl::Any(data) => data,
+                    VectorImpl::ArrayVector(_v) => Vector::new(), // Unsupported
                 }
             }
         }
@@ -234,6 +235,7 @@ macro_rules! dispatch_get {
                     $(
                         VectorImpl::$enum_name(val) => Some(val[index].to_owned().into()),
                     )*
+                    VectorImpl::ArrayVector(_v) => None, // Unsupported now
                     VectorImpl::Any(_) => None
                 }
             }

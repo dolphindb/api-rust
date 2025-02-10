@@ -1,10 +1,13 @@
+use super::{
+    any::Any, array_vector::*, decimal::*, for_all_types, primitive::*, temporal::*, Constant,
+    ConstantImpl, DataForm, DataType, DecimalInterface, NotDecimal, ScalarImpl,
+};
 use crate::{
     error::{Error, Result},
     Deserialize, Serialize,
 };
 use byteorder::{WriteBytesExt, BE, LE};
 use bytes::BufMut;
-
 use std::{
     any::type_name,
     collections::HashMap,
@@ -13,13 +16,38 @@ use std::{
     slice::{Iter, IterMut, SliceIndex},
     vec::IntoIter,
 };
-
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
-use super::{
-    any::Any, decimal::*, for_all_types, primitive::*, temporal::*, Constant, ConstantImpl,
-    DataForm, DataType, DecimalInterface, NotDecimal, ScalarImpl,
-};
+#[derive(Default, Debug, Clone)]
+pub struct Vector<S> {
+    data: Vec<S>,
+}
+
+pub type VoidVector = Vector<Void>;
+pub type BoolVector = Vector<Bool>;
+pub type CharVector = Vector<Char>;
+pub type ShortVector = Vector<Short>;
+pub type IntVector = Vector<Int>;
+pub type LongVector = Vector<Long>;
+pub type DateVector = Vector<Date>;
+pub type MonthVector = Vector<Month>;
+pub type TimeVector = Vector<Time>;
+pub type MinuteVector = Vector<Minute>;
+pub type SecondVector = Vector<Second>;
+pub type DateTimeVector = Vector<DateTime>;
+pub type TimestampVector = Vector<Timestamp>;
+pub type NanoTimeVector = Vector<NanoTime>;
+pub type NanoTimestampVector = Vector<NanoTimestamp>;
+pub type FloatVector = Vector<Float>;
+pub type DoubleVector = Vector<Double>;
+pub type SymbolVector = Vector<Symbol>;
+pub type StringVector = Vector<DolphinString>;
+pub type AnyVector = Vector<Any>;
+pub type DateHourVector = Vector<DateHour>;
+pub type BlobVector = Vector<Blob>;
+pub type Decimal32Vector = Vector<Decimal32>;
+pub type Decimal64Vector = Vector<Decimal64>;
+pub type Decimal128Vector = Vector<Decimal128>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VectorImpl {
@@ -54,6 +82,8 @@ pub enum VectorImpl {
     Decimal32(Vector<Decimal32>),
     Decimal64(Vector<Decimal64>),
     Decimal128(Vector<Decimal128>),
+
+    ArrayVector(ArrayVectorImpl),
 }
 
 impl VectorImpl {
@@ -66,11 +96,6 @@ impl VectorImpl {
     pub fn data_form() -> DataForm {
         Self::FORM_BYTE
     }
-}
-
-#[derive(Default, Debug, Clone)]
-pub struct Vector<S> {
-    data: Vec<S>,
 }
 
 impl<S> Deref for Vector<S> {
@@ -366,10 +391,6 @@ macro_rules! serialize_decimal {
     };
 }
 
-type Decimal32Vector = Vector<Decimal32>;
-type Decimal64Vector = Vector<Decimal64>;
-type Decimal128Vector = Vector<Decimal128>;
-
 serialize_decimal!(
     (i32, Decimal32Vector, write_i32),
     (i64, Decimal64Vector, write_i64),
@@ -507,6 +528,7 @@ macro_rules! dispatch_data_type {
                     $(
                         VectorImpl::$enum_name(_) => $struct_name::data_type(),
                     )*
+                    VectorImpl::ArrayVector(v) => v.data_type(),
                 }
             }
         }
@@ -521,6 +543,7 @@ macro_rules! dispatch_len {
                     $(
                         VectorImpl::$enum_name(s) => s.len(),
                     )*
+                    VectorImpl::ArrayVector(v) => v.len(),
                 }
             }
         }
@@ -535,6 +558,7 @@ macro_rules! dispatch_resize {
                     $(
                         VectorImpl::$enum_name(s) => s.resize(new_len, $struct_name::default()),
                     )*
+                    VectorImpl::ArrayVector(v) => v.resize(new_len)
                 }
             }
         }
@@ -552,6 +576,7 @@ macro_rules! dispatch_serialize {
                     $(
                         VectorImpl::$enum_name(s) => s.serialize(buffer),
                     )*
+                    VectorImpl::ArrayVector(v) => v.serialize_data(buffer),
                 }
             }
 
@@ -563,6 +588,7 @@ macro_rules! dispatch_serialize {
                     $(
                         VectorImpl::$enum_name(s) => s.serialize_le(buffer),
                     )*
+                    VectorImpl::ArrayVector(v) => v.serialize_data_le(buffer),
                 }
             }
         }
@@ -580,6 +606,7 @@ macro_rules! dispatch_deserialize {
                     $(
                         VectorImpl::$enum_name(s) => s.deserialize(reader).await,
                     )*
+                    VectorImpl::ArrayVector(v) => v.deserialize_data(reader).await,
                 }
             }
 
@@ -591,6 +618,7 @@ macro_rules! dispatch_deserialize {
                     $(
                         VectorImpl::$enum_name(s) => s.deserialize_le(reader).await,
                     )*
+                    VectorImpl::ArrayVector(v) => v.deserialize_data_le(reader).await,
                 }
             }
         }
@@ -620,6 +648,7 @@ macro_rules! dispatch_display {
                     $(
                         VectorImpl::$enum_name(v) => write!(f, "{}", v),
                     )*
+                    VectorImpl::ArrayVector(v) => write!(f, "{}", v),
                 }
             }
         }

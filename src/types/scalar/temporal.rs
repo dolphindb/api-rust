@@ -6,6 +6,7 @@ use chrono::{
 };
 
 use super::super::*;
+use core::fmt::Display;
 
 impl Date {
     /// Makes a new [`Date`] from the calendar date (year, month and day).
@@ -29,6 +30,15 @@ impl Date {
     /// Counts of day since 1st of January 1970.
     pub fn elapsed(&self) -> Option<i64> {
         self.as_ref().map(|d| (d - NaiveDate::default()).num_days())
+    }
+}
+
+impl Display for Date {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            None => write!(f, "null"),
+            Some(s) => write!(f, "{}", s.format("%Y.%m.%d")),
+        }
     }
 }
 
@@ -61,6 +71,15 @@ impl Month {
 
             year * 12 + month
         })
+    }
+}
+
+impl Display for Month {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            None => write!(f, "null"),
+            Some(s) => write!(f, "{}", s.format("%Y.%mM")),
+        }
     }
 }
 
@@ -146,6 +165,15 @@ impl DateTime {
     }
 }
 
+impl Display for DateTime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            None => write!(f, "null"),
+            Some(s) => write!(f, "{}", s.format("%Y.%m.%dT%H:%M:%S")),
+        }
+    }
+}
+
 impl Timestamp {
     /// Makes a new [`Timestamp`] from [`Date`] and [`Time`].
     pub fn from_date_time(date: Date, time: Time) -> Option<Self> {
@@ -173,6 +201,15 @@ impl Timestamp {
     }
 }
 
+impl Display for Timestamp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            None => write!(f, "null"),
+            Some(s) => write!(f, "{}", s.format("%Y.%m.%dT%H:%M:%S%.3f")),
+        }
+    }
+}
+
 impl NanoTime {
     /// Makes a new [`NanoTime`] from hour, minute, second and nanosecond.
     pub fn from_hms_nano(hour: u32, min: u32, sec: u32, nano: u32) -> Option<Self> {
@@ -196,6 +233,15 @@ impl NanoTime {
                 .num_nanoseconds()
                 .map(|nsecs| nsecs as u64)
         })
+    }
+}
+
+impl Display for NanoTime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            None => write!(f, "null"),
+            Some(s) => write!(f, "{}", s.format("%H:%M:%S%.9f")),
+        }
     }
 }
 
@@ -226,6 +272,15 @@ impl NanoTimestamp {
     }
 }
 
+impl Display for NanoTimestamp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            None => write!(f, "null"),
+            Some(s) => write!(f, "{}", s.format("%Y.%m.%dT%H:%M:%S%.9f")),
+        }
+    }
+}
+
 impl DateHour {
     /// Makes a new [`DateHour`] from year, month, day and hour.
     pub fn from_ymd_h(year: i32, month: u32, day: u32, hour: u32) -> Option<Self> {
@@ -249,5 +304,14 @@ impl DateHour {
     pub fn elapsed(&self) -> Option<i64> {
         self.as_ref()
             .map(|t| (t - NaiveDateTime::default()).num_hours())
+    }
+}
+
+impl Display for DateHour {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            None => write!(f, "null"),
+            Some(s) => write!(f, "{}", s.format("%Y.%m.%dT%H")),
+        }
     }
 }
