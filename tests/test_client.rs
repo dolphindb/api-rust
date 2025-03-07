@@ -80,6 +80,18 @@ mod test_client_client_builder {
             assert!(false, "return error")
         }
     }
+
+    // todo:RUS-40
+    #[tokio::test]
+    async fn test_client_client_builder_with_fetch_size() {
+        let conf = Config::new();
+        let mut builder = ClientBuilder::new(format!("{}:{}", conf.host, conf.port));
+        builder.with_auth((conf.user.as_str(), conf.passwd.as_str()));
+        let mut option = BehaviorOptions::default();
+        option.with_fetch_size(8192);
+        builder.with_option(option);
+        let _client = builder.connect().await.unwrap();
+    }
 }
 
 mod test_client_client {
@@ -273,28 +285,6 @@ mod test_client_client {
         let res=client.run_script("exec string(remoteIp)+\":\"+string(remotePort) from getConsoleJobs() where sessionId=getCurrentSessionAndUser()[0]").await.unwrap().unwrap();
         if let ConstantImpl::Vector(VectorImpl::String(res_vec)) = res {
             assert_eq!(socket_addr.to_string(), res_vec.get(0).unwrap().to_string());
-        } else {
-            assert!(false, "return error")
-        }
-    }
-
-    #[tokio::test]
-    async fn test_client_client_into_inner() {
-        let conf = Config::new();
-        let mut builder = ClientBuilder::new(format!("{}:{}", conf.host, conf.port));
-        builder.with_auth((conf.user.as_str(), conf.passwd.as_str()));
-        let mut client = builder.connect().await.unwrap();
-        let res=client.run_script("exec string(remoteIp)+\":\"+string(remotePort) from getConsoleJobs() where sessionId=getCurrentSessionAndUser()[0]").await.unwrap().unwrap();
-        let tcp_stream = client.into_inner();
-        assert_eq!(
-            tcp_stream.peer_addr().unwrap().to_string(),
-            format!("{}:{}", conf.host, conf.port)
-        );
-        if let ConstantImpl::Vector(VectorImpl::String(res_vec)) = res {
-            assert_eq!(
-                tcp_stream.local_addr().unwrap().to_string(),
-                res_vec.get(0).unwrap().to_string()
-            );
         } else {
             assert!(false, "return error")
         }

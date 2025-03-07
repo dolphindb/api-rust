@@ -1,4 +1,6 @@
-//! Scalar type wrappers to make our lives easier when interact with DolphinDB type system.
+//! DolphinDB type wrappers to make our lives easier when interacting with the Dlang type system.
+//!
+//! See [DolphinDB docs](https://docs.dolphindb.cn/zh/rustdoc/chap2_dataobjects_landingpage.html) for more information.
 
 mod any;
 mod array_vector;

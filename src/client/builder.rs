@@ -46,7 +46,7 @@ impl<'a, A: ToSocketAddrs> ClientBuilder<'a, A> {
     }
 
     pub async fn connect(mut self) -> Result<Client> {
-        let mut conn = TcpStream::connect(&self.addr).await?;
+        let conn = TcpStream::connect(&self.addr).await?;
 
         {
             let socket_ref = socket2::SockRef::from(&conn);
@@ -58,24 +58,27 @@ impl<'a, A: ToSocketAddrs> ClientBuilder<'a, A> {
             let _ = socket_ref.set_tcp_keepalive(&keepalive);
         }
 
+        let (rx, mut tx) = conn.into_split();
+
         let info = ConnectInfo::new(self.ssl, self.auth.take());
         let request = Request::new(vec![b'0'], RequestInfo::Connect(info), &self.option);
 
         let mut buf = BytesMut::new();
         request.serialize(&mut buf)?;
 
-        conn.write_all(&buf).await?;
+        tx.write_all(&buf).await?;
 
         buf.clear();
 
-        let mut reader = BufReader::new(&mut conn);
+        let mut rx = BufReader::new(rx);
 
         let mut resp = Response::default();
-        resp.deserialize(&mut reader).await?;
+        resp.deserialize(&mut rx).await?;
 
         Ok(Client {
             session_id: resp.header.session_id,
-            conn,
+            tx,
+            rx,
             endian: resp.header.endian,
             option: self.option,
         })

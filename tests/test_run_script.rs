@@ -4330,3 +4330,34 @@ mod test_run_script_table {
     );
     // todo:array vector table
 }
+
+// todo:RUS-44
+#[tokio::test]
+async fn test_run_script_print() {
+    let conf = Config::new();
+    let mut builder = ClientBuilder::new(format!("{}:{}", conf.host, conf.port));
+    builder.with_auth((conf.user.as_str(), conf.passwd.as_str()));
+    let mut client = builder.connect().await.unwrap();
+    let x = client.run_script("print 1+1").await;
+    println!("{x:?}");
+}
+
+// todo:RUS-63
+#[tokio::test]
+#[should_panic]
+async fn test_run_script_not_support_type() {
+    let conf = Config::new();
+    let mut builder = ClientBuilder::new(format!("{}:{}", conf.host, conf.port));
+    builder.with_auth((conf.user.as_str(), conf.passwd.as_str()));
+    let mut client = builder.connect().await.unwrap();
+    let _ = client.run_script("< 1+1 >").await;
+}
+
+#[tokio::test]
+async fn test_run_script_not_support_form() {
+    let conf = Config::new();
+    let mut builder = ClientBuilder::new(format!("{}:{}", conf.host, conf.port));
+    builder.with_auth((conf.user.as_str(), conf.passwd.as_str()));
+    let mut client = builder.connect().await.unwrap();
+    assert!(client.run_script("1..4$2:2").await.is_err());
+}

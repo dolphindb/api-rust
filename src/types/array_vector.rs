@@ -207,10 +207,7 @@ impl<S> Deserialize for ArrayVector<S> {
         R: AsyncBufReadExt + Unpin,
     {
         _ = reader;
-        Err(Error::Unsupported {
-            data_form: "ArrayVector".to_owned(),
-            data_type: "ALL".to_owned(),
-        })
+        panic!("Receiving array vector from server is unsupported now.");
     }
 
     async fn deserialize_le<R>(&mut self, reader: &mut R) -> Result<()>
@@ -218,10 +215,7 @@ impl<S> Deserialize for ArrayVector<S> {
         R: AsyncBufReadExt + Unpin,
     {
         _ = reader;
-        Err(Error::Unsupported {
-            data_form: "ArrayVector".to_owned(),
-            data_type: "ALL".to_owned(),
-        })
+        panic!("Receiving array vector from server is unsupported now.");
     }
 }
 
@@ -327,10 +321,7 @@ macro_rules! dispatch_serialize {
                 R: AsyncBufReadExt + Unpin,
             {
                 _ = reader;
-                Err(Error::Unsupported {
-                    data_form: "ArrayVector".to_owned(),
-                    data_type: "ALL".to_owned(),
-                })
+                panic!("Receiving array vector from server is unsupported now.");
             }
 
             pub(crate) async fn deserialize_data_le<R>(&self, reader: &mut R) -> Result<()>
@@ -338,10 +329,7 @@ macro_rules! dispatch_serialize {
                 R: AsyncBufReadExt + Unpin,
             {
                 _ = reader;
-                Err(Error::Unsupported {
-                    data_form: "ArrayVector".to_owned(),
-                    data_type: "ALL".to_owned(),
-                })
+                panic!("Receiving array vector from server is unsupported now.");
             }
         }
     };

@@ -236,7 +236,7 @@ macro_rules! dispatch_get {
                         VectorImpl::$enum_name(val) => Some(val[index].to_owned().into()),
                     )*
                     VectorImpl::ArrayVector(_v) => None, // Unsupported now
-                    VectorImpl::Any(_) => None
+                    VectorImpl::Any(v) => Some(v[index].0.clone())
                 }
             }
         }

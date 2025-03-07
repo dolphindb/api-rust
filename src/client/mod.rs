@@ -1,3 +1,7 @@
+//! DolphinDB connection client for executing Dlang scripts/functions or uploading variables.
+//!
+//! See [DolphinDB connection docs](https://docs.dolphindb.cn/zh/rustdoc/chap3_basic_operations_landingpage.html) for more information.
+
 mod builder;
 mod request_info;
 use bytes::BytesMut;
@@ -5,7 +9,7 @@ pub(crate) use request_info::*;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use tokio::io::{AsyncWriteExt, BufReader};
-use tokio::net::TcpStream;
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
 pub use builder::ClientBuilder;
 
@@ -18,7 +22,8 @@ use crate::{
 #[derive(Debug)]
 pub struct Client {
     session_id: Vec<u8>,
-    conn: TcpStream,
+    tx: OwnedWriteHalf,
+    rx: BufReader<OwnedReadHalf>,
     endian: Endian,
     option: BehaviorOptions,
 }
@@ -32,19 +37,17 @@ impl Client {
             req.serialize_le(&mut buf)?;
         }
 
-        self.conn.write_all(&buf).await?;
-        self.conn.flush().await?;
+        self.tx.write_all(&buf).await?;
+        self.tx.flush().await?;
 
         buf.clear();
-
-        let mut reader = BufReader::new(&mut self.conn);
 
         let mut resp = Response::default();
 
         if matches!(self.endian, Endian::Big) {
-            resp.deserialize(&mut reader).await?;
+            resp.deserialize(&mut self.rx).await?;
         } else {
-            resp.deserialize_le(&mut reader).await?;
+            resp.deserialize_le(&mut self.rx).await?;
         }
 
         Ok(resp.data)
@@ -114,10 +117,10 @@ impl Client {
     }
 
     pub fn local_addr(&self) -> SocketAddr {
-        self.conn.local_addr().unwrap()
+        self.tx.local_addr().unwrap()
     }
 
-    pub fn into_inner(self) -> TcpStream {
-        self.conn
+    pub(crate) fn rx(&mut self) -> &mut BufReader<OwnedReadHalf> {
+        &mut self.rx
     }
 }

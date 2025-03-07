@@ -1,6 +1,6 @@
 [package]
 name = "dolphindb"
-version = "3.2.1"
+version = "3.2.2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "A Rust native API for DolphinDB"
@@ -13,12 +13,12 @@ socket2 = "0.5.8"
 chrono = "0.4.39"
 rust_decimal = "1.36.0"
 byteorder = "1.5"
-thiserror = "2.0.9"
+thiserror = "2.0.12"
 futures = "0.3.31"
 paste = "1.0.15"
 prettytable-rs = "^0.10"
 
 [dev-dependencies]
-rand = "0.8.5"
 encoding = "0.2"
-rstest = "0.23"
+rstest = "0.25"
+regex = "1"

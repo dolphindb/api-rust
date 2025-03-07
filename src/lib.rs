@@ -1,3 +1,7 @@
+//! DolphinDB Client SDK
+//!
+//! See [DolphinDB docs](https://docs.dolphindb.cn/zh/rustdoc/index.html) for more information.
+
 use bytes::BufMut;
 use tokio::io::AsyncBufReadExt;
 
@@ -5,6 +9,7 @@ pub mod client;
 pub mod error;
 mod request;
 mod response;
+pub mod stream_client;
 pub mod types;
 
 use error::Result;

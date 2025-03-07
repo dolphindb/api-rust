@@ -1,3 +1,7 @@
+//! DolphinDB Client SDK error messages.
+//!
+//! See [DolphinDB docs](https://docs.dolphindb.cn/zh/rustdoc/chap1_quickstart_landingpage.html) for more information.
+
 use std::string::FromUtf8Error;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

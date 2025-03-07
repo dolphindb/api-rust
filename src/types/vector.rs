@@ -633,7 +633,7 @@ macro_rules! dispatch_reflect {
                     $(
                         $struct_name::DATA_BYTE => Some(Self::$enum_name(Vector::new())),
                     )*
-                    _ => None,
+                    _ => panic!("Unsupported data type"),
                 }
             }
         }
@@ -928,12 +928,8 @@ macro_rules! deserialize_vector {
                 });
             }
 
-            let data_type = data_type.try_into()?;
-
-            let mut vecs = VectorImpl::from_type(data_type).ok_or(Error::Unsupported {
-                data_form: data_form.to_string(),
-                data_type: data_type.to_string(),
-            })?;
+            let data_type = data_type.try_into().unwrap();
+            let mut vecs = VectorImpl::from_type(data_type).unwrap();
 
             vecs.$deserialize_func(reader).await?;
 

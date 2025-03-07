@@ -80,10 +80,7 @@ macro_rules! data_type_from_u8 {
                     $(
                         $repr => Ok(Self::$enum_name),
                     )*
-                    _ => Err(Error::InvalidConvert {
-                        from: value.to_string(),
-                        to: stringify!(DataType).to_string(),
-                    }),
+                    _ => panic!("Unsupported data type"),
                 }
             }
         }
