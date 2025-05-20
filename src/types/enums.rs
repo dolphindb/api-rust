@@ -80,7 +80,7 @@ macro_rules! data_type_from_u8 {
                     $(
                         $repr => Ok(Self::$enum_name),
                     )*
-                    _ => panic!("Unsupported data type"),
+                    _ => panic!("Unsupported data type {value}"),
                 }
             }
         }

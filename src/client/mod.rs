@@ -4,6 +4,7 @@
 
 mod builder;
 mod request_info;
+mod table_writer;
 use bytes::BytesMut;
 pub(crate) use request_info::*;
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ use tokio::io::{AsyncWriteExt, BufReader};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
 pub use builder::ClientBuilder;
+pub use table_writer::TableWriter;
 
 use crate::request::BehaviorOptions;
 use crate::{

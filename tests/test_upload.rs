@@ -1,7 +1,6 @@
 mod setup;
 mod utils;
 
-use core::f32;
 use encoding::{all::GBK, EncoderTrap, Encoding};
 use std::collections::HashMap;
 

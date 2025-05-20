@@ -8,6 +8,7 @@ use crate::{
 };
 use byteorder::{WriteBytesExt, BE, LE};
 use bytes::BufMut;
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use std::{
     any::type_name,
     collections::HashMap,
@@ -867,6 +868,129 @@ where
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum PrimitiveType {
+    None,
+    Bool(bool),
+    I8(i8),
+    I16(i16),
+    I32(i32),
+    I64(i64),
+    F32(f32),
+    F64(f64),
+    String(String),
+    VecI8(Vec<i8>),
+    VecI16(Vec<i16>),
+    VecI32(Vec<i32>),
+    VecI64(Vec<i64>),
+    VecF32(Vec<f32>),
+    VecF64(Vec<f64>),
+    NaiveDateTime(NaiveDateTime),
+    NaiveDate(NaiveDate),
+    NaiveTime(NaiveTime),
+}
+
+impl Display for PrimitiveType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let type_name = match self {
+            PrimitiveType::Bool(_) => "bool(Bool)",
+            PrimitiveType::I8(_) => "i8(Char)",
+            PrimitiveType::I16(_) => "i16(Short)",
+            PrimitiveType::I32(_) => "i32(Int)",
+            PrimitiveType::I64(_) => "i64(Long)",
+            PrimitiveType::F32(_) => "f32(Float)",
+            PrimitiveType::F64(_) => "f64(Double)",
+            PrimitiveType::String(_) => "String(String)",
+            PrimitiveType::VecI8(_) => "Vec<i8>(Char[])",
+            PrimitiveType::VecI16(_) => "Vec<i16>(Short[])",
+            PrimitiveType::VecI32(_) => "Vec<i32>(Int[])",
+            PrimitiveType::VecI64(_) => "Vec<i64>(Long[])",
+            PrimitiveType::VecF32(_) => "Vec<f32>(Float[])",
+            PrimitiveType::VecF64(_) => "Vec<f64>(Double[])",
+            PrimitiveType::NaiveDateTime(_) => "NaiveDateTime",
+            PrimitiveType::NaiveDate(_) => "NaiveDate",
+            PrimitiveType::NaiveTime(_) => "NaiveDate",
+            PrimitiveType::None => "None",
+        };
+        write!(f, "{type_name}")
+    }
+}
+
+// (rust type, ddb type, enum for scalar, enum for array vector)
+macro_rules! for_array_types {
+    ($macro:tt) => {
+        $macro!(
+            (i8, Char, I8, VecI8),
+            (i16, Short, I16, VecI16),
+            (i32, Int, I32, VecI32),
+            (i64, Long, I64, VecI64),
+            (f32, Float, F32, VecF32),
+            (f64, Double, F64, VecF64)
+        );
+    };
+}
+
+// rust type, ddb type, PrimitiveType name
+macro_rules! for_primitive_types {
+    ($macro:tt) => {
+        $macro!(
+            (bool, Bool, Bool),
+            (String, String, String),
+            (NaiveDateTime, DateTime, NaiveDateTime),
+            (NaiveDate, Date, NaiveDate),
+            (NaiveTime, Time, NaiveTime)
+        );
+    };
+}
+
+impl From<()> for PrimitiveType {
+    fn from(_: ()) -> Self {
+        Self::None
+    }
+}
+
+macro_rules! from_for_primitive_type {
+    ($type_name:ident, $enum_name:ident) => {
+        impl From<$type_name> for PrimitiveType {
+            fn from(value: $type_name) -> Self {
+                Self::$enum_name(value)
+            }
+        }
+    };
+
+    // ddb_type is ignored
+    ($(($rust_type:ident, $ddb_type:ident, $enum_name:tt)), *) => {
+        $(
+            from_for_primitive_type!($rust_type, $enum_name);
+        )*
+    };
+}
+
+macro_rules! from_for_array_type {
+    ($type_name:ident, $enum_name:ident, $array_enum_name:ident) => {
+        impl From<$type_name> for PrimitiveType {
+            fn from(value: $type_name) -> Self {
+                Self::$enum_name(value)
+            }
+        }
+        impl From<Vec<$type_name>> for PrimitiveType {
+            fn from(value: Vec<$type_name>) -> Self {
+                Self::$array_enum_name(value)
+            }
+        }
+    };
+
+    // ddb_name is ignored
+    ($(($type_name:tt, $ddb_name:ident, $enum_name:ident, $array_enum_name:ident)), *) => {
+        $(
+            from_for_array_type!($type_name, $enum_name, $array_enum_name);
+        )*
+    };
+}
+
+for_primitive_types!(from_for_primitive_type);
+for_array_types!(from_for_array_type);
+
 impl VectorImpl {
     pub fn push(&mut self, value: ConstantImpl) -> Result<(), String> {
         if self.data_type() == Any::data_type() {
@@ -889,6 +1013,61 @@ impl VectorImpl {
 
         self.push_scalar(s);
         Ok(())
+    }
+
+    pub fn push_primitive_type(&mut self, value: PrimitiveType) -> Result<(), Error> {
+        macro_rules! push_simple_type {
+            ($ddb_type:ident, $enum_name:ident) => {
+                if let VectorImpl::$ddb_type(v) = self {
+                    if let PrimitiveType::$enum_name(tmp) = value {
+                        v.push(tmp.into());
+                        return Ok(());
+                    } else if let PrimitiveType::None = value {
+                        v.push($ddb_type::default().into());
+                        return Ok(());
+                    }
+                }
+            };
+            ($(($rust_type:tt, $ddb_type:ident, $enum_name:ident)), *) => {
+                $(
+                    push_simple_type!($ddb_type, $enum_name);
+                )*
+            };
+        }
+
+        macro_rules! push_array_type {
+            ($ddb_type:ident, $enum_name:ident, $array_enum_name:ident) => {
+                if let VectorImpl::$ddb_type(v) = self {
+                    if let PrimitiveType::$enum_name(tmp) = value {
+                        v.push(tmp.into());
+                        return Ok(());
+                    } else if let PrimitiveType::None = value {
+                        v.push($ddb_type::default().into());
+                        return Ok(());
+                    }
+                }
+                if let VectorImpl::ArrayVector(ArrayVectorImpl::$ddb_type(a)) = self {
+                    if let PrimitiveType::$array_enum_name(tmp) = value {
+                        a.push(tmp);
+                        return Ok(());
+                    }
+                }
+            };
+            // rust_type is ignored
+            ($(($rust_type:tt, $ddb_type:tt, $enum_name:ident, $array_enum_name:ident)), *) => {
+                $(
+                    push_array_type!($ddb_type, $enum_name, $array_enum_name);
+                )*
+            };
+        }
+
+        for_primitive_types!(push_simple_type);
+        for_array_types!(push_array_type);
+
+        return Err(Error::InvalidConvert {
+            from: value.to_string(),
+            to: self.data_type().to_string(),
+        });
     }
 
     pub fn push_unchecked(&mut self, value: ConstantImpl) {

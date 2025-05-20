@@ -1,7 +1,6 @@
 mod setup;
 mod utils;
 
-use core::f32;
 use dolphindb::client::ClientBuilder;
 use dolphindb::types::*;
 use encoding::{all::GBK, EncoderTrap, Encoding};

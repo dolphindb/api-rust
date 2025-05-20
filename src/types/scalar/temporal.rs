@@ -31,6 +31,11 @@ impl Date {
     pub fn elapsed(&self) -> Option<i64> {
         self.as_ref().map(|d| (d - NaiveDate::default()).num_days())
     }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i32 {
+        self.elapsed().unwrap() as i32
+    }
 }
 
 impl Display for Date {
@@ -72,6 +77,11 @@ impl Month {
             year * 12 + month
         })
     }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i32 {
+        self.elapsed().unwrap() + 23640
+    }
 }
 
 impl Display for Month {
@@ -100,6 +110,11 @@ impl Time {
         self.as_ref()
             .map(|t| (t - NaiveTime::default()).num_milliseconds() as u32)
     }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i32 {
+        self.elapsed().unwrap() as i32
+    }
 }
 
 impl Minute {
@@ -118,6 +133,11 @@ impl Minute {
         self.as_ref()
             .map(|t| (t - NaiveTime::default()).num_minutes() as u32)
     }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i32 {
+        self.elapsed().unwrap() as i32
+    }
 }
 
 impl Second {
@@ -135,6 +155,11 @@ impl Second {
     pub fn elapsed(&self) -> Option<u32> {
         self.as_ref()
             .map(|t| (t - NaiveTime::default()).num_seconds() as u32)
+    }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i32 {
+        self.elapsed().unwrap() as i32
     }
 }
 
@@ -162,6 +187,11 @@ impl DateTime {
     pub fn elapsed(&self) -> Option<i32> {
         self.as_ref()
             .map(|t| (t - NaiveDateTime::default()).num_seconds() as i32)
+    }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i32 {
+        self.elapsed().unwrap()
     }
 }
 
@@ -199,6 +229,11 @@ impl Timestamp {
         self.as_ref()
             .map(|t| (t - NaiveDateTime::default()).num_milliseconds())
     }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i64 {
+        self.elapsed().unwrap()
+    }
 }
 
 impl Display for Timestamp {
@@ -233,6 +268,11 @@ impl NanoTime {
                 .num_nanoseconds()
                 .map(|nsecs| nsecs as u64)
         })
+    }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i64 {
+        self.elapsed().unwrap() as i64
     }
 }
 
@@ -270,6 +310,11 @@ impl NanoTimestamp {
         self.as_ref()
             .and_then(|t| (t - NaiveDateTime::default()).num_nanoseconds())
     }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i64 {
+        self.elapsed().unwrap()
+    }
 }
 
 impl Display for NanoTimestamp {
@@ -304,6 +349,11 @@ impl DateHour {
     pub fn elapsed(&self) -> Option<i64> {
         self.as_ref()
             .map(|t| (t - NaiveDateTime::default()).num_hours())
+    }
+
+    /// DolphinDB internal representation
+    pub(crate) fn ddb_rep(&self) -> i32 {
+        self.elapsed().unwrap() as i32
     }
 }
 

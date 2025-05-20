@@ -68,6 +68,11 @@ macro_rules! from_raw_impl {
                 }
             }
         }
+        impl From<$raw_type> for $struct_name {
+            fn from(value: $raw_type) -> Self {
+                Self(Some(value))
+            }
+        }
     };
 
     ($(($raw_type:tt, $struct_name:ident, $enum_name:ident)), *) => {

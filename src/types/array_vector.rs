@@ -255,7 +255,14 @@ macro_rules! to_constant_impl {
 
 macro_rules! for_array_types {
     ($macro:tt) => {
-        $macro!((i32, Int), (f64, Double));
+        $macro!(
+            (i8, Char),
+            (i16, Short),
+            (i32, Int),
+            (i64, Long),
+            (f32, Float),
+            (f64, Double)
+        );
     };
 }
 

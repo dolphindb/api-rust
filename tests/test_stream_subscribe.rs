@@ -1,7 +1,6 @@
 mod setup;
 mod utils;
 
-use core::f32;
 use dolphindb::client::ClientBuilder;
 use dolphindb::stream_client::{request::Request, subscriber::*};
 use dolphindb::types::*;
@@ -394,7 +393,7 @@ mod test_stream_subscribe_subscriber {
                 let mut c_builder = ClientBuilder::new(format!("{}:{}", conf.host, conf.port));
                 c_builder.with_auth((conf.user.as_str(), conf.passwd.as_str()));
                 let mut client = c_builder.connect().await.unwrap();
-                let mut _index:u32 = 0;
+                let mut _index: u32 = 0;
                 $(
                     _index += 1;
                     if _index == 1 {
@@ -405,7 +404,7 @@ mod test_stream_subscribe_subscriber {
                                         share streamTable(10:0,[`data],[DECIMAL32(2)]) as `{STREAM_TABLE}
                                     }} else if (typestr({0})=="DECIMAL64"){{
                                         share streamTable(10:0,[`data],[DECIMAL64(2)]) as `{STREAM_TABLE}
-                                    }}else if (typestr({0})=="DECIMAL128"){{
+                                    }} else if (typestr({0})=="DECIMAL128"){{
                                         share streamTable(10:0,[`data],[DECIMAL128(2)]) as `{STREAM_TABLE}
                                     }} else {{
                                         share streamTable(10:0,[`data],[type({0})]) as `{STREAM_TABLE}
