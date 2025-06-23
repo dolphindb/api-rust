@@ -634,6 +634,12 @@ macro_rules! dispatch_reflect {
                     $(
                         $struct_name::DATA_BYTE => Some(Self::$enum_name(Vector::new())),
                     )*
+                    DataType::CharArray => Some(Self::ArrayVector(ArrayVectorImpl::Char(CharArrayVector::new()))),
+                    DataType::ShortArray => Some(Self::ArrayVector(ArrayVectorImpl::Short(ShortArrayVector::new()))),
+                    DataType::IntArray => Some(Self::ArrayVector(ArrayVectorImpl::Int(IntArrayVector::new()))),
+                    DataType::LongArray => Some(Self::ArrayVector(ArrayVectorImpl::Long(LongArrayVector::new()))),
+                    DataType::FloatArray => Some(Self::ArrayVector(ArrayVectorImpl::Float(FloatArrayVector::new()))),
+                    DataType::DoubleArray => Some(Self::ArrayVector(ArrayVectorImpl::Double(DoubleArrayVector::new()))),
                     _ => panic!("Unsupported data type"),
                 }
             }
@@ -1105,6 +1111,12 @@ macro_rules! deserialize_vector {
                     expect: VectorImpl::FORM_BYTE.to_string(),
                     actual: data_form.to_string(),
                 });
+            }
+
+            if data_type == 128 + DataType::Symbol as u8 {
+                let mut s = Vector::<Symbol>::new();
+                s.deserialize_with_symbol_base_le(reader).await?;
+                return Ok(VectorImpl::Symbol(s));
             }
 
             let data_type = data_type.try_into().unwrap();

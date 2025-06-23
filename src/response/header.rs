@@ -17,18 +17,44 @@ impl Deserialize for ResponseHeader {
     where
         R: tokio::io::AsyncBufReadExt + Unpin,
     {
-        let mut buf = String::new();
+        async fn read_parsed_line<R>(reader: &mut R) -> Result<Vec<String>>
+        where
+            R: tokio::io::AsyncBufRead + Unpin,
+        {
+            use tokio::io::AsyncBufReadExt;
 
-        if reader.read_line(&mut buf).await? == 0 {
-            return Err(Error::UnexpectedEof);
+            let mut buf = String::new();
+
+            if reader.read_line(&mut buf).await? == 0 {
+                return Err(Error::UnexpectedEof);
+            }
+
+            if !buf.ends_with('\n') {
+                return Err(Error::UnexpectedEof);
+            }
+            buf.pop();
+
+            let parts = buf
+                .split(' ')
+                .map(|s| s.to_string())
+                .collect::<Vec<String>>();
+
+            Ok(parts)
         }
 
-        if !buf.ends_with('\n') {
-            return Err(Error::UnexpectedEof);
-        }
-        buf.pop();
+        let mut parts = read_parsed_line(reader).await?;
 
-        let mut parts = buf.split(' ').collect::<Vec<_>>();
+        while parts.len() == 1 && parts[0] == "MSG" {
+            let mut message_buf: Vec<u8> = Vec::new();
+            reader.read_until(0, &mut message_buf).await?;
+            if message_buf.last() == Some(&0) {
+                message_buf.pop();
+            }
+            let s = String::from_utf8(message_buf).map_err(|e| Error::InvalidUtf8Encoding(e))?;
+            println!("{}", s);
+
+            parts = read_parsed_line(reader).await?;
+        }
 
         if parts.len() != 3 {
             return Err(Error::BadResponse(format!(
@@ -46,7 +72,7 @@ impl Deserialize for ResponseHeader {
             .parse::<i32>()
             .map_err(|e| Error::InvalidNumeric(e.to_string()))? as usize;
 
-        self.endian = match *parts.last().unwrap() {
+        self.endian = match parts.last().unwrap().as_str() {
             "0" => Endian::Big,
             "1" => Endian::Little,
             e => {

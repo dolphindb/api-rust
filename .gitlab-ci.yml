@@ -1,7 +1,6 @@
 build-linux:
   stage: build
   tags:
-    - Linux Rust API
+    - Linux Rust SDK
   script:
-    - echo "Hello, $GITLAB_USER_LOGIN!"
     - cargo build

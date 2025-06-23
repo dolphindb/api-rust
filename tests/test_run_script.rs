@@ -2415,7 +2415,146 @@ mod test_run_script_vector {
         ConstantImpl::Vector,
         VectorImpl::Any
     );
-    // todo:array_vector
+    // char array vector
+    macro_test_run_script!(
+        test_run_script_vector_char_array_vector_normal,
+        "x=array(CHAR[]).append!([[0c,127c,-127c,00c],[0c,1c,2c]]);x",
+        DataForm::Vector,
+        DataType::CharArray,
+        ArrayVectorImpl::Char(array_vector_build!(
+            i8,
+            vec![0i8, 127i8, -127i8, -128i8],
+            vec![0i8, 1i8, 2i8]
+        )),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    macro_test_run_script!(
+        test_run_script_vector_char_array_vector_empty,
+        "array(CHAR[])",
+        DataForm::Vector,
+        DataType::CharArray,
+        ArrayVectorImpl::Char(CharArrayVector::new()),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    // short array vector
+    macro_test_run_script!(
+        test_run_script_vector_short_array_vector_normal,
+        "x=array(SHORT[]).append!([[0h,32767h,-32767h,00h],[0h,1h,2h]]);x",
+        DataForm::Vector,
+        DataType::ShortArray,
+        ArrayVectorImpl::Short(array_vector_build!(
+            i16,
+            vec![0i16, 32767i16, -32767i16, -32768i16],
+            vec![0i16, 1i16, 2i16]
+        )),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    macro_test_run_script!(
+        test_run_script_vector_short_array_vector_empty,
+        "array(SHORT[])",
+        DataForm::Vector,
+        DataType::ShortArray,
+        ArrayVectorImpl::Short(ShortArrayVector::new()),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    // int array vector
+    macro_test_run_script!(
+        test_run_script_vector_int_array_vector_normal,
+        "x=array(INT[]).append!([[0i,2147483647i,-2147483647i,00i],[0i,1i,2i]]);x",
+        DataForm::Vector,
+        DataType::IntArray,
+        ArrayVectorImpl::Int(array_vector_build!(
+            i32,
+            vec![0i32, 2147483647i32, -2147483647i32, -2147483648i32],
+            vec![0i32, 1i32, 2i32]
+        )),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    macro_test_run_script!(
+        test_run_script_vector_int_array_vector_empty,
+        "array(INT[])",
+        DataForm::Vector,
+        DataType::IntArray,
+        ArrayVectorImpl::Int(IntArrayVector::new()),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    // long array vector
+    macro_test_run_script!(
+        test_run_script_vector_long_array_vector_normal,
+        "x=array(LONG[]).append!([[0l,9223372036854775807l,-9223372036854775807l,00l],[0l,1l,2l]]);x",
+        DataForm::Vector,
+        DataType::LongArray,
+        ArrayVectorImpl::Long(
+            array_vector_build!(
+                i64,
+                vec![0i64,9223372036854775807i64,-9223372036854775807i64,-9223372036854775808i64],
+                vec![0i64,1i64,2i64]
+            )
+        ),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    macro_test_run_script!(
+        test_run_script_vector_long_array_vector_empty,
+        "array(LONG[])",
+        DataForm::Vector,
+        DataType::LongArray,
+        ArrayVectorImpl::Long(LongArrayVector::new()),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    // float array vector
+    macro_test_run_script!(
+        test_run_script_vector_float_array_vector_normal,
+        "x=array(FLOAT[]).append!([[0.0f,3.14f,00f],[3.14f,3.15f,3.16f]]);x",
+        DataForm::Vector,
+        DataType::FloatArray,
+        ArrayVectorImpl::Float(array_vector_build!(
+            f32,
+            vec![0.0f32, 3.14f32, f32::MIN],
+            vec![3.14f32, 3.15f32, 3.16f32]
+        )),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    macro_test_run_script!(
+        test_run_script_vector_float_array_vector_empty,
+        "array(FLOAT[])",
+        DataForm::Vector,
+        DataType::FloatArray,
+        ArrayVectorImpl::Float(FloatArrayVector::new()),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    // double array vector
+    macro_test_run_script!(
+        test_run_script_vector_double_array_vector_normal,
+        "x=array(DOUBLE[]).append!([[0.0F,3.14F,00F],[3.14F,3.15F,3.16F]]);x",
+        DataForm::Vector,
+        DataType::DoubleArray,
+        ArrayVectorImpl::Double(array_vector_build!(
+            f64,
+            vec![0.0f64, 3.14f64, f64::MIN],
+            vec![3.14f64, 3.15f64, 3.16f64]
+        )),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
+    macro_test_run_script!(
+        test_run_script_vector_double_array_vector_empty,
+        "array(DOUBLE[])",
+        DataForm::Vector,
+        DataType::DoubleArray,
+        ArrayVectorImpl::Double(DoubleArrayVector::new()),
+        ConstantImpl::Vector,
+        VectorImpl::ArrayVector
+    );
 }
 
 // todo:matrix
@@ -4287,7 +4426,6 @@ mod test_run_script_table {
             String::from("a") => Vector::<Decimal128>::new()
         )
     );
-
     // any
     macro_test_run_script_table!(
         test_run_script_table_any_normal,
@@ -4327,10 +4465,134 @@ mod test_run_script_table {
             String::from("a") => Vector::<Any>::new()
         )
     );
-    // todo:array vector table
+    // char array vector
+    macro_test_run_script_table!(
+        test_run_script_table_char_array_vector_normal,
+        "table(array(CHAR[]).append!([[0c,127c,-127c,00c],[0c,1c,2c]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Char(array_vector_build!(
+                i8,
+                vec![0i8,127i8,-127i8,-128i8],
+                vec![0i8,1i8,2i8]
+            )))
+        )
+    );
+    macro_test_run_script_table!(
+        test_run_script_table_char_array_vector_empty,
+        "table(array(CHAR[]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Char(
+                ArrayVector::<i8>::new()
+            ))
+        )
+    );
+    // short array vector
+    macro_test_run_script_table!(
+        test_run_script_table_short_array_vector_normal,
+        "table(array(SHORT[]).append!([[0h,32767h,-32767h,00h],[0h,1h,2h]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Short(array_vector_build!(
+                i16,
+                vec![0i16,32767i16,-32767i16,-32768i16],
+                vec![0i16,1i16,2i16]
+            )))
+        )
+    );
+    macro_test_run_script_table!(
+        test_run_script_table_short_array_vector_empty,
+        "table(array(SHORT[]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Short(
+                ArrayVector::<i16>::new()
+            ))
+        )
+    );
+    // int array vector
+    macro_test_run_script_table!(
+        test_run_script_table_int_array_vector_normal,
+        "table(array(INT[]).append!([[0i,2147483647i,-2147483647i,00i],[0i,1i,2i]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Int(array_vector_build!(
+                i32,
+                vec![0i32,2147483647i32,-2147483647i32,-2147483648i32],
+                vec![0i32,1i32,2i32]
+            )))
+        )
+    );
+    macro_test_run_script_table!(
+        test_run_script_table_int_array_vector_empty,
+        "table(array(INT[]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Int(
+                ArrayVector::<i32>::new()
+            ))
+        )
+    );
+    // long array vector
+    macro_test_run_script_table!(
+        test_run_script_table_long_array_vector_normal,
+        "table(array(LONG[]).append!([[0l,9223372036854775807l,-9223372036854775807l,00l],[0l,1l,2l]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Long(array_vector_build!(
+                i64,
+                vec![0i64,9223372036854775807i64,-9223372036854775807i64,-9223372036854775808i64],
+                vec![0i64,1i64,2i64]
+            )))
+        )
+    );
+    macro_test_run_script_table!(
+        test_run_script_table_long_array_vector_empty,
+        "table(array(LONG[]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Long(
+                ArrayVector::<i64>::new()
+            ))
+        )
+    );
+    // float array vector
+    macro_test_run_script_table!(
+        test_run_script_table_float_array_vector_normal,
+        "table(array(FLOAT[]).append!([[0.0f,3.14f,00f],[3.14f,3.15f,3.16f]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Float(array_vector_build!(
+                f32,
+                vec![0.0f32,3.14f32,f32::MIN],
+                vec![3.14f32,3.15f32,3.16f32]
+            )))
+        )
+    );
+    macro_test_run_script_table!(
+        test_run_script_table_float_array_vector_empty,
+        "table(array(FLOAT[]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Float(
+                ArrayVector::<f32>::new()
+            ))
+        )
+    );
+    // double array vector
+    macro_test_run_script_table!(
+        test_run_script_table_double_array_vector_normal,
+        "table(array(DOUBLE[]).append!([[0.0F,3.14F,00F],[3.14F,3.15F,3.16F]]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Double(array_vector_build!(
+                f64,
+                vec![0.0f64,3.14f64,f64::MIN],
+                vec![3.14f64,3.15f64,3.16f64]
+            )))
+        )
+    );
+    macro_test_run_script_table!(
+        test_run_script_table_double_array_vector_empty,
+        "table(array(DOUBLE[]) as `a)",
+        table_build!(
+            String::from("a") => VectorImpl::ArrayVector(ArrayVectorImpl::Double(
+                ArrayVector::<f64>::new()
+            ))
+        )
+    );
 }
 
-// todo:RUS-44
 #[tokio::test]
 async fn test_run_script_print() {
     let conf = Config::new();
@@ -4338,7 +4600,7 @@ async fn test_run_script_print() {
     builder.with_auth((conf.user.as_str(), conf.passwd.as_str()));
     let mut client = builder.connect().await.unwrap();
     let x = client.run_script("print 1+1").await;
-    println!("{x:?}");
+    assert!(x.is_ok());
 }
 
 // todo:RUS-63

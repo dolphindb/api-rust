@@ -4,13 +4,35 @@ use crate::{
     types::VectorImpl,
     Deserialize, Serialize,
 };
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self, Display},
+    ops::{Index, IndexMut},
+};
 use tokio::io::AsyncBufReadExt;
+use tokio::io::AsyncReadExt;
 
 #[derive(Default, Debug, Clone)]
 pub struct ArrayVector<S> {
     data: Vec<S>,
     index: Vec<usize>,
+}
+
+impl<T> Index<usize> for ArrayVector<T> {
+    type Output = [T];
+
+    fn index(&self, id: usize) -> &Self::Output {
+        let start = if id == 0 { 0 } else { self.index[id - 1] };
+        let end = self.index[id];
+        &self.data[start..end]
+    }
+}
+
+impl<T> IndexMut<usize> for ArrayVector<T> {
+    fn index_mut(&mut self, id: usize) -> &mut Self::Output {
+        let start = if id == 0 { 0 } else { self.index[id - 1] };
+        let end = self.index[id];
+        &mut self.data[start..end]
+    }
 }
 
 impl<S: PartialEq> PartialEq for ArrayVector<S> {
@@ -201,23 +223,76 @@ serialize!(
     (f64, put_f64_le)
 );
 
-impl<S> Deserialize for ArrayVector<S> {
-    async fn deserialize<R>(&mut self, reader: &mut R) -> Result<()>
-    where
-        R: AsyncBufReadExt + Unpin,
-    {
-        _ = reader;
-        panic!("Receiving array vector from server is unsupported now.");
-    }
+macro_rules! deserialize_vector {
+    ($read_func:ident, $func_name:ident) => {
+        async fn $func_name<R>(&mut self, reader: &mut R) -> Result<()>
+        where
+            R: AsyncBufReadExt + Unpin,
+        {
+            let mut target_num = self.index.len();
+            let mut index = Vec::with_capacity(target_num);
+            let mut prev:usize = 0;
+            let mut data = Vec::new();
+            let mut last_index = 0;
 
-    async fn deserialize_le<R>(&mut self, reader: &mut R) -> Result<()>
-    where
-        R: AsyncBufReadExt + Unpin,
-    {
-        _ = reader;
-        panic!("Receiving array vector from server is unsupported now.");
-    }
+            while (target_num > 0) {
+                let len = reader.read_u16_le().await? as usize;
+                let size_of_index_data = reader.read_u8().await?;
+                let _ = reader.read_i8().await?;
+
+                for _ in 0..len {
+                    let delta = match size_of_index_data {
+                        1 => reader.read_u8().await? as usize ,
+                        2 => reader.read_u16_le().await? as usize,
+                        4 => reader.read_u32_le().await? as usize,
+                        _ => return Err(Error::InvalidData {
+                            expect: "size_of_index_data: 1 2 4".to_string(),
+                            actual: format!("{}", size_of_index_data),
+                        }),
+                    };
+                    prev = prev.checked_add(delta).ok_or(Error::Unsupported {
+                        data_form: "ArrayVector".to_string(),
+                        data_type: "Index overflow".to_string(),
+                    })?;
+                    index.push(prev as usize);
+                }
+
+                let cur_last_index = *index.last().unwrap_or(&0);
+                let total_elements = cur_last_index - last_index;
+                last_index = cur_last_index;
+
+                for _ in 0..total_elements {
+                    let v = reader.$read_func().await?;
+                    data.push(v);
+                }
+                target_num -= len;
+            }
+
+            self.index = index;
+            self.data = data;
+
+            Ok(())
+        }
+    };
+
+    ($(($struct_name:ident, $read_func:ident, $read_func_le:ident)), *) => {
+        $(
+            impl Deserialize for $struct_name {
+                deserialize_vector!($read_func, deserialize);
+                deserialize_vector!($read_func_le, deserialize_le);
+            }
+        )*
+    };
 }
+
+deserialize_vector!(
+    (CharArrayVector, read_i8, read_i8),
+    (ShortArrayVector, read_i16, read_i16_le),
+    (IntArrayVector, read_i32, read_i32_le),
+    (LongArrayVector, read_i64, read_i64_le),
+    (FloatArrayVector, read_f32, read_f32_le),
+    (DoubleArrayVector, read_f64, read_f64_le)
+);
 
 macro_rules! try_from_impl {
     ($struct_name:ident, $enum_name:ident) => {
@@ -323,20 +398,26 @@ macro_rules! dispatch_serialize {
                 }
             }
 
-            pub(crate) async fn deserialize_data<R>(&self, reader: &mut R) -> Result<()>
+            pub(crate) async fn deserialize_data<R>(&mut self, reader: &mut R) -> Result<()>
             where
                 R: AsyncBufReadExt + Unpin,
             {
-                _ = reader;
-                panic!("Receiving array vector from server is unsupported now.");
+                match self {
+                    $(
+                        Self::$enum_name(s) => s.deserialize(reader).await,
+                    )*
+                }
             }
 
-            pub(crate) async fn deserialize_data_le<R>(&self, reader: &mut R) -> Result<()>
+            pub(crate) async fn deserialize_data_le<R>(&mut self, reader: &mut R) -> Result<()>
             where
                 R: AsyncBufReadExt + Unpin,
             {
-                _ = reader;
-                panic!("Receiving array vector from server is unsupported now.");
+                match self {
+                    $(
+                        Self::$enum_name(s) => s.deserialize_le(reader).await,
+                    )*
+                }
             }
         }
     };

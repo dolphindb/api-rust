@@ -1,6 +1,6 @@
 [package]
 name = "dolphindb"
-version = "3.2.3"
+version = "3.3.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "A Rust native API for DolphinDB"

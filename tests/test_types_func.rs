@@ -1286,6 +1286,28 @@ mod test_types_func_form {
 
     // array vector
     #[test]
+    fn test_types_func_form_array_vector_index() {
+        let array_vector = array_vector_build!(
+            f64,
+            vec![0.0f64, 3.14f64, f64::MIN],
+            vec![3.14f64, 3.15f64, 3.16f64]
+        );
+        assert_eq!(array_vector[0], vec![0.0f64, 3.14f64, f64::MIN]);
+        assert_eq!(array_vector[1], vec![3.14f64, 3.15f64, 3.16f64]);
+    }
+
+    #[test]
+    fn test_types_func_form_array_vector_index_mut() {
+        let mut array_vector = array_vector_build!(
+            f64,
+            vec![0.0f64, 3.14f64, f64::MIN],
+            vec![3.14f64, 3.15f64, 3.16f64]
+        );
+        array_vector[0][0] = 3.14f64;
+        assert_eq!(array_vector[0], vec![3.14f64, 3.14f64, f64::MIN]);
+    }
+
+    #[test]
     fn test_types_func_form_array_vector_clear_len_is_empty() {
         let mut array_vector =
             array_vector_build!(i32, vec![0i32, 1i32, 2i32], vec![0i32], vec![1i32]);
