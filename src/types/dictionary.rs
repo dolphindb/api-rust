@@ -374,8 +374,8 @@ impl Deserialize for DictionaryImpl {
     where
         R: AsyncBufReadExt + Unpin,
     {
-        let keys = deserialize_vector(reader).await?;
-        let values = deserialize_vector(reader).await?;
+        let keys = deserialize_vector(reader, &mut None).await?;
+        let values = deserialize_vector(reader, &mut None).await?;
 
         if keys.len() != values.len() {
             return Err(Error::InvalidData {
@@ -397,8 +397,8 @@ impl Deserialize for DictionaryImpl {
     where
         R: AsyncBufReadExt + Unpin,
     {
-        let keys = deserialize_vector_le(reader).await?;
-        let values = deserialize_vector_le(reader).await?;
+        let keys = deserialize_vector_le(reader, &mut None).await?;
+        let values = deserialize_vector_le(reader, &mut None).await?;
 
         if keys.len() != values.len() {
             return Err(Error::InvalidData {

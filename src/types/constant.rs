@@ -183,7 +183,7 @@ macro_rules! dispatch_deserialize {
 
                 if type_form.0 == 128 + DataType::Symbol as u8 {
                     let mut s = Vector::<Symbol>::new();
-                    s.deserialize_with_symbol_base(reader).await?;
+                    s.deserialize_with_symbol_base(reader, &mut None).await?;
                     *self = s.into();
                     return Ok(());
                 }
@@ -217,7 +217,7 @@ macro_rules! dispatch_deserialize {
 
                 if type_form.0 == 128 + DataType::Symbol as u8 {
                     let mut s = Vector::<Symbol>::new();
-                    s.deserialize_with_symbol_base_le(reader).await?;
+                    s.deserialize_with_symbol_base_le(reader, &mut None).await?;
                     *self = s.into();
                     return Ok(());
                 }

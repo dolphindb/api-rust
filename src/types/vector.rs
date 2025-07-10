@@ -782,27 +782,47 @@ impl Deserialize for VectorImpl {
 
 macro_rules! deserialize_symbol_with_base {
     ($read_i32:ident, $read_func:ident, $deserialize_base:ident, $deserialize_symbol:ident) => {
-        async fn $deserialize_base<R>(&mut self, reader: &mut R) -> Result<HashMap<i32, Symbol>>
+        async fn $deserialize_base<R>(
+            &mut self,
+            reader: &mut R,
+            symbol_base_dict: Option<&mut HashMap<i32, Vec<Symbol>>>,
+        ) -> Result<Vec<Symbol>>
         where
             R: AsyncBufReadExt + Unpin,
         {
-            let mut symbol_base_map = HashMap::new();
+            let mut symbol_base_map: Vec<Symbol> = Vec::new();
 
-            let _symbol_base_id = reader.$read_i32().await?;
+            let symbol_base_id = reader.$read_i32().await?;
             let symbol_base_size = usize::try_from(reader.$read_i32().await?)
                 .map_err(|e| Error::InvalidNumeric(e.to_string()))?;
 
             let mut symbol_base_vec = Vector::<Symbol>::new();
             symbol_base_vec.resize(symbol_base_size, Symbol::default());
             symbol_base_vec.$read_func(reader).await?;
-            for (id, s) in symbol_base_vec.into_iter().enumerate() {
-                symbol_base_map.insert(id as i32, s);
+
+            if symbol_base_vec.len() == 0 {
+                if let Some(ref dict) = symbol_base_dict {
+                    if let Some(base) = dict.get(&symbol_base_id) {
+                        return Ok(base.clone());
+                    }
+                }
+                return Ok(symbol_base_map);
+            }
+
+            symbol_base_map.extend(symbol_base_vec);
+
+            if let Some(dict) = symbol_base_dict {
+                dict.insert(symbol_base_id as i32, symbol_base_map.clone());
             }
 
             Ok(symbol_base_map)
         }
 
-        pub(crate) async fn $deserialize_symbol<R>(&mut self, reader: &mut R) -> Result<()>
+        pub(crate) async fn $deserialize_symbol<R>(
+            &mut self,
+            reader: &mut R,
+            symbol_base_dict: &mut Option<HashMap<i32, Vec<Symbol>>>,
+        ) -> Result<()>
         where
             R: AsyncBufReadExt + Unpin,
         {
@@ -812,7 +832,10 @@ macro_rules! deserialize_symbol_with_base {
             let _cols = reader.$read_i32().await?;
 
             // handle symbol base
-            let symbol_base_map = self.$deserialize_base(reader).await?;
+            let symbol_base_map = match symbol_base_dict {
+                Some(ref mut dict) => self.$deserialize_base(reader, Some(dict)).await?,
+                None => self.$deserialize_base(reader, None).await?,
+            };
 
             let mut symbol_ids = Vector::<Int>::new();
             symbol_ids.resize(len, Int::default());
@@ -826,7 +849,7 @@ macro_rules! deserialize_symbol_with_base {
                     "unexpected null id in symbol vector.".into(),
                 ))?
                 .into_iter()
-                .map(|id| symbol_base_map.get(&id).cloned())
+                .map(|id| symbol_base_map.get(id as usize).cloned())
                 .collect::<Option<Vec<_>>>()
                 .ok_or(Error::BadResponse("unexpected id in symbol vector.".into()))?;
 
@@ -1096,8 +1119,8 @@ impl VectorImpl {
 }
 
 macro_rules! deserialize_vector {
-    ($func_name:ident, $deserialize_func:ident) => {
-        pub(crate) async fn $func_name<R>(reader: &mut R) -> Result<VectorImpl>
+    ($func_name:ident, $deserialize_func:ident, $deserialize_symbol:ident) => {
+        pub(crate) async fn $func_name<R>(reader: &mut R, symbol_base_dict:&mut Option<HashMap<i32, Vec<Symbol>>>) -> Result<VectorImpl>
         where
             R: AsyncBufReadExt + Unpin,
         {
@@ -1115,7 +1138,7 @@ macro_rules! deserialize_vector {
 
             if data_type == 128 + DataType::Symbol as u8 {
                 let mut s = Vector::<Symbol>::new();
-                s.deserialize_with_symbol_base_le(reader).await?;
+                s.$deserialize_symbol(reader, symbol_base_dict).await?;
                 return Ok(VectorImpl::Symbol(s));
             }
 
@@ -1128,14 +1151,22 @@ macro_rules! deserialize_vector {
         }
     };
 
-    ($(($func_name:ident, $deserialize_func:ident)), *) => {
+    ($(($func_name:ident, $deserialize_func:ident, $deserialize_symbol:ident)), *) => {
         $(
-            deserialize_vector!($func_name, $deserialize_func);
+            deserialize_vector!($func_name, $deserialize_func, $deserialize_symbol);
         )*
     };
 }
 
 deserialize_vector!(
-    (deserialize_vector, deserialize),
-    (deserialize_vector_le, deserialize_le)
+    (
+        deserialize_vector,
+        deserialize,
+        deserialize_with_symbol_base
+    ),
+    (
+        deserialize_vector_le,
+        deserialize_le,
+        deserialize_with_symbol_base_le
+    )
 );

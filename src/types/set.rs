@@ -277,7 +277,7 @@ impl Deserialize for SetImpl {
     where
         R: AsyncBufReadExt + Unpin,
     {
-        let v = deserialize_vector(reader).await?;
+        let v = deserialize_vector(reader, &mut None).await?;
 
         *self = v.try_into().map_err(|_| {
             std::io::Error::new(
@@ -293,7 +293,7 @@ impl Deserialize for SetImpl {
     where
         R: AsyncBufReadExt + Unpin,
     {
-        let v = deserialize_vector_le(reader).await?;
+        let v = deserialize_vector_le(reader, &mut None).await?;
 
         *self = v.try_into().map_err(|_| {
             std::io::Error::new(

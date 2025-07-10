@@ -4320,6 +4320,38 @@ mod test_run_script_table {
         )
     );
     macro_test_run_script_table!(
+        test_run_script_table_symbol_long,
+        "table(take(symbol([`a]),10) as `a,take(symbol([`b]),10) as `b)",
+        table_build!(
+            String::from("a") => vector_build!(
+                Symbol,
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a")),
+                Symbol::new(String::from("a"))
+            ),
+            String::from("b") => vector_build!(
+                Symbol,
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b")),
+                Symbol::new(String::from("b"))
+            )
+        )
+    );
+    macro_test_run_script_table!(
         test_run_script_table_symbol_empty,
         "table([]$STRING$SYMBOL as `a)",
         table_build!(

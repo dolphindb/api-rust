@@ -1,6 +1,9 @@
 use std::fmt::Display;
 use std::hash::Hash;
-use std::{collections::HashSet, io::ErrorKind};
+use std::{
+    collections::{HashMap, HashSet},
+    io::ErrorKind,
+};
 
 use tokio::io::{AsyncBufReadExt, AsyncReadExt};
 
@@ -8,7 +11,7 @@ use prettytable::{Cell, Table as PrettyTable};
 
 use crate::{
     error::{Error, Result},
-    types::DolphinString,
+    types::{DolphinString, Symbol},
     Deserialize, Serialize,
 };
 
@@ -311,9 +314,10 @@ impl Deserialize for Table {
         }
 
         let mut columns = Vec::new();
+        let mut symbol_base_dict: Option<HashMap<i32, Vec<Symbol>>> = Some(Default::default());
 
         for _ in 0..cols {
-            let column = deserialize_vector(reader).await?;
+            let column = deserialize_vector(reader, &mut symbol_base_dict).await?;
 
             if column.len() != len {
                 return Err(Error::ConstraintsViolated("mismatch column size".into()));
@@ -355,9 +359,10 @@ impl Deserialize for Table {
         }
 
         let mut columns = Vec::new();
+        let mut symbol_base_dict: Option<HashMap<i32, Vec<Symbol>>> = Some(Default::default());
 
         for _ in 0..cols {
-            let column = deserialize_vector_le(reader).await?;
+            let column = deserialize_vector_le(reader, &mut symbol_base_dict).await?;
 
             if column.len() != len {
                 return Err(Error::ConstraintsViolated("mismatch column size".into()));
