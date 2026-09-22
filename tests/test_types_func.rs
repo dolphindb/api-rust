@@ -1377,6 +1377,40 @@ mod test_types_func_form {
         println!("{array_vector_impl}");
     }
 
+    #[test]
+    fn test_types_func_form_array_vector_get_row() {
+        let vector = VectorImpl::ArrayVector(ArrayVectorImpl::Int(array_vector_build!(
+            i32,
+            vec![0i32, 1i32, 2i32],
+            vec![],
+            vec![-127i32]
+        )));
+
+        let row0 = vector.get(0).unwrap();
+        let expect0: ConstantImpl =
+            vector_build!(Int, Int::new(0i32), Int::new(1i32), Int::new(2i32)).into();
+        assert_eq!(row0, expect0);
+
+        let row1 = vector.get(1).unwrap();
+        let expect1: ConstantImpl = Vector::<Int>::new().into();
+        assert_eq!(row1, expect1);
+
+        let row2 = vector.get(2).unwrap();
+        let expect2: ConstantImpl = vector_build!(Int, Int::new(-127i32)).into();
+        assert_eq!(row2, expect2);
+
+        assert!(vector.get(3).is_none());
+
+        let doubles = VectorImpl::ArrayVector(ArrayVectorImpl::Double(array_vector_build!(
+            f64,
+            vec![1.5f64, 2.5f64]
+        )));
+        let row = doubles.get(0).unwrap();
+        let expect: ConstantImpl =
+            vector_build!(Double, Double::new(1.5f64), Double::new(2.5f64)).into();
+        assert_eq!(row, expect);
+    }
+
     // set
     #[test]
     fn test_types_func_form_set_capacity_reserve_shrink_to_fit() {
