@@ -1,4 +1,6 @@
-use super::{Constant, ConstantImpl, DataForm, DataType};
+use super::{
+    Char, Constant, ConstantImpl, DataForm, DataType, Double, Float, Int, Long, Short,
+};
 use crate::{
     error::{Error, Result},
     types::VectorImpl,
@@ -80,6 +82,35 @@ impl ArrayVectorImpl {
 
     pub fn data_form() -> DataForm {
         Self::FORM_BYTE
+    }
+
+    /// Returns the row at `index` as a regular vector.
+    ///
+    /// Each row is a variable-length sub-array. Returns `None` when `index` is out of bounds.
+    pub fn get_row(&self, index: usize) -> Option<ConstantImpl> {
+        if index >= self.len() {
+            return None;
+        }
+        Some(match self {
+            ArrayVectorImpl::Char(v) => ConstantImpl::Vector(VectorImpl::Char(
+                v[index].iter().copied().map(Char::from).collect(),
+            )),
+            ArrayVectorImpl::Short(v) => ConstantImpl::Vector(VectorImpl::Short(
+                v[index].iter().copied().map(Short::from).collect(),
+            )),
+            ArrayVectorImpl::Int(v) => ConstantImpl::Vector(VectorImpl::Int(
+                v[index].iter().copied().map(Int::from).collect(),
+            )),
+            ArrayVectorImpl::Long(v) => ConstantImpl::Vector(VectorImpl::Long(
+                v[index].iter().copied().map(Long::from).collect(),
+            )),
+            ArrayVectorImpl::Float(v) => ConstantImpl::Vector(VectorImpl::Float(
+                v[index].iter().copied().map(Float::from).collect(),
+            )),
+            ArrayVectorImpl::Double(v) => ConstantImpl::Vector(VectorImpl::Double(
+                v[index].iter().copied().map(Double::from).collect(),
+            )),
+        })
     }
 }
 
